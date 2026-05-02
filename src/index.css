@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+@theme {
+  /* Felt (page background, deep poker table) */
+  --color-felt-900: #0d3324;
+  --color-felt-800: #11402c;
+  --color-felt-700: #1a5238;
+  --color-felt-600: #246b4a;
+
+  /* Card surface (vintage cream/ivory playing card) */
+  --color-card-50: #f7f1de;
+  --color-card-100: #ece3c8;
+  --color-card-200: #d9cfa8;
+
+  /* Ink + suits */
+  --color-ink-900: #1a1614;
+  --color-ink-700: #3a322b;
+  --color-ink-500: #6b5e54;
+
+  --color-crimson-700: #8a1620;
+  --color-crimson-600: #b21e2c;
+  --color-crimson-500: #d23548;
+
+  /* Accents */
+  --color-gold-500: #c9a24a;
+  --color-gold-400: #ddbb6b;
+
+  --color-sage-700: #436c54;
+  --color-sage-600: #5b8e6e;
+  --color-sage-500: #7caa8b;
+
+  /* Winner ramp (sage → teal → sky) — chart "biggest 3 winners" */
+  --color-teal-500: #2c9c8e;
+  --color-sky-500: #2a7fb8;
+
+  /* Loser ramp (crimson → orange → amber) — chart "biggest 3 losers" */
+  --color-orange-500: #d97a3b;
+  --color-amber-500: #d6a13a;
+
+  --font-display: "DM Serif Display", "Iowan Old Style", "Georgia", serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --animate-deal-in: deal-in 480ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-fade-in: fade-in 220ms ease-out both;
+}
+
+@keyframes deal-in {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) rotate(-2deg) scale(0.98);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  /* Subtle felt weave: layered radial highlight + repeating diagonal stitch */
+  background-color: var(--color-felt-900);
+  background-image: radial-gradient(
+      ellipse at 50% -10%,
+      rgba(255, 255, 255, 0.04),
+      transparent 60%
+    ),
+    repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.012) 0 2px,
+      transparent 2px 6px
+    );
+  background-attachment: fixed;
+}
+
+/* Tabular figures everywhere money is shown */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
