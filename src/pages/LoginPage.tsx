@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import Button from "../components/Button";
 import Card from "../components/Card";
 import { signIn, useCurrentUser } from "../lib/auth";
@@ -7,11 +7,15 @@ import { describeError } from "../lib/errors";
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { refresh } = useCurrentUser();
+  const { user, isApproved, refresh } = useCurrentUser();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  if (user && isApproved) {
+    return <Navigate to="/" replace />;
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();

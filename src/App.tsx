@@ -1,9 +1,9 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import AppLayout from "./components/AppLayout";
+import IndexRoute from "./components/IndexRoute";
 import RequireAdmin from "./components/RequireAdmin";
 import RequireAuth from "./components/RequireAuth";
 import AdminApprovalsPage from "./pages/AdminApprovalsPage";
-import DashboardPage from "./pages/DashboardPage";
 import LoginPage from "./pages/LoginPage";
 import PendingPage from "./pages/PendingPage";
 import PlayerProfilePage from "./pages/PlayerProfilePage";
@@ -25,15 +25,8 @@ export default function App() {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/pending" element={<PendingPage />} />
 
-          {/* Approved-user routes */}
-          <Route
-            index
-            element={
-              <RequireAuth>
-                <DashboardPage />
-              </RequireAuth>
-            }
-          />
+          {/* Index: login form for guests, dashboard for approved users. */}
+          <Route index element={<IndexRoute />} />
           <Route
             path="/sessions"
             element={
