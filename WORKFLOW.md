@@ -14,15 +14,15 @@ the checkbox — a tick with no log entry is how this file rots.
 
 | Phase | What | State | Done |
 |:--:|---|---|:--:|
-| **0** | Provider consolidation | `[~]` code done, untested | 5/5 |
-| **1** | `0007_groups.sql` + backfill | `[~]` tooling ready | 2/9 |
+| **0** | Provider consolidation | `[x]` **done** | 5/5 |
+| **1** | `0007` + `0008` applied | `[~]` `0009` deferred | 9/11 |
 | **2** | Group routing + picker | `[ ]` not started | 0/6 |
 | **3** | Joining + membership | `[ ]` not started | 0/7 |
 | **4** | Game log states | `[ ]` not started | 0/6 |
 | **5** | Settings, guest linking, admin | `[ ]` not started | 0/5 |
 
-**Current focus:** Phase 0 code complete; needs a manual smoke test in the
-browser before it can be called done.
+**Current focus:** Phase 2 — group routing. `0007` is live and verified;
+`0008` (contract) waits until the frontend has moved over.
 
 **Last updated:** 2026-09-05 · design agreed, nothing built.
 
@@ -56,8 +56,8 @@ that blanked the tab on refocus.
       because the shared hook now carries the same fetch pattern once
       (`useLeagueData.ts:72`) in place of the two page copies it replaced.
       `PlayersPage:70` and `RecordsPage:65` did clear as predicted.
-- [ ] **App still works signed out, pending, member, admin** — NOT yet
-      verified. Build-level only; needs a real browser run.
+- [x] App still works signed out, pending, member, admin — manually verified
+      by Will in the browser, incl. the tab-refocus fix.
 
 The other four are *not* Phase 0's to fix, and the earlier "6 → 0" gate was
 wrong: `ProfilePage:31` is a separate props-into-state issue,
@@ -74,13 +74,45 @@ Touches live data. The risky one.
 - [x] Supabase CLI installed (2.116.0), `supabase init`, project linked
 - [x] Migration history verified in sync: `0001`–`0006` local **and** remote,
       `db push --dry-run` reports up to date. No `migration repair` needed.
-- [ ] **Take a Supabase backup before anything else**
-- [ ] Write `supabase/migrations/0007_groups.sql` (steps 1–11, `GROUPS.md` §8)
-- [ ] Dry-run the backfill on a branch/copy, not production
-- [ ] Verify: `profiles` count == `players` with a `user_id`
-- [ ] Verify: every session, buy-in and cash-out resolves to exactly one group
-- [ ] Apply to production
+- [x] Backup — free tier has none, so `scripts/db-backup.mjs` snapshots all
+      344 rows + money totals to gitignored `backups/`
+- [x] Direct DB access: `pg` + `scripts/db.mjs`, reading `SUPABASE_DB_URL`
+      from `.env.local`
+- [x] **`0007_groups.sql` written and applied** — EXPAND only (see below)
+- [x] Preflight: 15 checks passed on real data before applying
+- [x] Verify: `profiles` (12) == `players` with a `user_id` (12)
+- [x] Verify: every player/session/payout resolves to exactly one group
+- [x] Verify: money byte-identical pre/post (696000 / 696875 / 696250)
+- [x] **`0008_group_id_default.sql`** — hotfix. 0007 added three NOT NULL
+      `group_id` columns with no default, which broke every INSERT path
+      (signup, add guest ×2, create session, record payout). Reads were fine,
+      so the smoke test missed it. Adds a transitional default via
+      `default_group_id()`; 0009 drops it.
+- [ ] `0009_groups_contract.sql` — drop old columns + defaults, swap RLS
+      (AFTER Phase 2)
 - [ ] Regenerate `src/types/database.ts` from the live schema
+
+**EXPAND/CONTRACT split.** `GROUPS.md` §8 had `0007` dropping
+`players.user_id`/`.username`/`.status` and swapping the policies. That would
+have broken the live app instantly — `AuthProvider` reads `status`, `signUp()`
+writes `user_id`/`username`, and new-user signup needs the old insert policy.
+So `0007` is purely additive (drops nothing, changes no existing policy) and
+all destructive work moved to `0008`, after the frontend migrates in Phase 2.
+
+**Resolved by preflight:** `is_guest` is exactly equivalent to
+`user_id is null` (12 accounts + 6 guests = 18, zero exceptions), so `0008`
+can safely drop it and derive from `profile_id`. That was the open question in
+`GROUPS.md` §3.
+
+**Pre-existing, unrelated to this work:** 2 sessions are flagged
+`needs_review` with real gaps of −$110.00 (2026-08-26) and +$107.50
+(2026-08-30). Correctly never auto-adjusted (both far over the $5 threshold).
+They need real numbers entered at some point.
+
+**Lesson from 0007:** "additive" is not automatically "safe". Adding a NOT
+NULL column with no default breaks every existing INSERT that omits it. Read
+paths kept working, so a click-through smoke test did not catch it — only a
+real insert probe did. Probe writes, not just reads, after any schema change.
 
 **Watch for**
 - Helpers **must** be `security definer` — a plain function selecting from
@@ -188,6 +220,13 @@ Found in the audit, deliberately not done yet.
 
 Newest first. One line per meaningful change.
 
+- **2026-09-05** — `0008_group_id_default.sql`: hotfix for 0007's NOT NULL
+  group_id columns breaking all INSERT paths. Transitional default, dropped
+  in 0009.
+- **2026-09-05** — `0007_groups.sql` applied to production. profiles/groups/
+  group_members/group_invites created; 12 profiles, 12 memberships, group
+  `royal`, will = admin + app owner. Money unchanged to the cent. Split into
+  expand/contract; `0008` deferred.
 - **2026-09-05** — Phase 0 implemented (Codex, run interrupted; finished and
   corrected by hand). `AuthProvider` + `authContext` + `useLeagueData`;
   −413/+68 across 8 files. 14 auth listeners → 1. Codex's interrupted run left

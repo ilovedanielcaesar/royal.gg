@@ -32,3 +32,6 @@ dist-ssr
 # Supabase local dev
 supabase/.branches
 supabase/.temp
+
+# Local DB snapshots (contain real data)
+backups/
