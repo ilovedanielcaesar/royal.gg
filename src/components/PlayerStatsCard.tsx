@@ -12,6 +12,7 @@ import {
   type Session,
 } from "../lib/stats";
 import Card from "./Card";
+import { useGroup } from "../lib/groupContext";
 
 type Props = {
   player: Player;
@@ -38,6 +39,7 @@ export default function PlayerStatsCard({
   rankAllTime = null,
   rankRating = null,
 }: Props) {
+  const { path } = useGroup();
   const stats = playerStats(player.id, sessions, buyIns, cashOuts);
   const nets = playerSessionNets(player.id, sessions, buyIns, cashOuts);
   const recent = nets.slice(-recentCount).reverse();
@@ -76,7 +78,7 @@ export default function PlayerStatsCard({
               </div>
               {rating.rating != null && (
                 <Link
-                  to={`/players/${player.id}/rating`}
+                  to={path(`/players/${player.id}/rating`)}
                   className="text-xs text-sage-700 underline"
                 >
                   How is this calculated?
@@ -164,7 +166,7 @@ export default function PlayerStatsCard({
           />
           {rating.rating != null ? (
             <Link
-              to={`/players/${player.id}/rating`}
+              to={path(`/players/${player.id}/rating`)}
               className="rounded-md bg-card-100/60 px-2 py-1.5 text-center transition hover:bg-card-100"
             >
               <div className="text-[10px] font-medium uppercase tracking-wide text-ink-500">

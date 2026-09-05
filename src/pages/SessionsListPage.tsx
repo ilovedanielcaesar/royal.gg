@@ -1,13 +1,13 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Button from "../components/Button";
 import Card from "../components/Card";
-import { useCurrentUser } from "../lib/auth";
 import { describeError } from "../lib/errors";
 import { formatPlayedAt } from "../lib/format";
 import { formatSignedCents } from "../lib/money";
 import { requireSupabase } from "../lib/supabase";
 import type { Database } from "../types/database";
+import { useGroup } from "../lib/groupContext";
 
 type Session = Database["public"]["Tables"]["sessions"]["Row"];
 
@@ -18,12 +18,12 @@ type SessionWithStats = Session & {
 };
 
 export default function SessionsListPage() {
-  const { isAdmin } = useCurrentUser();
+  const { group, isGroupAdmin, path } = useGroup();
   const [sessions, setSessions] = useState<SessionWithStats[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  async function load() {
+  const load = useCallback(async () => {
     try {
       const sb = requireSupabase();
       const { data: rows, error } = await sb
@@ -31,6 +31,7 @@ export default function SessionsListPage() {
         .select(
           "*, buy_ins(amount_cents, player_id), cash_outs(adjusted_amount_cents, player_id)"
         )
+        .eq("group_id", group!.id)
         .order("played_at", { ascending: false });
       if (error) throw error;
 
@@ -83,11 +84,11 @@ export default function SessionsListPage() {
       console.error(e);
       setError(describeError(e));
     }
-  }
+  }, [group]);
 
   useEffect(() => {
     void load();
-  }, []);
+  }, [load]);
 
   async function handleDelete(id: string) {
     if (
@@ -101,7 +102,7 @@ export default function SessionsListPage() {
     setError(null);
     try {
       const sb = requireSupabase();
-      const { error } = await sb.from("sessions").delete().eq("id", id);
+      const { error } = await sb.from("sessions").delete().eq("id", id).eq("group_id", group!.id);
       if (error) throw error;
       setSessions((prev) => (prev ? prev.filter((s) => s.id !== id) : prev));
     } catch (e) {
@@ -121,8 +122,8 @@ export default function SessionsListPage() {
             Every night, in reverse-chronological order.
           </p>
         </div>
-        {isAdmin && (
-          <Link to="/sessions/new">
+        {isGroupAdmin && (
+          <Link to={path("/sessions/new")}>
             <Button>+ New session</Button>
           </Link>
         )}
@@ -140,7 +141,7 @@ export default function SessionsListPage() {
         <Card>
           <p className="p-6 text-sm text-ink-500">
             No sessions yet.
-            {isAdmin
+            {isGroupAdmin
               ? ' Hit "New session" to log the first night.'
               : " Once the host logs a night, it'll appear here."}
           </p>
@@ -152,9 +153,10 @@ export default function SessionsListPage() {
               key={s.id}
               session={s}
               dealIn={idx * 60}
-              isAdmin={isAdmin}
+              isAdmin={isGroupAdmin}
               deleting={deletingId === s.id}
               onDelete={() => void handleDelete(s.id)}
+              path={path}
             />
           ))}
         </div>
@@ -169,12 +171,14 @@ function SessionCard({
   isAdmin,
   deleting,
   onDelete,
+  path,
 }: {
   session: SessionWithStats;
   dealIn: number;
   isAdmin: boolean;
   deleting: boolean;
   onDelete: () => void;
+  path: (sub: string) => string;
 }) {
   const accent = session.needs_review
     ? "crimson"
@@ -187,7 +191,7 @@ function SessionCard({
 
   return (
     <div className="relative">
-      <Link to={`/sessions/${session.id}`}>
+      <Link to={path(`/sessions/${session.id}`)}>
         <Card
           as="article"
           accent={accent}

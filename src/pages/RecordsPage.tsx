@@ -4,7 +4,6 @@ import Button from "../components/Button";
 import Card from "../components/Card";
 import PayoutSummary from "../components/PayoutSummary";
 import PlayerAvatar from "../components/PlayerAvatar";
-import { useCurrentUser } from "../lib/auth";
 import { describeError } from "../lib/errors";
 import { formatPlayedAt } from "../lib/format";
 import {
@@ -12,9 +11,10 @@ import {
 } from "../lib/stats";
 import { requireSupabase } from "../lib/supabase";
 import { useLeagueData } from "../lib/useLeagueData";
+import { useGroup } from "../lib/groupContext";
 
 export default function RecordsPage() {
-  const { isAdmin } = useCurrentUser();
+  const { group, isGroupAdmin, path } = useGroup();
   const { data, error: loadError, reload } = useLeagueData();
   const [error, setError] = useState<string | null>(null);
   const [revertingId, setRevertingId] = useState<string | null>(null);
@@ -52,7 +52,7 @@ export default function RecordsPage() {
     setError(null);
     try {
       const sb = requireSupabase();
-      const { error } = await sb.from("payouts").delete().eq("id", payoutId);
+      const { error } = await sb.from("payouts").delete().eq("id", payoutId).eq("group_id", group!.id);
       if (error) throw error;
       await reload();
     } catch (e) {
@@ -66,7 +66,7 @@ export default function RecordsPage() {
     <div className="space-y-6">
       <div>
         <Link
-          to="/players"
+          to={path("/players")}
           className="text-xs text-card-50/60 hover:text-card-50"
         >
           ← League
@@ -113,7 +113,7 @@ export default function RecordsPage() {
                           : "First-ever payout — covers all-time"}
                       </p>
                     </div>
-                    {isAdmin && (
+                    {isGroupAdmin && (
                       <Button
                         variant="danger"
                         size="sm"

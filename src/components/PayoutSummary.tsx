@@ -9,6 +9,7 @@ import {
   type Session,
 } from "../lib/stats";
 import PlayerAvatar from "./PlayerAvatar";
+import { useGroup } from "../lib/groupContext";
 
 type Props = {
   players: Player[];
@@ -36,6 +37,7 @@ export default function PayoutSummary({
   endOn,
   linkProfiles = false,
 }: Props) {
+  const { path } = useGroup();
   const rows = periodNets(players, sessions, buyIns, cashOuts, startAfter, endOn);
 
   if (rows.length === 0) {
@@ -76,7 +78,7 @@ export default function PayoutSummary({
           <li key={r.player.id}>
             {linkProfiles ? (
               <Link
-                to={`/players/${r.player.id}`}
+                to={path(`/players/${r.player.id}`)}
                 className="flex items-center gap-3 py-2 hover:bg-card-100/40"
               >
                 {inner}

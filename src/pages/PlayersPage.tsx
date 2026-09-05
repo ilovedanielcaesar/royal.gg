@@ -4,7 +4,6 @@ import Button from "../components/Button";
 import Card from "../components/Card";
 import PayoutSummary from "../components/PayoutSummary";
 import PlayerAvatar from "../components/PlayerAvatar";
-import { useCurrentUser } from "../lib/auth";
 import { describeError } from "../lib/errors";
 import { todayIsoDate, formatPlayedAt } from "../lib/format";
 import { effectiveSuit } from "../lib/playerSuit";
@@ -12,11 +11,12 @@ import { currentPayoutPeriod } from "../lib/stats";
 import { requireSupabase } from "../lib/supabase";
 import type { Database } from "../types/database";
 import { EMPTY_LEAGUE_DATA, useLeagueData } from "../lib/useLeagueData";
+import { useGroup } from "../lib/groupContext";
 
 type Player = Database["public"]["Tables"]["players"]["Row"];
 
 export default function PlayersPage() {
-  const { isAdmin } = useCurrentUser();
+  const { group, isGroupAdmin, path } = useGroup();
   const { data, error: loadError, reload } = useLeagueData();
   const { sessions, buyIns, cashOuts, payouts } = data ?? EMPTY_LEAGUE_DATA;
   const [error, setError] = useState<string | null>(null);
@@ -58,7 +58,7 @@ export default function PlayersPage() {
       const sb = requireSupabase();
       const { error } = await sb
         .from("players")
-        .insert({ name: name.trim(), is_guest: isGuest, status: "active" });
+        .insert({ name: name.trim(), is_guest: isGuest, status: "active", group_id: group!.id });
       if (error) throw error;
       setName("");
       setIsGuest(true);
@@ -78,7 +78,7 @@ export default function PlayersPage() {
     setError(null);
     try {
       const sb = requireSupabase();
-      const { error } = await sb.from("players").delete().eq("id", id);
+      const { error } = await sb.from("players").delete().eq("id", id).eq("group_id", group!.id);
       if (error) throw error;
       await reload();
     } catch (e) {
@@ -97,6 +97,7 @@ export default function PlayersPage() {
       const { error } = await sb.from("payouts").insert({
         period_end_date: todayIsoDate(),
         distributor_player_id: distributorId,
+        group_id: group!.id,
       });
       if (error) throw error;
       setShowSettleForm(false);
@@ -120,7 +121,7 @@ export default function PlayersPage() {
           </p>
         </div>
         <Link
-          to="/records"
+          to={path("/records")}
           className="text-sm text-card-50/70 underline hover:text-card-50"
         >
           Payout records →
@@ -142,7 +143,7 @@ export default function PlayersPage() {
                 {" · ending today"}
               </p>
             </div>
-            {isAdmin && players && players.length > 0 && (
+            {isGroupAdmin && players && players.length > 0 && (
               <Button
                 variant="primary"
                 size="sm"
@@ -153,7 +154,7 @@ export default function PlayersPage() {
             )}
           </div>
 
-          {showSettleForm && isAdmin && (
+          {showSettleForm && isGroupAdmin && (
             <form
               onSubmit={handleSettle}
               className="mt-3 flex flex-wrap items-end gap-3 rounded-md border border-card-200 bg-card-100/40 p-3"
@@ -200,7 +201,7 @@ export default function PlayersPage() {
         </div>
       </Card>
 
-      {isAdmin && (
+      {isGroupAdmin && (
         <Card>
           <form
             onSubmit={handleAdd}
@@ -253,8 +254,9 @@ export default function PlayersPage() {
               key={p.id}
               player={p}
               dealIn={idx * 50}
-              canDelete={isAdmin}
+              canDelete={isGroupAdmin}
               onDelete={() => handleDelete(p.id)}
+              path={path}
             />
           ))}
         </div>
@@ -268,11 +270,13 @@ function PlayerCard({
   dealIn,
   canDelete,
   onDelete,
+  path,
 }: {
   player: Player;
   dealIn: number;
   canDelete: boolean;
   onDelete: () => void;
+  path: (sub: string) => string;
 }) {
   const { suit, rank } = effectiveSuit(player);
   const isPending = player.status === "pending";
@@ -284,12 +288,12 @@ function PlayerCard({
       accent={isPending ? "gold" : player.is_guest ? "gold" : "neutral"}
     >
       <div className="flex items-center gap-4 p-5">
-        <Link to={`/players/${player.id}`}>
+        <Link to={path(`/players/${player.id}`)}>
           <PlayerAvatar player={player} size="lg" />
         </Link>
         <div className="flex-1">
           <Link
-            to={`/players/${player.id}`}
+            to={path(`/players/${player.id}`)}
             className="font-display text-2xl text-ink-900 hover:underline"
           >
             {player.display_name ?? player.name}

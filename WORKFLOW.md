@@ -15,7 +15,7 @@ the checkbox — a tick with no log entry is how this file rots.
 | Phase | What | State | Done |
 |:--:|---|---|:--:|
 | **0** | Provider consolidation | `[x]` **done** | 5/5 |
-| **1** | `0007` + `0008` applied | `[~]` `0009` deferred | 9/11 |
+| **1** | `0007`+`0008` applied | `[~]` `0009`/`0010` deferred | 9/12 |
 | **2** | Group routing + picker | `[ ]` not started | 0/6 |
 | **3** | Joining + membership | `[ ]` not started | 0/7 |
 | **4** | Game log states | `[ ]` not started | 0/6 |
@@ -88,8 +88,31 @@ Touches live data. The risky one.
       (signup, add guest ×2, create session, record payout). Reads were fine,
       so the smoke test missed it. Adds a transitional default via
       `default_group_id()`; 0009 drops it.
-- [ ] `0009_groups_contract.sql` — drop old columns + defaults, swap RLS
-      (AFTER Phase 2)
+- [ ] `0009` RLS isolation — swap to `is_group_member()`/`is_group_admin()`.
+      **AFTER Phase 3**, not Phase 2: switching the `players` policies breaks
+      `signUp()` until the join flow exists.
+- [ ] `0010` contract — drop `players.user_id/.username/.status/.is_guest`,
+      the old global unique indexes, `is_admin()`, and the transitional
+      `default_group_id()` defaults. AFTER auth moves to profiles in Phase 3.
+
+**⚠ SCHEMA DRIFT FOUND — must be handled in 0009.** Four policies exist in the
+live database that are in NO migration, added by hand in the dashboard:
+
+    players_select_all · sessions_select_all
+    buy_ins_select_all · cash_outs_select_all      all `using (true)`
+
+RLS policies are OR-ed. Adding a strict `is_group_member(group_id)` policy
+while these survive leaves every group's data readable by every authenticated
+user — and the app would look perfectly correct while doing it. `0009` MUST
+drop these by name, and must end with an assertion that no permissive
+`using (true)` SELECT policy remains on players/sessions/buy_ins/cash_outs/
+payouts. Verify with:
+
+    select tablename, policyname, qual from pg_policies
+    where schemaname='public' and qual = 'true';
+
+This is also why `db push` alone can't be trusted as the source of truth here:
+the migrations and the live database had diverged before we started.
 - [ ] Regenerate `src/types/database.ts` from the live schema
 
 **EXPAND/CONTRACT split.** `GROUPS.md` §8 had `0007` dropping
@@ -220,6 +243,12 @@ Found in the audit, deliberately not done yet.
 
 Newest first. One line per meaningful change.
 
+- **2026-09-05** — Found 4 undocumented `using (true)` RLS policies in prod
+  (`*_select_all`) that exist in no migration. They would silently defeat
+  group isolation, since policies are OR-ed. Recorded as a hard requirement
+  for 0009.
+- **2026-09-05** — Phase 2 delegated to Codex (routing, GroupProvider,
+  /g/:slug/*, group picker, ProfilePage split, group-scoped useLeagueData).
 - **2026-09-05** — `0008_group_id_default.sql`: hotfix for 0007's NOT NULL
   group_id columns breaking all INSERT paths. Transitional default, dropped
   in 0009.
