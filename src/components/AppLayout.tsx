@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { useCurrentUser } from "../lib/auth";
 import { isSupabaseConfigured } from "../lib/supabase";
+import ErrorBoundary from "./ErrorBoundary";
 import SetupNotice from "./SetupNotice";
 import SuitBadge from "./SuitBadge";
 import UserMenu from "./UserMenu";
@@ -49,7 +50,13 @@ export default function AppLayout() {
         </div>
       </header>
       <main className="mx-auto max-w-6xl px-4 py-8">
-        {isSupabaseConfigured ? <Outlet /> : <SetupNotice />}
+        {isSupabaseConfigured ? (
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
+        ) : (
+          <SetupNotice />
+        )}
       </main>
     </div>
   );
