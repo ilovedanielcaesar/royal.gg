@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Button from "../components/Button";
 import Card from "../components/Card";
@@ -8,62 +8,17 @@ import { useCurrentUser } from "../lib/auth";
 import { describeError } from "../lib/errors";
 import { formatPlayedAt } from "../lib/format";
 import {
-  type BuyIn,
-  type CashOut,
-  type Payout,
   type Player,
-  type Session,
 } from "../lib/stats";
 import { requireSupabase } from "../lib/supabase";
-
-type Loaded = {
-  players: Player[];
-  sessions: Session[];
-  buyIns: BuyIn[];
-  cashOuts: CashOut[];
-  payouts: Payout[];
-};
+import { useLeagueData } from "../lib/useLeagueData";
 
 export default function RecordsPage() {
   const { isAdmin } = useCurrentUser();
-  const [data, setData] = useState<Loaded | null>(null);
+  const { data, error: loadError, reload } = useLeagueData();
   const [error, setError] = useState<string | null>(null);
   const [revertingId, setRevertingId] = useState<string | null>(null);
-
-  async function load() {
-    try {
-      const sb = requireSupabase();
-      const [pRes, sRes, bRes, cRes, payRes] = await Promise.all([
-        sb.from("players").select("*"),
-        sb.from("sessions").select("*"),
-        sb.from("buy_ins").select("*"),
-        sb.from("cash_outs").select("*"),
-        sb
-          .from("payouts")
-          .select("*")
-          .order("period_end_date", { ascending: false }),
-      ]);
-      if (pRes.error) throw pRes.error;
-      if (sRes.error) throw sRes.error;
-      if (bRes.error) throw bRes.error;
-      if (cRes.error) throw cRes.error;
-      if (payRes.error) throw payRes.error;
-      setData({
-        players: pRes.data ?? [],
-        sessions: sRes.data ?? [],
-        buyIns: bRes.data ?? [],
-        cashOuts: cRes.data ?? [],
-        payouts: payRes.data ?? [],
-      });
-    } catch (e) {
-      console.error(e);
-      setError(describeError(e));
-    }
-  }
-
-  useEffect(() => {
-    void load();
-  }, []);
+  const displayedError = error ?? loadError;
 
   const playerById = useMemo(() => {
     const m = new Map<string, Player>();
@@ -76,9 +31,12 @@ export default function RecordsPage() {
   // payouts[i+1].
   const payoutsWithRange = useMemo(() => {
     if (!data) return [];
-    return data.payouts.map((p, i) => ({
+    const payouts = [...data.payouts].sort((a, b) =>
+      b.period_end_date.localeCompare(a.period_end_date)
+    );
+    return payouts.map((p, i) => ({
       payout: p,
-      startAfter: data.payouts[i + 1]?.period_end_date ?? null,
+      startAfter: payouts[i + 1]?.period_end_date ?? null,
     }));
   }, [data]);
 
@@ -96,7 +54,7 @@ export default function RecordsPage() {
       const sb = requireSupabase();
       const { error } = await sb.from("payouts").delete().eq("id", payoutId);
       if (error) throw error;
-      await load();
+      await reload();
     } catch (e) {
       setError(describeError(e));
     } finally {
@@ -122,9 +80,9 @@ export default function RecordsPage() {
         </p>
       </div>
 
-      {error && (
+      {displayedError && (
         <Card accent="crimson">
-          <p className="p-4 text-sm text-crimson-700">{error}</p>
+          <p className="p-4 text-sm text-crimson-700">{displayedError}</p>
         </Card>
       )}
 

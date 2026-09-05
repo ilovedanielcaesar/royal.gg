@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import Button from "../components/Button";
 import Card from "../components/Card";
@@ -8,25 +8,17 @@ import { useCurrentUser } from "../lib/auth";
 import { describeError } from "../lib/errors";
 import { todayIsoDate, formatPlayedAt } from "../lib/format";
 import { effectiveSuit } from "../lib/playerSuit";
-import {
-  currentPayoutPeriod,
-  type BuyIn,
-  type CashOut,
-  type Payout,
-  type Session,
-} from "../lib/stats";
+import { currentPayoutPeriod } from "../lib/stats";
 import { requireSupabase } from "../lib/supabase";
 import type { Database } from "../types/database";
+import { EMPTY_LEAGUE_DATA, useLeagueData } from "../lib/useLeagueData";
 
 type Player = Database["public"]["Tables"]["players"]["Row"];
 
 export default function PlayersPage() {
   const { isAdmin } = useCurrentUser();
-  const [players, setPlayers] = useState<Player[] | null>(null);
-  const [sessions, setSessions] = useState<Session[]>([]);
-  const [buyIns, setBuyIns] = useState<BuyIn[]>([]);
-  const [cashOuts, setCashOuts] = useState<CashOut[]>([]);
-  const [payouts, setPayouts] = useState<Payout[]>([]);
+  const { data, error: loadError, reload } = useLeagueData();
+  const { sessions, buyIns, cashOuts, payouts } = data ?? EMPTY_LEAGUE_DATA;
   const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [isGuest, setIsGuest] = useState(true);
@@ -36,39 +28,16 @@ export default function PlayersPage() {
   const [distributorId, setDistributorId] = useState("");
   const [settling, setSettling] = useState(false);
 
-  async function load() {
-    try {
-      const sb = requireSupabase();
-      const [pRes, sRes, bRes, cRes, payRes] = await Promise.all([
-        sb
-          .from("players")
-          .select("*")
-          .neq("status", "rejected")
-          .order("name"),
-        sb.from("sessions").select("*"),
-        sb.from("buy_ins").select("*"),
-        sb.from("cash_outs").select("*"),
-        sb.from("payouts").select("*"),
-      ]);
-      if (pRes.error) throw pRes.error;
-      if (sRes.error) throw sRes.error;
-      if (bRes.error) throw bRes.error;
-      if (cRes.error) throw cRes.error;
-      if (payRes.error) throw payRes.error;
-      setPlayers(pRes.data);
-      setSessions(sRes.data ?? []);
-      setBuyIns(bRes.data ?? []);
-      setCashOuts(cRes.data ?? []);
-      setPayouts(payRes.data ?? []);
-    } catch (e) {
-      console.error(e);
-      setError(describeError(e));
-    }
-  }
-
-  useEffect(() => {
-    void load();
-  }, []);
+  const players = useMemo(
+    () =>
+      data
+        ? data.players
+            .filter((player) => player.status !== "rejected")
+            .sort((a, b) => a.name.localeCompare(b.name))
+        : null,
+    [data]
+  );
+  const displayedError = error ?? loadError;
 
   const period = useMemo(
     () => currentPayoutPeriod(payouts, todayIsoDate()),
@@ -93,7 +62,7 @@ export default function PlayersPage() {
       if (error) throw error;
       setName("");
       setIsGuest(true);
-      await load();
+      await reload();
     } catch (e) {
       console.error(e);
       setError(describeError(e));
@@ -111,7 +80,7 @@ export default function PlayersPage() {
       const sb = requireSupabase();
       const { error } = await sb.from("players").delete().eq("id", id);
       if (error) throw error;
-      await load();
+      await reload();
     } catch (e) {
       console.error(e);
       setError(describeError(e));
@@ -132,7 +101,7 @@ export default function PlayersPage() {
       if (error) throw error;
       setShowSettleForm(false);
       setDistributorId("");
-      await load();
+      await reload();
     } catch (e) {
       console.error(e);
       setError(describeError(e));
@@ -265,9 +234,9 @@ export default function PlayersPage() {
         </Card>
       )}
 
-      {error && (
+      {displayedError && (
         <Card accent="crimson">
-          <p className="p-4 text-sm text-crimson-700">{error}</p>
+          <p className="p-4 text-sm text-crimson-700">{displayedError}</p>
         </Card>
       )}
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import Button from "../components/Button";
 import Card from "../components/Card";
@@ -7,7 +7,6 @@ import PayoutSummary from "../components/PayoutSummary";
 import PlayerAvatar from "../components/PlayerAvatar";
 import SeasonLeaders from "../components/SeasonLeaders";
 import { useCurrentUser } from "../lib/auth";
-import { describeError } from "../lib/errors";
 import { formatPlayedAt, todayIsoDate } from "../lib/format";
 import { formatCents, formatSignedCents } from "../lib/money";
 import {
@@ -16,21 +15,9 @@ import {
   leaderboard,
   lifetimeTotals,
   playerSessionNets,
-  type BuyIn,
-  type CashOut,
-  type Payout,
   type Player,
-  type Session,
 } from "../lib/stats";
-import { requireSupabase } from "../lib/supabase";
-
-type Loaded = {
-  players: Player[];
-  sessions: Session[];
-  buyIns: BuyIn[];
-  cashOuts: CashOut[];
-  payouts: Payout[];
-};
+import { useLeagueData } from "../lib/useLeagueData";
 
 const WINNER_COLORS = [
   "var(--color-sage-600)",
@@ -45,38 +32,7 @@ const LOSER_COLORS = [
 
 export default function DashboardPage() {
   const { player: me, isAdmin } = useCurrentUser();
-  const [data, setData] = useState<Loaded | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    void (async () => {
-      try {
-        const sb = requireSupabase();
-        const [pRes, sRes, bRes, cRes, payRes] = await Promise.all([
-          sb.from("players").select("*"),
-          sb.from("sessions").select("*"),
-          sb.from("buy_ins").select("*"),
-          sb.from("cash_outs").select("*"),
-          sb.from("payouts").select("*"),
-        ]);
-        if (pRes.error) throw pRes.error;
-        if (sRes.error) throw sRes.error;
-        if (bRes.error) throw bRes.error;
-        if (cRes.error) throw cRes.error;
-        if (payRes.error) throw payRes.error;
-        setData({
-          players: pRes.data ?? [],
-          sessions: sRes.data ?? [],
-          buyIns: bRes.data ?? [],
-          cashOuts: cRes.data ?? [],
-          payouts: payRes.data ?? [],
-        });
-      } catch (e) {
-        console.error(e);
-        setError(describeError(e));
-      }
-    })();
-  }, []);
+  const { data, error } = useLeagueData();
 
   const totals = useMemo(
     () =>

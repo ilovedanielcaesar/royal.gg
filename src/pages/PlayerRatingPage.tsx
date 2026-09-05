@@ -1,53 +1,15 @@
-import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Card from "../components/Card";
 import PlayerAvatar from "../components/PlayerAvatar";
-import { describeError } from "../lib/errors";
 import { formatSignedCents } from "../lib/money";
-import {
-  playerRating,
-  type BuyIn,
-  type CashOut,
-  type Player,
-  type Session,
-} from "../lib/stats";
-import { requireSupabase } from "../lib/supabase";
+import { playerRating } from "../lib/stats";
+import { EMPTY_LEAGUE_DATA, useLeagueData } from "../lib/useLeagueData";
 
 export default function PlayerRatingPage() {
   const { id } = useParams();
-  const [player, setPlayer] = useState<Player | null>(null);
-  const [sessions, setSessions] = useState<Session[]>([]);
-  const [buyIns, setBuyIns] = useState<BuyIn[]>([]);
-  const [cashOuts, setCashOuts] = useState<CashOut[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!id) return;
-    void (async () => {
-      try {
-        const sb = requireSupabase();
-        const [pRes, sRes, bRes, cRes] = await Promise.all([
-          sb.from("players").select("*").eq("id", id).maybeSingle(),
-          sb.from("sessions").select("*"),
-          sb.from("buy_ins").select("*"),
-          sb.from("cash_outs").select("*"),
-        ]);
-        if (pRes.error) throw pRes.error;
-        if (sRes.error) throw sRes.error;
-        if (bRes.error) throw bRes.error;
-        if (cRes.error) throw cRes.error;
-        setPlayer(pRes.data);
-        setSessions(sRes.data ?? []);
-        setBuyIns(bRes.data ?? []);
-        setCashOuts(cRes.data ?? []);
-      } catch (e) {
-        setError(describeError(e));
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [id]);
+  const { data, loading, error } = useLeagueData();
+  const { players, sessions, buyIns, cashOuts } = data ?? EMPTY_LEAGUE_DATA;
+  const player = players.find((candidate) => candidate.id === id) ?? null;
 
   if (loading) return <div className="text-sm text-card-50/60">Dealing in…</div>;
   if (error || !player) {

@@ -4,20 +4,22 @@ import Card from "../components/Card";
 import PlayerAvatar from "../components/PlayerAvatar";
 import PlayerStatsCard from "../components/PlayerStatsCard";
 import SuitRankPicker from "../components/SuitRankPicker";
-import { useCurrentUser, type Player } from "../lib/auth";
+import { useCurrentUser } from "../lib/auth";
 import { describeError } from "../lib/errors";
 import type { Rank, Suit } from "../lib/playerSuit";
 import { requireSupabase } from "../lib/supabase";
-import type { BuyIn, CashOut, Session } from "../lib/stats";
+import { EMPTY_LEAGUE_DATA, useLeagueData } from "../lib/useLeagueData";
 
 export default function ProfilePage() {
   const { player, refresh } = useCurrentUser();
-  const [allPlayers, setAllPlayers] = useState<Player[]>([]);
-  const [sessions, setSessions] = useState<Session[]>([]);
-  const [buyIns, setBuyIns] = useState<BuyIn[]>([]);
-  const [cashOuts, setCashOuts] = useState<CashOut[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data, loading, error: loadError } = useLeagueData();
+  const {
+    players: allPlayers,
+    sessions,
+    buyIns,
+    cashOuts,
+  } = data ?? EMPTY_LEAGUE_DATA;
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const [displayName, setDisplayName] = useState("");
   const [username, setUsername] = useState("");
@@ -34,31 +36,7 @@ export default function ProfilePage() {
     setRank(player.chosen_rank);
   }, [player]);
 
-  useEffect(() => {
-    void (async () => {
-      try {
-        const supabase = requireSupabase();
-        const [pRes, sRes, bRes, cRes] = await Promise.all([
-          supabase.from("players").select("*"),
-          supabase.from("sessions").select("*"),
-          supabase.from("buy_ins").select("*"),
-          supabase.from("cash_outs").select("*"),
-        ]);
-        if (pRes.error) throw pRes.error;
-        if (sRes.error) throw sRes.error;
-        if (bRes.error) throw bRes.error;
-        if (cRes.error) throw cRes.error;
-        setAllPlayers(pRes.data ?? []);
-        setSessions(sRes.data ?? []);
-        setBuyIns(bRes.data ?? []);
-        setCashOuts(cRes.data ?? []);
-      } catch (e) {
-        setError(describeError(e));
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
+  const error = saveError ?? loadError;
 
   const taken = useMemo(() => {
     const t = new Set<string>();
@@ -83,7 +61,7 @@ export default function ProfilePage() {
     e.preventDefault();
     if (!player) return;
     setSaving(true);
-    setError(null);
+    setSaveError(null);
     try {
       const supabase = requireSupabase();
       const { error } = await supabase
@@ -99,7 +77,7 @@ export default function ProfilePage() {
       await refresh();
       setSavedAt(Date.now());
     } catch (e) {
-      setError(describeError(e));
+      setSaveError(describeError(e));
     } finally {
       setSaving(false);
     }
