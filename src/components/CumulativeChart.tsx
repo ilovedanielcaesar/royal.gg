@@ -257,33 +257,21 @@ export default function CumulativeChart({
           );
         })}
 
-        {/* Hover tooltip — shows per-session P/L (not cumulative) so you can
-            read the night's result at a glance. The line trajectory itself
-            is still cumulative. */}
+        {/* Hover tooltip — shows lifetime cumulative net P/L at that point in
+            time so you can read each player's running total at a glance. */}
         {hoveredCol !== null &&
           (() => {
             const lines = series
               .map((s) => {
-                // Use the point AT the hovered session if the player played
-                // that night, else fall back to the most recent session up to
-                // hoveredCol so the player still appears in the tooltip with
-                // a 0 (sat out) marker.
-                const exact = s.points.find(
-                  (p) => p.sessionIndex === hoveredCol
-                );
-                if (exact) {
-                  return { name: s.name, cents: exact.netCents, played: true };
-                }
-                const prior = [...s.points]
-                  .reverse()
-                  .find((p) => p.sessionIndex <= hoveredCol);
-                if (!prior) return null;
-                return { name: s.name, cents: 0, played: false };
+                const pt =
+                  s.points.find((p) => p.sessionIndex === hoveredCol) ??
+                  [...s.points]
+                    .reverse()
+                    .find((p) => p.sessionIndex <= hoveredCol);
+                if (!pt) return null;
+                return { name: s.name, cents: pt.cumulativeCents };
               })
-              .filter(
-                (x): x is { name: string; cents: number; played: boolean } =>
-                  Boolean(x)
-              )
+              .filter((x): x is { name: string; cents: number } => Boolean(x))
               .sort((a, b) => b.cents - a.cents)
               .slice(0, 6);
             const x = xOf(hoveredCol);
@@ -328,18 +316,15 @@ export default function CumulativeChart({
                     y={ty + 28 + i * 14}
                     fontSize={11}
                     fill={
-                      !l.played
-                        ? "var(--color-ink-500)"
-                        : l.cents > 0
-                          ? "var(--color-sage-700)"
-                          : l.cents < 0
-                            ? "var(--color-crimson-700)"
-                            : "var(--color-ink-900)"
+                      l.cents > 0
+                        ? "var(--color-sage-700)"
+                        : l.cents < 0
+                          ? "var(--color-crimson-700)"
+                          : "var(--color-ink-900)"
                     }
                     className="tabular"
                   >
-                    {l.name}{" "}
-                    {l.played ? formatSignedCents(l.cents) : "— sat out"}
+                    {l.name} {formatSignedCents(l.cents)}
                   </text>
                 ))}
               </g>

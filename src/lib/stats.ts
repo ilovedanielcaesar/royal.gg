@@ -5,7 +5,7 @@ export type Session = Database["public"]["Tables"]["sessions"]["Row"];
 export type BuyIn = Database["public"]["Tables"]["buy_ins"]["Row"];
 export type CashOut = Database["public"]["Tables"]["cash_outs"]["Row"];
 
-export type SessionAggregate = {
+type SessionAggregate = {
   session: Session;
   totalBuyInCents: number;
   totalReportedCents: number;
@@ -33,7 +33,7 @@ export type CumulativePoint = {
   cumulativeCents: number;
 };
 
-export function aggregateSession(
+function aggregateSession(
   session: Session,
   buyIns: BuyIn[],
   cashOuts: CashOut[]
@@ -268,60 +268,6 @@ export function seasonLeaders(
       sessionsPlayed: byPlayer.get(p.id)!.count,
     }))
     .sort((a, b) => b.netCents - a.netCents);
-}
-
-/**
- * Action score for a single session (0–10). Three additive components:
- *   • per-player swing  — sum(|net_i|) / players / 100 / 8        (0..10)
- *   • table-size bonus  — max(0, players - 4) × 0.3               (0..1.8 typical)
- *   • rebuy bonus       — count_of_players_with_rebuys × 0.4      (0..3.2 typical)
- * Reasoning:
- *   $80 avg per-player movement alone caps the score at 10 (one full $40
- *   buy-in's worth of action). Bigger tables and rebuys nudge it up because
- *   those genuinely make a night more chaotic. The clamp keeps it ≤ 10.
- */
-export function sessionScore(
-  session: Session,
-  buyIns: BuyIn[],
-  cashOuts: CashOut[]
-): number {
-  const sessionBuys = buyIns.filter((b) => b.session_id === session.id);
-  const sessionCash = cashOuts.filter((c) => c.session_id === session.id);
-  const playerIds = new Set([
-    ...sessionBuys.map((b) => b.player_id),
-    ...sessionCash.map((c) => c.player_id),
-  ]);
-  if (playerIds.size === 0) return 0;
-
-  let totalAbsCents = 0;
-  let rebuyPlayerCount = 0;
-  playerIds.forEach((pid) => {
-    const playerBuys = sessionBuys.filter((b) => b.player_id === pid);
-    const buy = playerBuys.reduce((sum, b) => sum + b.amount_cents, 0);
-    const co = sessionCash.find((c) => c.player_id === pid);
-    const cash = co ? co.adjusted_amount_cents : 0;
-    totalAbsCents += Math.abs(cash - buy);
-    if (playerBuys.length > 1) rebuyPlayerCount += 1;
-  });
-
-  const perPlayerDollars = totalAbsCents / playerIds.size / 100;
-  const swingScore = perPlayerDollars / 8;
-  const tableBonus = Math.max(0, playerIds.size - 4) * 0.3;
-  const rebuyBonus = rebuyPlayerCount * 0.4;
-  const total = swingScore + tableBonus + rebuyBonus;
-  return Math.max(0, Math.min(10, Math.round(total * 10) / 10));
-}
-
-/**
- * Consistency score (1–10) from a player's session-net stdev.
- * Anchored: stdev=$0 → 10, stdev=$40 → 1, linear in between.
- * Returns null if there's not enough data to compute stdev.
- */
-export function consistencyScore(stdevCents: number | null): number | null {
-  if (stdevCents == null) return null;
-  const stdevDollars = stdevCents / 100;
-  const raw = 10 - (stdevDollars * 9) / 40;
-  return Math.max(1, Math.min(10, Math.round(raw)));
 }
 
 // ----- Player Rating ------------------------------------------------------

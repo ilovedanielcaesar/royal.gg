@@ -17,11 +17,10 @@ export default function SetupNotice() {
               <span className="font-mono">supabase.com</span>.
             </li>
             <li>
-              In the dashboard, run{" "}
-              <span className="font-mono">
-                supabase/migrations/0001_initial_schema.sql
-              </span>{" "}
-              in the SQL editor.
+              In the dashboard&rsquo;s SQL editor, run every file in{" "}
+              <span className="font-mono">supabase/migrations/</span> in
+              numeric order. Running only the first one leaves row-level
+              security denying every query.
             </li>
             <li>
               Copy <span className="font-mono">.env.example</span> to{" "}

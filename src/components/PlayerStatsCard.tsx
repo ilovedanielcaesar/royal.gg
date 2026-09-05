@@ -24,6 +24,8 @@ type Props = {
   highlightHero?: boolean;
   /** All-time rank by lifetime net (1 = #1). Optional. */
   rankAllTime?: number | null;
+  /** All-time rank by player rating (1 = #1). Optional. */
+  rankRating?: number | null;
 };
 
 export default function PlayerStatsCard({
@@ -34,6 +36,7 @@ export default function PlayerStatsCard({
   recentCount = 10,
   highlightHero = false,
   rankAllTime = null,
+  rankRating = null,
 }: Props) {
   const stats = playerStats(player.id, sessions, buyIns, cashOuts);
   const nets = playerSessionNets(player.id, sessions, buyIns, cashOuts);
@@ -88,6 +91,11 @@ export default function PlayerStatsCard({
                 </>
               )}
             </div>
+            {rating.rating != null && rankRating != null && (
+              <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-card-100 px-2 py-0.5 text-xs text-ink-700">
+                #{rankRating} all-time
+              </div>
+            )}
             {rating.rating == null && (
               <div className="mt-2 text-xs text-ink-500">
                 Need at least 3 sessions for a rating.

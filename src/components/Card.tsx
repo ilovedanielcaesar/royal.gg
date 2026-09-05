@@ -8,8 +8,7 @@ type Props = {
   watermarkSuit?: Suit;
   rankLabel?: string;
   dealIn?: number;
-  onClick?: () => void;
-  as?: "div" | "button" | "article";
+  as?: "div" | "article";
   interactive?: boolean;
   accent?: "neutral" | "sage" | "crimson" | "gold";
 };
@@ -27,7 +26,6 @@ export default function Card({
   watermarkSuit,
   rankLabel,
   dealIn,
-  onClick,
   as = "div",
   interactive = false,
   accent = "neutral",
@@ -50,12 +48,7 @@ export default function Card({
   ].join(" ");
 
   return (
-    <Tag
-      className={baseClass}
-      onClick={onClick}
-      style={style}
-      {...(Tag === "button" ? { type: "button" as const } : {})}
-    >
+    <Tag className={baseClass} style={style}>
       <div className={`absolute inset-x-0 top-0 h-1 ${ACCENT_BAR[accent]}`} />
       {rankLabel && (
         <div className="pointer-events-none absolute left-3 top-3 font-display text-xs leading-none text-ink-700">

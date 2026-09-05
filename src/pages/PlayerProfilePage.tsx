@@ -6,6 +6,7 @@ import PlayerStatsCard from "../components/PlayerStatsCard";
 import { describeError } from "../lib/errors";
 import {
   leaderboard,
+  playerRating,
   type BuyIn,
   type CashOut,
   type Player,
@@ -62,6 +63,19 @@ export default function PlayerProfilePage() {
     return idx === -1 ? null : idx + 1;
   }, [player, allPlayers, sessions, buyIns, cashOuts]);
 
+  const ratingRank = useMemo(() => {
+    if (!player) return null;
+    const ranked = allPlayers
+      .map((p) => ({
+        id: p.id,
+        rating: playerRating(p.id, sessions, buyIns, cashOuts).rating,
+      }))
+      .filter((r): r is { id: string; rating: number } => r.rating != null)
+      .sort((a, b) => b.rating - a.rating);
+    const idx = ranked.findIndex((r) => r.id === player.id);
+    return idx === -1 ? null : idx + 1;
+  }, [player, allPlayers, sessions, buyIns, cashOuts]);
+
   if (loading) {
     return <div className="text-sm text-card-50/60">Dealing in…</div>;
   }
@@ -103,6 +117,7 @@ export default function PlayerProfilePage() {
         recentCount={10}
         highlightHero
         rankAllTime={allTimeRank}
+        rankRating={ratingRank}
       />
     </div>
   );

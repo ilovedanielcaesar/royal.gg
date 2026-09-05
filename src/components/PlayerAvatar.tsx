@@ -14,19 +14,10 @@ type PlayerLike = {
   chosen_rank?: Rank | null;
 };
 
-type Props =
-  | {
-      player: PlayerLike;
-      playerId?: never;
-      name?: never;
-      size?: "sm" | "md" | "lg";
-    }
-  | {
-      player?: never;
-      playerId: string;
-      name: string;
-      size?: "sm" | "md" | "lg";
-    };
+type Props = {
+  player: PlayerLike;
+  size?: "sm" | "md" | "lg";
+};
 
 const SIZES = {
   sm: { box: "h-9 w-7", rank: "text-[11px]", suit: 16 },
@@ -35,10 +26,7 @@ const SIZES = {
 } as const;
 
 export default function PlayerAvatar(props: Props) {
-  const player: PlayerLike = props.player ?? {
-    id: props.playerId!,
-    name: props.name!,
-  };
+  const { player } = props;
   const { suit, rank } = effectiveSuit(player);
   const isRed = suitColor(suit) === "red";
   const sz = SIZES[props.size ?? "md"];

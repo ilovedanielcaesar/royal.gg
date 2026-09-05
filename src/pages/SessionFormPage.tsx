@@ -648,17 +648,13 @@ export default function SessionFormPage() {
                   setBusy(true);
                   try {
                     const sb = requireSupabase();
-                    // Cascade delete happens in Supabase or we can rely on foreign keys
-                    // Wait, buy_ins and cash_outs might not have cascading on delete in schema.
-                    // To be safe, we manually delete them first.
-                    
-                    const { error: errorCo } = await sb.from("cash_outs").delete().eq("session_id", id!);
-                    if (errorCo) throw errorCo;
-                    const { error: errorBi } = await sb.from("buy_ins").delete().eq("session_id", id!);
-                    if (errorBi) throw errorBi;
-                    const { error } = await sb.from("sessions").delete().eq("id", id!);
+                    // buy_ins and cash_outs are ON DELETE CASCADE off
+                    // sessions.id (migration 0001), so this is sufficient.
+                    const { error } = await sb
+                      .from("sessions")
+                      .delete()
+                      .eq("id", id!);
                     if (error) throw error;
-                    
                     navigate("/sessions");
                   } catch (e) {
                     setError(describeError(e));

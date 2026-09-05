@@ -17,7 +17,7 @@ export const ADMIN_USERNAME = (
  * Supabase Auth requires an email per user. We hide that from end users by
  * generating a fake email from their username — they never see this value.
  */
-export const SYNTHETIC_EMAIL_DOMAIN = "royal.gg.local";
+const SYNTHETIC_EMAIL_DOMAIN = "royal.gg.local";
 
 export function syntheticEmail(username: string): string {
   return `${username.toLowerCase()}@${SYNTHETIC_EMAIL_DOMAIN}`;
@@ -28,10 +28,9 @@ export const isSupabaseConfigured = Boolean(url && anonKey);
 export const supabase: SupabaseClient<Database> | null = isSupabaseConfigured
   ? createClient<Database>(url, anonKey, {
       auth: {
-        // Disable cross-tab auth lock. Default uses navigator.locks which
-        // causes "lock stolen" errors when the magic-link redirect opens a
-        // new tab while the signup tab is still alive. We only ever use
-        // one tab at a time in this app.
+        // Disable cross-tab auth lock. The navigator.locks default throws
+        // "lock stolen" when two tabs race on a token refresh; this app is
+        // only ever driven from one tab at a time.
         lock: async (_name, _acquireTimeout, fn) => fn(),
       },
     })

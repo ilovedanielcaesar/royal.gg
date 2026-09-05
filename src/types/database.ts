@@ -180,12 +180,7 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
-      get_email_by_username: {
-        Args: { uname: string };
-        Returns: string | null;
-      };
       is_admin: { Args: Record<string, never>; Returns: boolean };
-      is_active_user: { Args: Record<string, never>; Returns: boolean };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
