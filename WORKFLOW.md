@@ -15,22 +15,21 @@ the checkbox — a tick with no log entry is how this file rots.
 | Phase | What | State | Done |
 |:--:|---|---|:--:|
 | **0** | Provider consolidation | `[x]` **done** | 5/5 |
-| **1** | `0007`–`0011` applied | `[~]` RLS + contract left | 13/16 |
+| **1** | `0007`–`0013` applied | `[~]` RLS + contract left | 15/18 |
 | **2** | Group routing + picker | `[x]` **done** | 8/8 |
-| **3** | Joining + membership | `[~]` 3A/3B done, 3C started | 2.5/4 |
+| **3** | Joining + membership | `[~]` 3A/3B/3C done, 3B-2 left | 3.5/4 |
 | **4** | Game log states | `[ ]` not started | 0/6 |
 | **5** | Settings, guest linking, admin | `[ ]` not started | 0/5 |
 
-**Current focus:** Phase 3C — `0011` is applied; the members page is with
-Codex. Approvals were pulled ahead of 3B-2 settings: `code_approve` is the
-default join policy, so pending members are the normal case and nobody could
-act on them.
+**Current focus:** 3B-2 — the group settings page, the last piece of Phase 3.
+The join code is still only reachable through `scripts/db.mjs`, and the join
+policy cannot be changed from the UI at all.
 
 Phase 2 verified by Will in the browser: a new group shows no Royal members,
 guests or sessions.
 
-**Last updated:** 2026-09-06 · `0011` applied and green; 3C-1 handed to
-Codex. 3B-2 settings deferred behind it.
+**Last updated:** 2026-09-06 · Phase 3C complete: members page committed,
+`0012` applied, `0013` written and rehearsed.
 
 ---
 
@@ -344,22 +343,58 @@ never passes through an approval at all.
       while your replacement waits on an approval only you can grant.
 - [x] `node scripts/smoke-3c.mjs --rehearse` — 18/18, then pushed and re-run
       green by Will
-- [ ] Per-group approvals queue + promote/demote/remove UI — **Codex 3C-1**,
-      `/g/:slug/members`
-- [ ] **Approving creates the member's `players` roster row** — second half,
-      blocked on the index drops below
+- [x] Per-group approvals queue + promote/demote/remove UI — Codex 3C-1,
+      reviewed and committed (`41b910e`). Three fixes on review: three JSX
+      lines of 379/634/232 chars reformatted, the 294-line page split into
+      `MemberRow.tsx` (the spec asked; it did not), and shared helpers moved
+      to `lib/membership.ts` — exporting a runtime helper from a component
+      file trips `react-refresh/only-export-components`.
+- [x] **`0012_roster_on_activation.sql` applied.** Dropped the four global
+      unique indexes and added the roster-row trigger. Backfilled every
+      already-active member. 19/19 rehearsed, then pushed.
+- [x] **`0013_refuse_duplicate_roster_name.sql`** — a duplicate roster name
+      now refuses the join instead of inventing "Bob (2)". 24/24 rehearsed.
+- [ ] Browser test of `/g/:slug/members` by Will
 
-**Roster creation is blocked, and this is the gate.** `players_name_unique`
-(`lower(name)`, NOT partial), `players_user_id_unique` and
-`players_username_unique` are all still global. The first means two groups
-cannot both have a "Dan"; the second means one account can hold at most ONE
-`players` row app-wide — exactly the blocker `GROUPS.md` §1 names. Nothing can
-create a roster row on approval until they are dropped. That is the first
-genuinely destructive step in this sequence, so run `scripts/db-backup.mjs`
-immediately before it (free tier: no managed backups).
+**The index drops, done.** `0012` dropped `players_name_unique`
+(`lower(name)`), `players_user_id_unique`, `players_username_unique` and
+`players_chosen_card_unique` — all global, all superseded by the group-scoped
+indexes `0007` created. `players_user_id_unique` was the blocker `GROUPS.md`
+§1 names: while it stood, one account could hold at most ONE `players` row
+app-wide. A backup was taken first (`scripts/db-backup.mjs`, 344 rows, money
+`696000 / 696875 / 696250` unchanged).
 
-Verified live: `dale` now holds memberships in both `royal` and `test1`, which
-only worked because joining creates no roster row.
+**The roster row is created by a TRIGGER, not by the approving UI.** Two paths
+never meet — an admin approving a request, and an instant-active join under
+`join_policy = 'code'` that passes through no approval at all. One trigger on
+`group_members` catches both and cannot drift the way two call sites would. It
+is idempotent on `(group_id, profile_id)`, so active → removed → active keeps
+the same row and with it the member's whole history.
+
+**Duplicate names refuse the join** (`0013`, Will's call). `0012` suffixed to
+"Bob (2)"; that leaves a group with two rows a human cannot tell apart, and the
+only way back is the guest linking that does not exist yet. Now `join_group()`
+refuses before writing anything, with a message telling the joiner to change
+their display name — including on a `code_approve` group, since there is no
+point accepting a request that could never be approved.
+`ensure_group_roster_row()` still raises as the backstop, for a clash that
+appears between the request and the approval; that message is aimed at the
+admin. Both surface unchanged in the UI, because `JoinPage` and
+`GroupMembersPage` both show the Postgres message verbatim.
+
+**Known consequence:** someone who played as a guest and then makes an account
+is refused by name. That is decision 12's guest linking arriving before guest
+linking exists (Phase 5). The workaround today is for the admin to rename the
+guest row first.
+
+**New roster rows populate the legacy columns.** `PlayerProfilePage:75` still
+shows `player.username`, and `PlayersPage` still filters on `.status` and
+`.is_guest`, so `user_id` and `username` are filled from the profile. The
+contract migration drops the columns and updates those readers together.
+
+Verified live: `dale` holds memberships in both `royal` and `test1`, and the
+`0012` backfill gave them a `test1` roster row — the first this mechanism
+produced.
 
 **A separate `/g/:slug/members` page.** `GROUPS.md` §9.2 has members inside
 `/g/:slug/settings`; folding approvals, roles, removal, the join code, invites
@@ -453,6 +488,15 @@ Found in the audit, deliberately not done yet.
 
 Newest first. One line per meaningful change.
 
+- **2026-09-06** — Phase 3C done. `0012_roster_on_activation.sql` dropped the
+  four global unique indexes (including `players_user_id_unique`, the blocker
+  GROUPS.md §1 names) and added a trigger that creates the roster row whenever
+  a membership becomes active — covering approval and instant-active joins
+  alike. Backup taken first; money unchanged to the cent.
+  `0013_refuse_duplicate_roster_name.sql` then replaced `0012`'s "Bob (2)"
+  suffixing with a refusal, on Will's call: a clash now blocks the join with a
+  message telling the person to change their display name. 3C-1 members page
+  from Codex, reviewed and committed as `41b910e`.
 - **2026-09-06** — `0011_membership_management.sql` applied: a group admin can
   finally act on their own membership list, and the last-admin guard is a
   trigger covering update AND delete. Found by testing: joining `test1` from a
