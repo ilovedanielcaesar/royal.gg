@@ -24,7 +24,7 @@ async function fetchMembers(groupId: string): Promise<Membership[]> {
 const EMPTY_MESSAGE: Record<MemberSection, string> = {
   pending: "No requests waiting.",
   active: "No active members.",
-  inactive: "Nobody has been removed.",
+  inactive: "Nobody has left or been removed.",
 };
 
 export default function GroupMembersPage() {
@@ -68,7 +68,12 @@ export default function GroupMembersPage() {
           a.role === b.role ? byName(a, b) : a.role === "admin" ? -1 : 1
         ),
       inactive: rows
-        .filter((m) => m.status === "removed" || m.status === "rejected")
+        .filter(
+          (m) =>
+            m.status === "removed" ||
+            m.status === "rejected" ||
+            m.status === "left"
+        )
         .sort(byName),
     };
   }, [members]);

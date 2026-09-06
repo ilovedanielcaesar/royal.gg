@@ -342,7 +342,7 @@ owns roster creation, must drop those three indexes first, and must cover BOTH
 paths — approval, and an instant-active join under `join_policy = 'code'`, which
 never passes through an approval at all.
 
-**3C — membership management** `[~]` migration applied, UI delegated
+**3C — membership management** `[x]` **done**
 - [x] **`0011_membership_management.sql` applied.** Additive:
       `group_members_update_group_admin` (a group admin may UPDATE memberships
       in their own group — approve/reject/promote/remove are all UPDATEs, and
@@ -365,7 +365,32 @@ never passes through an approval at all.
       already-active member. 19/19 rehearsed, then pushed.
 - [x] **`0013_refuse_duplicate_roster_name.sql`** — a duplicate roster name
       now refuses the join instead of inventing "Bob (2)". 24/24 rehearsed.
-- [ ] Browser test of `/g/:slug/members` by Will
+- [x] **`0014_leave_group.sql`** — a member can leave, distinctly from being
+      removed. `GROUPS.md` §4 already assumed "Leave" existed (the last-admin
+      guard is worded to constrain it) but no phase ever scheduled it; found
+      by Will testing as a member. 21/21 rehearsed.
+- [ ] Browser test of `/g/:slug/members`, `/settings` and Leave by Will
+
+**Leaving is an RPC, not a policy.** A policy letting a member update their own
+row cannot express "only the status column" — RLS `with check` sees the new row
+and never the old one, so a member could set `status='left'` AND `role='admin'`
+in one statement. It looks harmless while they are gone, and then `join_group()`
+reactivates that row with the admin role. `leave_group()` writes one column.
+The smoke test asserts `group_members` still has exactly two UPDATE policies,
+so nobody re-opens this by adding a "convenient" one later.
+
+**`left` is a distinct status** from `removed` (decided with Will): reusing
+`removed` conflates stepping away with being kicked out, and since
+`join_group()` refuses `removed`, an accidental Leave could only be undone by
+an admin. A leaver rejoins under the group's normal join policy, always as
+`member` — an ex-admin returning through a shared code should not silently land
+back as an admin. `removed` and `rejected` stay blocked.
+
+**A latent bug in `0013`, fixed here.** The duplicate-name check in
+`join_group()` looked for the caller's display name anywhere in the group — but
+a leaver still HAS a roster row carrying that name, so rejoining was refused as
+a duplicate of itself. Unreachable until leaving existed. The check now excludes
+the caller's own row.
 
 **The index drops, done.** `0012` dropped `players_name_unique`
 (`lower(name)`), `players_user_id_unique`, `players_username_unique` and
@@ -499,6 +524,16 @@ Found in the audit, deliberately not done yet.
 
 Newest first. One line per meaningful change.
 
+- **2026-09-06** — `0014_leave_group.sql`: members can leave a group, with a
+  distinct `left` status so it is undoable by the person who did it. Found by
+  Will testing as an ordinary member — `GROUPS.md` §4 assumed Leave existed but
+  no phase scheduled it. Done as a security definer RPC rather than an RLS
+  policy, because a self-update policy cannot stop a member writing
+  `role='admin'` in the same statement. Also fixed a latent `0013` bug: the
+  duplicate-name check refused a rejoining leaver as a duplicate of their own
+  roster row. `GroupNav` gained a "You" entry — the group profile page was only
+  reachable through a "Your card →" link inside a dashboard stats widget, which
+  is not where anyone looks to leave a group. 21/21 rehearsed.
 - **2026-09-06** — Phase 3 code-complete. 3B-2 group settings from Codex
   (join code + copy/regenerate, join policy, invite links, link through to
   members), reviewed. One real defect fixed at the source: `GroupProvider`

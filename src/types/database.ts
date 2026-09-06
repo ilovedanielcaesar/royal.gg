@@ -257,7 +257,7 @@ export type Database = {
           group_id: string;
           profile_id: string;
           role: "admin" | "member";
-          status: "pending" | "active" | "rejected" | "removed";
+          status: "pending" | "active" | "rejected" | "removed" | "left";
           created_at: string;
           updated_at: string;
         };
@@ -266,7 +266,7 @@ export type Database = {
           group_id: string;
           profile_id: string;
           role?: "admin" | "member";
-          status?: "pending" | "active" | "rejected" | "removed";
+          status?: "pending" | "active" | "rejected" | "removed" | "left";
           created_at?: string;
           updated_at?: string;
         };
@@ -304,6 +304,7 @@ export type Database = {
       is_group_member: { Args: { gid: string }; Returns: boolean };
       is_group_admin: { Args: { gid: string }; Returns: boolean };
       join_group: { Args: { p_code: string }; Returns: unknown };
+      leave_group: { Args: { p_group_id: string }; Returns: unknown };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;

@@ -26,6 +26,11 @@ export default function GroupNav() {
       <NavLink to={`/g/${slug}/players`} className={navLinkClass}>
         League
       </NavLink>
+      {/* Your card, your stats in this group, and Leave. Needs no role, so
+          this nav can link it without reaching into GroupProvider. */}
+      <NavLink to={`/g/${slug}/profile`} className={navLinkClass}>
+        You
+      </NavLink>
     </nav>
   );
 }

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import Button from "../components/Button";
 import Card from "../components/Card";
+import LeaveGroupCard from "../components/LeaveGroupCard";
 import PlayerAvatar from "../components/PlayerAvatar";
 import PlayerStatsCard from "../components/PlayerStatsCard";
 import SuitRankPicker from "../components/SuitRankPicker";
@@ -63,15 +64,18 @@ export default function MyGroupProfilePage() {
 
   if (!playerRow) {
     return (
-      <Card className="p-5" accent="gold">
-        <h1 className="font-display text-2xl text-ink-900">
-          No player profile yet
-        </h1>
-        <p className="mt-2 text-sm text-ink-500">
-          You do not have a roster entry in this group yet. Ask a group admin
-          to add or link one for you.
-        </p>
-      </Card>
+      <div className="space-y-6">
+        <Card className="p-5" accent="gold">
+          <h1 className="font-display text-2xl text-ink-900">
+            No player profile yet
+          </h1>
+          <p className="mt-2 text-sm text-ink-500">
+            You do not have a roster entry in this group yet. Ask a group admin
+            to add or link one for you.
+          </p>
+        </Card>
+        <LeaveGroupCard />
+      </div>
     );
   }
 
@@ -153,6 +157,8 @@ export default function MyGroupProfilePage() {
         cashOuts={data.cashOuts}
         ratingHref={path(`/players/${playerRow.id}/rating`)}
       />
+
+      <LeaveGroupCard />
     </div>
   );
 }
