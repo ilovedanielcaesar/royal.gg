@@ -21,15 +21,14 @@ the checkbox — a tick with no log entry is how this file rots.
 | **4** | Game log states | `[ ]` not started | 0/6 |
 | **5** | Settings, guest linking, admin | `[ ]` not started | 0/5 |
 
-**Current focus:** RLS isolation. Phase 3 is code-complete; group scoping is
-still CLIENT-SIDE ONLY, so any authenticated user calling the API directly
-reads every group's money.
+**Current focus:** Phase 4 — game log states. RLS isolation (`0015`) is
+written and rehearsed, awaiting a push.
 
 Phase 2 verified by Will in the browser: a new group shows no Royal members,
 guests or sessions.
 
-**Last updated:** 2026-09-06 · Phase 3 code-complete. Settings page in;
-awaiting a browser run of /members and /settings.
+**Last updated:** 2026-09-06 · `0015` RLS isolation written, 38/38
+rehearsed, not yet pushed.
 
 ---
 
@@ -101,9 +100,13 @@ Touches live data. The risky one.
 - [x] **`0010_group_join.sql` applied** — Phase 3B. Additive: the two
       membership helpers, `join_group()`, and the group-admin policies for
       `groups` and `group_invites`. 32/32 rehearsed, then pushed.
-- [ ] RLS isolation — swap to `is_group_member()`/`is_group_admin()`, which
-      `0010` already created. **AFTER Phase 3**, not Phase 2: switching the
-      `players` policies breaks `signUp()` until the join flow exists.
+- [x] **`0015_rls_isolation.sql` written and rehearsed 38/38.** Replaces the
+      entire policy surface on nine tables with `is_group_member()` /
+      `is_group_admin()`, adds `is_app_owner()` and `shares_group_with()`, and
+      drops `is_admin()`. **TWELVE permissive SELECTs went, not four** — the
+      four undocumented `*_select_all` plus eight `using (true)` policies that
+      shipped in the migrations themselves. Backup taken first; money
+      unchanged.
 - [ ] Contract — drop `players.user_id/.username/.status/.is_guest`,
       the old global unique indexes, `is_admin()`, and the transitional
       `default_group_id()` defaults. AFTER auth moves to profiles in Phase 3.
@@ -116,7 +119,7 @@ than erroring. So 3A took `0009`, and the two planned migrations moved to
 "0009 drops them"; it means `0011` now. The applied file was left untouched on
 purpose rather than disturb migration history for a comment.
 
-**⚠ SCHEMA DRIFT FOUND — must be handled in 0010.** Four policies exist in the
+**⚠ SCHEMA DRIFT — handled in `0015`.** Four policies existed in the
 live database that are in NO migration, added by hand in the dashboard:
 
     players_select_all · sessions_select_all
@@ -204,9 +207,10 @@ so their effects served the previous group's data after a switch.
 "scope the data" work. Grep `\.from("` and check every call site, not just the
 ones the hook covers.
 
-⚠ **Scoping is client-side only.** `useLeagueData` asks for one group's rows,
-but RLS still returns everything to any authenticated user — anyone who calls
-the API directly still sees every group. Real isolation is `0010`.
+~~⚠ **Scoping is client-side only.**~~ Closed by `0015`: a member now reads
+only their own groups' rows, verified as the `authenticated` role with real JWT
+claims rather than as the owning role, which bypasses RLS and would have made
+every check pass while the database leaked.
 
 **Exit gate** — code done, needs a browser run:
 - [x] `tsc` 0, build passes, lint 5 → 3 warnings / 0 errors
@@ -524,6 +528,14 @@ Found in the audit, deliberately not done yet.
 
 Newest first. One line per meaningful change.
 
+- **2026-09-06** — `0015_rls_isolation.sql`: real group isolation at last.
+  Twelve permissive SELECT policies removed (the four undocumented
+  `*_select_all` AND eight the migrations themselves shipped), ten `is_admin()`
+  write policies replaced with `is_group_admin(group_id)`, `is_admin()` dropped.
+  New `is_app_owner()` and `shares_group_with()`. The superadmin promise is
+  asserted in the migration: `is_app_owner()` may appear only on profiles /
+  groups / group_members, never on a money table. 38/38 rehearsed against the
+  real royal and test1 data, every check run as `authenticated` with JWT claims.
 - **2026-09-06** — `0014_leave_group.sql`: members can leave a group, with a
   distinct `left` status so it is undoable by the person who did it. Found by
   Will testing as an ordinary member — `GROUPS.md` §4 assumed Leave existed but
