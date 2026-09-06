@@ -15,19 +15,20 @@ the checkbox — a tick with no log entry is how this file rots.
 | Phase | What | State | Done |
 |:--:|---|---|:--:|
 | **0** | Provider consolidation | `[x]` **done** | 5/5 |
-| **1** | `0007`–`0009` applied | `[~]` `0010`/`0011` deferred | 11/14 |
+| **1** | `0007`–`0010` applied | `[~]` RLS + contract left | 12/15 |
 | **2** | Group routing + picker | `[x]` **done** | 8/8 |
-| **3** | Joining + membership | `[~]` 3A done | 1/4 |
+| **3** | Joining + membership | `[~]` 3A done, 3B started | 1.5/4 |
 | **4** | Game log states | `[ ]` not started | 0/6 |
 | **5** | Settings, guest linking, admin | `[ ]` not started | 0/5 |
 
-**Current focus:** Phase 3B — joining.
+**Current focus:** Phase 3B — `0010` is applied; the two UI chunks are with
+Codex.
 
 Phase 2 verified by Will in the browser: a new group shows no Royal members,
 guests or sessions.
 
-**Last updated:** 2026-09-06 · Phase 3A done: `0009` applied, smoke test
-green, verified by Will in the browser.
+**Last updated:** 2026-09-06 · `0010_group_join.sql` applied and green;
+3B-1 handed to Codex.
 
 ---
 
@@ -96,14 +97,17 @@ Touches live data. The risky one.
       INSERT policies so a new account can found a group. Rehearsed against
       live data first (18/18), then pushed; confirmed in the live schema —
       trigger present, `username` nullable, both founder policies there.
-- [ ] `0010` RLS isolation — swap to `is_group_member()`/`is_group_admin()`.
-      **AFTER Phase 3**, not Phase 2: switching the `players` policies breaks
-      `signUp()` until the join flow exists.
-- [ ] `0011` contract — drop `players.user_id/.username/.status/.is_guest`,
+- [x] **`0010_group_join.sql` applied** — Phase 3B. Additive: the two
+      membership helpers, `join_group()`, and the group-admin policies for
+      `groups` and `group_invites`. 32/32 rehearsed, then pushed.
+- [ ] RLS isolation — swap to `is_group_member()`/`is_group_admin()`, which
+      `0010` already created. **AFTER Phase 3**, not Phase 2: switching the
+      `players` policies breaks `signUp()` until the join flow exists.
+- [ ] Contract — drop `players.user_id/.username/.status/.is_guest`,
       the old global unique indexes, `is_admin()`, and the transitional
       `default_group_id()` defaults. AFTER auth moves to profiles in Phase 3.
 
-**⚠ Numbering shifted by one.** 3A needed a migration of its own, and the
+**⚠ Numbering has shifted twice.** 3A needed a migration of its own, and the
 Supabase CLI only recognises filenames matching `<digits>_name.sql` — a
 `0009a_` file is not a valid version and risks being skipped in silence rather
 than erroring. So 3A took `0009`, and the two planned migrations moved to
@@ -283,11 +287,44 @@ smoke test covers the same ground at the database level — signup writes no
 this is confirmation through the UI rather than an untested path. Worth doing
 once before 3B builds join-by-code on top of it.
 
-**3B — joining**
-- [ ] `/join/:code` accepts a standing `join_code` or a `group_invites` token
-- [ ] `join_policy`: `code` → active immediately; `code_approve` → pending
-- [ ] `/g/:slug/settings`: show + regenerate the code, create/revoke invites
-- [ ] Refuse expired and used-up invites
+**3B — joining** `[~]` migration applied, UI delegated in two chunks
+- [x] **`0010_group_join.sql` applied.** Additive: the `is_group_member()` /
+      `is_group_admin()` helpers (early, because 3B needs them — the RLS
+      migration reuses them), `join_group(p_code text)`, and the two policies
+      that let a group admin who is not the app owner run their own group.
+- [x] `join_policy`: `code` → active immediately; `code_approve` → pending
+- [x] Refuse expired and used-up invites — enforced by a conditional UPDATE
+      (`where used_count < max_uses`) and `FOUND`, not by the read. A
+      read-then-write check lets two people redeem a one-shot link at once.
+- [x] A `removed`/`rejected` member is refused, not readmitted (decision 9)
+- [x] `node scripts/smoke-3b.mjs --rehearse` — 32/32 against live data, then
+      pushed and re-run green by Will
+- [ ] `/join/:code` and the `/groups` empty state — **Codex chunk 3B-1**
+- [ ] `/g/:slug/settings`: show + regenerate the code, create/revoke invites —
+      **Codex chunk 3B-2**
+
+**Why joining is an RPC and not a client insert.** `group_members` INSERT is
+reachable only by `group_members_write_admin` (`is_admin()`) and
+`group_members_insert_founder` (yourself, into a group you created); a joiner
+matches neither. `group_invites` has one policy, `is_admin()`, so a joiner
+cannot read a token to validate it. And resolving codes server-side means the
+client never reads `groups.join_code`, which is what lets the RLS migration
+lock `groups` reads down without breaking joining.
+
+**Found by the smoke test:** `revoke ... from public` does NOT remove Supabase's
+default grant. Default privileges grant EXECUTE on every new function in
+`public` *directly* to `anon` and `authenticated`, and a direct grant survives a
+revoke aimed at PUBLIC — `anon` could call `join_group()` and was stopped only
+by its own signed-in guard. Every new function must `revoke ... from public,
+anon` by name and assert `has_function_privilege('anon', …)` is false. The RLS
+migration adds helpers the same way; it must do the same.
+
+**No roster row on join.** `players_name_unique` (`lower(name)`, not partial),
+`players_user_id_unique` and `players_username_unique` are all still global, so
+the insert would be rejected for anyone already on another group's roster. 3C
+owns roster creation, must drop those three indexes first, and must cover BOTH
+paths — approval, and an instant-active join under `join_policy = 'code'`, which
+never passes through an approval at all.
 
 **3C — membership management**
 - [ ] Per-group approvals queue; approving creates the member's `players`
@@ -296,10 +333,14 @@ once before 3B builds join-by-code on top of it.
 - [ ] Last-admin guard as a DB trigger, not just UI
 
 **3D — the migrations**
-- [ ] `0010` RLS isolation (drop the 4 rogue `using (true)` policies!), and
-      replace 3A's two transitional founder policies
-- [ ] `0011` contract: drop old columns, indexes, `is_admin()`, and the
-      transitional `default_group_id()` defaults
+- [ ] **RLS isolation** (drop the 4 rogue `using (true)` policies!), and
+      replace 3A's founder policies and 3B's group-admin policies
+- [ ] **Contract**: drop the old columns, the three global unique indexes,
+      `is_admin()`, and the transitional `default_group_id()` defaults
+
+Numbers are deliberately not pinned here any more. They have shifted twice —
+3A took `0009` and 3B took `0010`, each because a phase needed a migration
+nobody had planned. Name them when they are written.
 
 Original checklist, for reference:
 - [ ] Standing `join_code` per group + admin regenerate
@@ -378,6 +419,12 @@ Found in the audit, deliberately not done yet.
 
 Newest first. One line per meaningful change.
 
+- **2026-09-06** — `0010_group_join.sql` written, rehearsed 32/32, pushed by
+  Will and re-run green. Adds `is_group_member()`/`is_group_admin()`,
+  `join_group()`, and group-admin policies for `groups`/`group_invites`. The
+  smoke test caught that `revoke ... from public` leaves Supabase's default
+  direct grant to `anon` in place — every new function now revokes `anon` by
+  name and asserts it. 3B's two UI chunks delegated to Codex.
 - **2026-09-06** — `0009` pushed and verified in the live schema; smoke test
   green after the push and the app checked in the browser. Phase 3A done.
 - **2026-09-06** — Phase 3A code complete. An account now exists independently
