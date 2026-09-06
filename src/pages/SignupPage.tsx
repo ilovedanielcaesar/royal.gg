@@ -21,8 +21,9 @@ export default function SignupPage() {
     try {
       await signUp({ username, displayName, password });
       await refresh();
-      // signUp() also signs the user in. Send admins straight to dashboard,
-      // pending users to the waiting room.
+      // signUp() also signs the user in. The index route sends them to their
+      // group, or to /groups when they have none yet — which a brand-new
+      // account always does.
       navigate("/", { replace: true });
     } catch (e) {
       setError(describeError(e));
@@ -35,11 +36,11 @@ export default function SignupPage() {
     <div className="mx-auto max-w-md">
       <Card className="p-6" accent="gold">
         <h1 className="font-display text-2xl text-ink-900">
-          Request an account
+          Create an account
         </h1>
         <p className="mt-1 text-sm text-ink-500">
-          Pick a username and password. Once the host approves you, you'll see
-          the table.
+          Pick a username and password. Next you'll start a group or join one
+          with a code.
         </p>
         <form className="mt-5 space-y-4" onSubmit={onSubmit}>
           <label className="block">

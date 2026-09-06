@@ -32,9 +32,16 @@ const LOSER_COLORS = [
 ];
 
 export default function DashboardPage() {
-  const { player: me, isAdmin } = useCurrentUser();
-  const { path } = useGroup();
+  const { user } = useCurrentUser();
+  const { isGroupAdmin, path } = useGroup();
   const { data, error } = useLeagueData();
+
+  // Your roster row in THIS group. An account can sit on several rosters, so
+  // it has to be looked up per group rather than carried on the session.
+  const me = useMemo(
+    () => data?.players.find((p) => p.profile_id === user?.id) ?? null,
+    [data, user]
+  );
 
   const totals = useMemo(
     () =>
@@ -124,7 +131,7 @@ export default function DashboardPage() {
             Welcome to the table, {greetingName}.
           </p>
         </div>
-        {isAdmin && (
+        {isGroupAdmin && (
           <Link to={path("/sessions/new")}>
             <Button>+ New session</Button>
           </Link>
@@ -155,7 +162,7 @@ export default function DashboardPage() {
           </div>
           {!myLast10 ? (
             <p className="mt-3 text-sm text-ink-500">
-              {isAdmin
+              {isGroupAdmin
                 ? "You don't have a player row yet — add yourself on the Players page to see personal stats."
                 : "No sessions yet."}
             </p>

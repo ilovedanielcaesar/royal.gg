@@ -7,13 +7,14 @@ import { describeError } from "../lib/errors";
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { user, isApproved, refresh } = useCurrentUser();
+  const { user, refresh } = useCurrentUser();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (user && isApproved) {
+  // Signed in already — let the index route decide where to land.
+  if (user) {
     return <Navigate to="/" replace />;
   }
 
@@ -74,7 +75,7 @@ export default function LoginPage() {
         <div className="mt-4 text-center text-xs text-ink-500">
           New here?{" "}
           <Link to="/signup" className="text-sage-700 underline">
-            Request an account
+            Create an account
           </Link>
         </div>
       </Card>

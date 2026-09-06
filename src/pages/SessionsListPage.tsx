@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Button from "../components/Button";
 import Card from "../components/Card";
-import { useCurrentUser } from "../lib/auth";
 import { describeError } from "../lib/errors";
 import { formatPlayedAt } from "../lib/format";
 import { useGroup } from "../lib/groupContext";
@@ -19,8 +18,7 @@ type SessionWithStats = Session & {
 };
 
 export default function SessionsListPage() {
-  const { isAdmin } = useCurrentUser();
-  const { path, group } = useGroup();
+  const { isGroupAdmin, path, group } = useGroup();
   const groupId = group?.id ?? "";
   const [sessions, setSessions] = useState<SessionWithStats[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -134,7 +132,7 @@ export default function SessionsListPage() {
             Every night, in reverse-chronological order.
           </p>
         </div>
-        {isAdmin && (
+        {isGroupAdmin && (
           <Link to={path("/sessions/new")}>
             <Button>+ New session</Button>
           </Link>
@@ -153,7 +151,7 @@ export default function SessionsListPage() {
         <Card>
           <p className="p-6 text-sm text-ink-500">
             No sessions yet.
-            {isAdmin
+            {isGroupAdmin
               ? ' Hit "New session" to log the first night.'
               : " Once the host logs a night, it'll appear here."}
           </p>
@@ -165,7 +163,7 @@ export default function SessionsListPage() {
               key={s.id}
               session={s}
               dealIn={idx * 60}
-              isAdmin={isAdmin}
+              isGroupAdmin={isGroupAdmin}
               deleting={deletingId === s.id}
               onDelete={() => void handleDelete(s.id)}
             />
@@ -179,13 +177,13 @@ export default function SessionsListPage() {
 function SessionCard({
   session,
   dealIn,
-  isAdmin,
+  isGroupAdmin,
   deleting,
   onDelete,
 }: {
   session: SessionWithStats;
   dealIn: number;
-  isAdmin: boolean;
+  isGroupAdmin: boolean;
   deleting: boolean;
   onDelete: () => void;
 }) {
@@ -246,7 +244,7 @@ function SessionCard({
           </div>
         </Card>
       </Link>
-      {isAdmin && (
+      {isGroupAdmin && (
         <button
           type="button"
           onClick={(e) => {

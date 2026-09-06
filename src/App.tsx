@@ -8,17 +8,14 @@ import {
 import AppLayout from "./components/AppLayout";
 import GroupProvider from "./components/GroupProvider";
 import IndexRoute from "./components/IndexRoute";
-import RequireAdmin from "./components/RequireAdmin";
 import RequireAuth from "./components/RequireAuth";
 import RequireGroupAdmin from "./components/RequireGroupAdmin";
 import RequireGroupMember from "./components/RequireGroupMember";
-import AdminApprovalsPage from "./pages/AdminApprovalsPage";
 import CreateGroupPage from "./pages/CreateGroupPage";
 import DashboardPage from "./pages/DashboardPage";
 import GroupsPage from "./pages/GroupsPage";
 import LoginPage from "./pages/LoginPage";
 import MyGroupProfilePage from "./pages/MyGroupProfilePage";
-import PendingPage from "./pages/PendingPage";
 import PlayerProfilePage from "./pages/PlayerProfilePage";
 import PlayerRatingPage from "./pages/PlayerRatingPage";
 import PlayersPage from "./pages/PlayersPage";
@@ -36,9 +33,8 @@ export default function App() {
           {/* Public auth routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
-          <Route path="/pending" element={<PendingPage />} />
 
-          {/* Index: login form for guests, group redirect for approved users. */}
+          {/* Index: login form for guests, group redirect once signed in. */}
           <Route index element={<IndexRoute />} />
           <Route
             path="/groups"
@@ -64,17 +60,6 @@ export default function App() {
               </RequireAuth>
             }
           />
-          <Route
-            path="/admin/approvals"
-            element={
-              <RequireAuth>
-                <RequireAdmin>
-                  <AdminApprovalsPage />
-                </RequireAdmin>
-              </RequireAuth>
-            }
-          />
-
           <Route
             path="/g/:slug"
             element={

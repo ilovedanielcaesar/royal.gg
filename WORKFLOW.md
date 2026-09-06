@@ -15,18 +15,19 @@ the checkbox — a tick with no log entry is how this file rots.
 | Phase | What | State | Done |
 |:--:|---|---|:--:|
 | **0** | Provider consolidation | `[x]` **done** | 5/5 |
-| **1** | `0007`+`0008` applied | `[~]` `0009`/`0010` deferred | 9/12 |
+| **1** | `0007`–`0009` applied | `[~]` `0010`/`0011` deferred | 11/14 |
 | **2** | Group routing + picker | `[x]` **done** | 8/8 |
-| **3** | Joining + membership | `[ ]` not started | 0/7 |
+| **3** | Joining + membership | `[~]` 3A done | 1/4 |
 | **4** | Game log states | `[ ]` not started | 0/6 |
 | **5** | Settings, guest linking, admin | `[ ]` not started | 0/5 |
 
-**Current focus:** Phase 3 — auth onto `profiles`, then joining, then `0009`.
+**Current focus:** Phase 3B — joining.
 
 Phase 2 verified by Will in the browser: a new group shows no Royal members,
 guests or sessions.
 
-**Last updated:** 2026-09-05 · design agreed, nothing built.
+**Last updated:** 2026-09-06 · Phase 3A done: `0009` applied, smoke test
+green, verified by Will in the browser.
 
 ---
 
@@ -89,15 +90,28 @@ Touches live data. The risky one.
       `group_id` columns with no default, which broke every INSERT path
       (signup, add guest ×2, create session, record payout). Reads were fine,
       so the smoke test missed it. Adds a transitional default via
-      `default_group_id()`; 0009 drops it.
-- [ ] `0009` RLS isolation — swap to `is_group_member()`/`is_group_admin()`.
+      `default_group_id()`; 0011 drops it.
+- [x] **`0009_auth_profiles_trigger.sql` applied** — Phase 3A. Additive only:
+      the `auth.users` trigger, nullable `profiles.username`, and two narrow
+      INSERT policies so a new account can found a group. Rehearsed against
+      live data first (18/18), then pushed; confirmed in the live schema —
+      trigger present, `username` nullable, both founder policies there.
+- [ ] `0010` RLS isolation — swap to `is_group_member()`/`is_group_admin()`.
       **AFTER Phase 3**, not Phase 2: switching the `players` policies breaks
       `signUp()` until the join flow exists.
-- [ ] `0010` contract — drop `players.user_id/.username/.status/.is_guest`,
+- [ ] `0011` contract — drop `players.user_id/.username/.status/.is_guest`,
       the old global unique indexes, `is_admin()`, and the transitional
       `default_group_id()` defaults. AFTER auth moves to profiles in Phase 3.
 
-**⚠ SCHEMA DRIFT FOUND — must be handled in 0009.** Four policies exist in the
+**⚠ Numbering shifted by one.** 3A needed a migration of its own, and the
+Supabase CLI only recognises filenames matching `<digits>_name.sql` — a
+`0009a_` file is not a valid version and risks being skipped in silence rather
+than erroring. So 3A took `0009`, and the two planned migrations moved to
+`0010` (RLS) and `0011` (contract). `0008`'s own header comment still says
+"0009 drops them"; it means `0011` now. The applied file was left untouched on
+purpose rather than disturb migration history for a comment.
+
+**⚠ SCHEMA DRIFT FOUND — must be handled in 0010.** Four policies exist in the
 live database that are in NO migration, added by hand in the dashboard:
 
     players_select_all · sessions_select_all
@@ -105,7 +119,7 @@ live database that are in NO migration, added by hand in the dashboard:
 
 RLS policies are OR-ed. Adding a strict `is_group_member(group_id)` policy
 while these survive leaves every group's data readable by every authenticated
-user — and the app would look perfectly correct while doing it. `0009` MUST
+user — and the app would look perfectly correct while doing it. `0010` MUST
 drop these by name, and must end with an assertion that no permissive
 `using (true)` SELECT policy remains on players/sessions/buy_ins/cash_outs/
 payouts. Verify with:
@@ -187,7 +201,7 @@ ones the hook covers.
 
 ⚠ **Scoping is client-side only.** `useLeagueData` asks for one group's rows,
 but RLS still returns everything to any authenticated user — anyone who calls
-the API directly still sees every group. Real isolation is `0009`.
+the API directly still sees every group. Real isolation is `0010`.
 
 **Exit gate** — code done, needs a browser run:
 - [x] `tsc` 0, build passes, lint 5 → 3 warnings / 0 errors
@@ -207,22 +221,67 @@ Split into chunks, same as Phase 2 — one small Codex spec at a time.
 no `group_id`, so every new signup today becomes a *pending player in Royal*,
 whichever group they meant to join. Verified with a rolled-back probe.
 
-**3A — auth onto `profiles`** (prerequisite for everything else)
-- [ ] **`0009a`: trigger on `auth.users` that creates the `profiles` row**, and
-      make `profiles.username` nullable. Provider-agnostic, so Google sign-in
-      later needs no frontend change. See `GROUPS.md` §10b.
-- [ ] `signUp()` creates the auth user only — the trigger makes the profile.
+**3A — auth onto `profiles`** `[x]` **done**
+- [x] **`0009_auth_profiles_trigger.sql`: trigger on `auth.users` that creates
+      the `profiles` row**, and `profiles.username` nullable. Provider-agnostic,
+      so Google sign-in later needs no frontend change. See `GROUPS.md` §10b.
+- [x] `signUp()` creates the auth user only — the trigger makes the profile.
       No `players` row, no group. A new account belongs to nothing until it
-      joins one.
-- [ ] `AuthProvider` reads identity from `profiles`, not `players`
-- [ ] App-owner flag from `profiles.is_app_owner`, replacing the
-      `username === ADMIN_USERNAME` check
-- [ ] `isPending`/`isApproved` now mean *group* membership, not account status;
-      signed in with no groups → `/groups`
-- [ ] Retire the global `/pending` page and `/admin/approvals` (both become
-      per-group in 3C)
-- [ ] New account with no groups → `/groups`, whose empty state offers
-      "create a group" or "join with a code" (decided; no welcome screen)
+      joins one. Username + display name ride along in `options.data`.
+- [x] `AuthProvider` reads identity from `profiles`, not `players`
+- [x] App-owner flag from `profiles.is_app_owner`, replacing the
+      `username === ADMIN_USERNAME` check. `ADMIN_USERNAME` and
+      `VITE_ADMIN_USERNAME` are both deleted.
+- [x] `isPending`/`isApproved` are gone from the auth context entirely — group
+      membership is `useGroup()`'s to answer. Signed in with no active
+      membership → `/groups`.
+- [x] Retire the global `/pending` page and `/admin/approvals` (both become
+      per-group in 3C). `RequireAdmin` deleted with them.
+- [x] New account with no groups → `/groups`, whose empty state offers
+      "create a group" (join-by-code lands in 3B)
+- [x] **Extra, agreed with Will:** `0009` also adds `groups_insert_own` and
+      `group_members_insert_founder`. Without them `groups_write_admin` (0007)
+      still gates group creation on `is_admin()` — the hardcoded
+      `will@royal.gg.local` — so a brand-new account would reach `/groups` and
+      get an RLS error from the one button on the page. Both are additive and
+      narrow: you may create a group you own, and add only *yourself* as admin
+      to a group *you* created. `0010` replaces them along with the rest.
+- [x] **Four pages were reading the wrong admin flag.** `DashboardPage`,
+      `PlayersPage`, `RecordsPage` and `SessionsListPage` gated group actions
+      on the global `isAdmin`. Once that flag became `profiles.is_app_owner`
+      they would have been gating money UI on the superadmin — which
+      `GROUPS.md` §6 forbids. All four now read `isGroupAdmin` from
+      `useGroup()`. Invisible in the browser (Will is both), but it is the
+      difference between correct and accidentally correct.
+- [x] `DashboardPage` found "you" through the auth context's player row, which
+      no longer exists. It now looks up its roster row by `profile_id` within
+      the active group, the way `MyGroupProfilePage` already did.
+- [x] **`npx supabase db push`** — run by Will
+- [x] **Browser test by Will** — app healthy after the migration
+
+**Known interim state:** a member whose `group_members.status` is `pending`
+now lands on `/groups` and sees "No groups yet" rather than a waiting room.
+The per-group approvals queue in 3C is what gives that state a real screen.
+No live row is affected — every membership in both groups is currently
+`active`.
+
+**3A gate**
+- [x] `tsc` 0, build passes, lint 3 → 2 warnings / 0 errors (the one that went
+      was `AdminApprovalsPage`, deleted; the two left are the `SessionFormPage`
+      / `SessionsListPage` effects that Phase 4 rewrites)
+- [x] `node scripts/smoke-3a.mjs --rehearse` — 18/18 against live data, inside
+      a transaction that is always rolled back. Probes WRITES, per 0007's lesson
+- [x] After the push: `node scripts/smoke-3a.mjs` (no flag), run by Will
+- [x] Existing account signs in and the app works — checked in the browser
+- [ ] Sign up a fresh account → lands on `/groups`, empty state, no Royal data
+- [ ] That account creates a group → becomes its admin, sees only its own
+- [ ] Confirm in the DB that the new signup made **no** `players` row anywhere
+
+The last three want a throwaway account and nobody has made one yet. The
+smoke test covers the same ground at the database level — signup writes no
+`players` row, a founder can create a group, a stranger cannot join it — so
+this is confirmation through the UI rather than an untested path. Worth doing
+once before 3B builds join-by-code on top of it.
 
 **3B — joining**
 - [ ] `/join/:code` accepts a standing `join_code` or a `group_invites` token
@@ -237,8 +296,9 @@ whichever group they meant to join. Verified with a rolled-back probe.
 - [ ] Last-admin guard as a DB trigger, not just UI
 
 **3D — the migrations**
-- [ ] `0009` RLS isolation (drop the 4 rogue `using (true)` policies!)
-- [ ] `0010` contract: drop old columns, indexes, `is_admin()`, and the
+- [ ] `0010` RLS isolation (drop the 4 rogue `using (true)` policies!), and
+      replace 3A's two transitional founder policies
+- [ ] `0011` contract: drop old columns, indexes, `is_admin()`, and the
       transitional `default_group_id()` defaults
 
 Original checklist, for reference:
@@ -318,6 +378,17 @@ Found in the audit, deliberately not done yet.
 
 Newest first. One line per meaningful change.
 
+- **2026-09-06** — `0009` pushed and verified in the live schema; smoke test
+  green after the push and the app checked in the browser. Phase 3A done.
+- **2026-09-06** — Phase 3A code complete. An account now exists independently
+  of any group: `0009_auth_profiles_trigger.sql` (auth.users trigger, nullable
+  `profiles.username`, two founder INSERT policies), `signUp()` reduced to
+  creating the auth user, `AuthProvider` on `profiles`, `/pending` and
+  `/admin/approvals` retired, and four pages moved off the global admin flag
+  onto `isGroupAdmin`. Migration numbering shifted: RLS is `0010`, contract
+  `0011` — `0009a` is not a filename the Supabase CLI recognises. New
+  `scripts/smoke-3a.mjs` probes the write paths in a rolled-back transaction;
+  18/18 against live data. Not pushed yet.
 - **2026-09-06** — Phase 2 DONE, verified by Will in the browser. Phase 3
   planned in 4 chunks (3A auth→profiles, 3B joining, 3C membership,
   3D migrations 0009/0010).

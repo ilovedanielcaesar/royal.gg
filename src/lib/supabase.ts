@@ -5,15 +5,6 @@ const url = import.meta.env.VITE_SUPABASE_URL;
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 /**
- * Username of the super-admin. Auto-active at signup; only this account can
- * record sessions or approve other accounts. Must match the value baked into
- * is_admin() in supabase/migrations/0005.
- */
-export const ADMIN_USERNAME = (
-  (import.meta.env.VITE_ADMIN_USERNAME as string | undefined) ?? "will"
-).toLowerCase();
-
-/**
  * Supabase Auth requires an email per user. We hide that from end users by
  * generating a fake email from their username — they never see this value.
  */

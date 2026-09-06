@@ -58,7 +58,7 @@ export default function ProfilePage() {
           .sort((a, b) => a.name.localeCompare(b.name));
         if (!cancelled) {
           setDisplayName(profileResult.data.display_name);
-          setUsername(profileResult.data.username);
+          setUsername(profileResult.data.username ?? "");
           setGroups(activeGroups);
           setLoadError(null);
           setLoadedUserId(user.id);
@@ -92,7 +92,9 @@ export default function ProfilePage() {
         .from("profiles")
         .update({
           display_name: displayName.trim(),
-          username: username.trim(),
+          // Empty clears the handle rather than storing "". It is a display
+          // handle, not a credential — see GROUPS.md §10b.
+          username: username.trim() || null,
         })
         .eq("id", user.id);
       if (error) throw error;
@@ -135,6 +137,9 @@ export default function ProfilePage() {
               onChange={(event) => setUsername(event.target.value)}
               className="mt-1 w-full rounded-md border border-card-200 bg-card-50 px-3 py-2 text-sm focus:border-sage-600 focus:outline-none"
             />
+            <span className="mt-1 block text-[11px] text-ink-500">
+              Your handle. Also what you sign in with.
+            </span>
           </label>
           {error && (
             <div className="rounded-md bg-crimson-500/10 px-3 py-2 text-xs text-crimson-700">

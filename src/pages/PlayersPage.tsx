@@ -4,7 +4,6 @@ import Button from "../components/Button";
 import Card from "../components/Card";
 import PayoutSummary from "../components/PayoutSummary";
 import PlayerAvatar from "../components/PlayerAvatar";
-import { useCurrentUser } from "../lib/auth";
 import { describeError } from "../lib/errors";
 import { todayIsoDate, formatPlayedAt } from "../lib/format";
 import { useGroup } from "../lib/groupContext";
@@ -17,8 +16,7 @@ import { EMPTY_LEAGUE_DATA, useLeagueData } from "../lib/useLeagueData";
 type Player = Database["public"]["Tables"]["players"]["Row"];
 
 export default function PlayersPage() {
-  const { isAdmin } = useCurrentUser();
-  const { path, group } = useGroup();
+  const { isGroupAdmin, path, group } = useGroup();
   const groupId = group?.id ?? "";
   const { data, error: loadError, reload } = useLeagueData();
   const { sessions, buyIns, cashOuts, payouts } = data ?? EMPTY_LEAGUE_DATA;
@@ -155,7 +153,7 @@ export default function PlayersPage() {
                 {" · ending today"}
               </p>
             </div>
-            {isAdmin && players && players.length > 0 && (
+            {isGroupAdmin && players && players.length > 0 && (
               <Button
                 variant="primary"
                 size="sm"
@@ -166,7 +164,7 @@ export default function PlayersPage() {
             )}
           </div>
 
-          {showSettleForm && isAdmin && (
+          {showSettleForm && isGroupAdmin && (
             <form
               onSubmit={handleSettle}
               className="mt-3 flex flex-wrap items-end gap-3 rounded-md border border-card-200 bg-card-100/40 p-3"
@@ -213,7 +211,7 @@ export default function PlayersPage() {
         </div>
       </Card>
 
-      {isAdmin && (
+      {isGroupAdmin && (
         <Card>
           <form
             onSubmit={handleAdd}
@@ -266,7 +264,7 @@ export default function PlayersPage() {
               key={p.id}
               player={p}
               dealIn={idx * 50}
-              canDelete={isAdmin}
+              canDelete={isGroupAdmin}
               onDelete={() => handleDelete(p.id)}
             />
           ))}

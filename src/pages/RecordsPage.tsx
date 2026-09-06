@@ -4,7 +4,6 @@ import Button from "../components/Button";
 import Card from "../components/Card";
 import PayoutSummary from "../components/PayoutSummary";
 import PlayerAvatar from "../components/PlayerAvatar";
-import { useCurrentUser } from "../lib/auth";
 import { describeError } from "../lib/errors";
 import { formatPlayedAt } from "../lib/format";
 import { useGroup } from "../lib/groupContext";
@@ -15,8 +14,7 @@ import { requireSupabase } from "../lib/supabase";
 import { useLeagueData } from "../lib/useLeagueData";
 
 export default function RecordsPage() {
-  const { isAdmin } = useCurrentUser();
-  const { path } = useGroup();
+  const { isGroupAdmin, path } = useGroup();
   const { data, error: loadError, reload } = useLeagueData();
   const [error, setError] = useState<string | null>(null);
   const [revertingId, setRevertingId] = useState<string | null>(null);
@@ -115,7 +113,7 @@ export default function RecordsPage() {
                           : "First-ever payout — covers all-time"}
                       </p>
                     </div>
-                    {isAdmin && (
+                    {isGroupAdmin && (
                       <Button
                         variant="danger"
                         size="sm"

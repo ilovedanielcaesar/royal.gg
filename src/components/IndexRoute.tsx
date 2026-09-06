@@ -11,7 +11,7 @@ type ActiveMembership = {
 };
 
 export default function IndexRoute() {
-  const { loading, user, player, isAdmin, isPending } = useCurrentUser();
+  const { loading, user, profile } = useCurrentUser();
   const [membershipState, setMembershipState] = useState<{
     userId: string;
     memberships: ActiveMembership[];
@@ -54,9 +54,7 @@ export default function IndexRoute() {
   if (loading) {
     return <div className="text-sm text-card-50/60">Dealing in…</div>;
   }
-  if (!user) return <LoginPage />;
-  if (!isAdmin && !player) return <LoginPage />;
-  if (!isAdmin && isPending) return <Navigate to="/pending" replace />;
+  if (!user || !profile) return <LoginPage />;
   if (!membershipState || membershipState.userId !== user.id) {
     return <div className="text-sm text-card-50/60">Dealing in…</div>;
   }
@@ -64,5 +62,7 @@ export default function IndexRoute() {
   const { memberships } = membershipState;
   const slug = memberships.length === 1 ? memberships[0].groups?.slug : null;
   if (slug) return <Navigate to={`/g/${slug}`} replace />;
+  // No group, or several. Either way /groups is the right landing: its empty
+  // state is the onboarding for a brand-new account.
   return <Navigate to="/groups" replace />;
 }

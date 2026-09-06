@@ -203,7 +203,8 @@ export type Database = {
       profiles: {
         Row: {
           id: string;
-          username: string;
+          /** Display handle, not a login credential. Null until they pick one. */
+          username: string | null;
           display_name: string;
           is_app_owner: boolean;
           created_at: string;
@@ -211,7 +212,7 @@ export type Database = {
         };
         Insert: {
           id: string;
-          username: string;
+          username?: string | null;
           display_name: string;
           is_app_owner?: boolean;
           created_at?: string;
