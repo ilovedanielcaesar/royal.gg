@@ -15,10 +15,14 @@ if [[ "${1:-}" == "--resume" ]]; then RESUME=1; shift; fi
 OUT="${1:?usage: run.sh [--resume] <output-file> <prompt> [extra args...]}"; shift
 PROMPT="${1:?missing prompt}"; shift
 
-COMMON=(--cd "$REPO" -s "$SANDBOX" -m "$MODEL" -c "model_reasoning_effort=\"$EFFORT\"" -o "$OUT")
+COMMON=(-m "$MODEL" -c "model_reasoning_effort=\"$EFFORT\"" -o "$OUT")
+
+# `codex exec resume` accepts neither --cd nor -s, so cd into the repo instead
+# and let the resumed session keep its original sandbox.
+cd "$REPO" || exit 1
 
 if (( RESUME )); then
   exec codex exec resume --last "${COMMON[@]}" "$@" "$PROMPT"
 else
-  exec codex exec "${COMMON[@]}" "$@" "$PROMPT"
+  exec codex exec --cd "$REPO" -s "$SANDBOX" "${COMMON[@]}" "$@" "$PROMPT"
 fi

@@ -2,21 +2,14 @@ import { NavLink, Outlet } from "react-router-dom";
 import { useCurrentUser } from "../lib/auth";
 import { isSupabaseConfigured } from "../lib/supabase";
 import ErrorBoundary from "./ErrorBoundary";
+import GroupNav from "./GroupNav";
+import GroupSwitcher from "./GroupSwitcher";
 import SetupNotice from "./SetupNotice";
 import SuitBadge from "./SuitBadge";
 import UserMenu from "./UserMenu";
 
-const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-  [
-    "rounded-md px-3 py-1.5 text-sm font-medium transition",
-    isActive
-      ? "bg-card-50 text-ink-900 shadow-[0_2px_0_0_rgba(0,0,0,0.2)]"
-      : "text-card-50/70 hover:bg-card-50/10 hover:text-card-50",
-  ].join(" ");
-
 export default function AppLayout() {
-  const { user, isApproved } = useCurrentUser();
-  const showAppNav = isSupabaseConfigured && !!user && isApproved;
+  const { user } = useCurrentUser();
 
   return (
     <div className="min-h-full">
@@ -32,19 +25,8 @@ export default function AppLayout() {
             </span>
           </NavLink>
           <div className="flex items-center gap-3">
-            {showAppNav && (
-              <nav className="flex items-center gap-1">
-                <NavLink to="/" end className={navLinkClass}>
-                  Dashboard
-                </NavLink>
-                <NavLink to="/sessions" className={navLinkClass}>
-                  Sessions
-                </NavLink>
-                <NavLink to="/players" className={navLinkClass}>
-                  League
-                </NavLink>
-              </nav>
-            )}
+            <GroupNav />
+            {user && <GroupSwitcher />}
             {user && <UserMenu />}
           </div>
         </div>

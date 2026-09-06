@@ -7,6 +7,7 @@ import PlayerAvatar from "../components/PlayerAvatar";
 import { useCurrentUser } from "../lib/auth";
 import { describeError } from "../lib/errors";
 import { formatPlayedAt } from "../lib/format";
+import { useGroup } from "../lib/groupContext";
 import {
   type Player,
 } from "../lib/stats";
@@ -15,6 +16,7 @@ import { useLeagueData } from "../lib/useLeagueData";
 
 export default function RecordsPage() {
   const { isAdmin } = useCurrentUser();
+  const { path } = useGroup();
   const { data, error: loadError, reload } = useLeagueData();
   const [error, setError] = useState<string | null>(null);
   const [revertingId, setRevertingId] = useState<string | null>(null);
@@ -66,7 +68,7 @@ export default function RecordsPage() {
     <div className="space-y-6">
       <div>
         <Link
-          to="/players"
+          to={path("/players")}
           className="text-xs text-card-50/60 hover:text-card-50"
         >
           ← League

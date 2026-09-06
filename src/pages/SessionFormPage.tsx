@@ -12,6 +12,7 @@ import CurrencyInput from "../components/CurrencyInput";
 import PlayerAvatar from "../components/PlayerAvatar";
 import { describeError } from "../lib/errors";
 import { formatPlayedAt, todayIsoDate } from "../lib/format";
+import { useGroup } from "../lib/groupContext";
 import {
   DEFAULT_BUY_IN_CENTS,
   formatCents,
@@ -50,6 +51,7 @@ function parseCount(raw: string): number {
 export default function SessionFormPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { path } = useGroup();
   const isEdit = Boolean(id);
 
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
@@ -300,7 +302,7 @@ export default function SessionFormPage() {
         if (coErr) throw coErr;
       }
 
-      navigate(`/sessions/${sessionId}`);
+      navigate(path(`/sessions/${sessionId}`));
       if (isEdit) {
         await load();
       }
@@ -324,7 +326,7 @@ export default function SessionFormPage() {
       <div className="flex items-start justify-between">
         <div>
           <Link
-            to="/sessions"
+            to={path("/sessions")}
             className="text-xs text-card-50/60 hover:text-card-50"
           >
             ← Sessions
@@ -633,7 +635,7 @@ export default function SessionFormPage() {
           <Button
             type="button"
             variant="ghost"
-            onClick={() => navigate("/sessions")}
+            onClick={() => navigate(path("/sessions"))}
           >
             Cancel
           </Button>
@@ -655,7 +657,7 @@ export default function SessionFormPage() {
                       .delete()
                       .eq("id", id!);
                     if (error) throw error;
-                    navigate("/sessions");
+                    navigate(path("/sessions"));
                   } catch (e) {
                     setError(describeError(e));
                     setBusy(false);

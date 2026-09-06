@@ -7,6 +7,7 @@ import PlayerAvatar from "../components/PlayerAvatar";
 import { useCurrentUser } from "../lib/auth";
 import { describeError } from "../lib/errors";
 import { todayIsoDate, formatPlayedAt } from "../lib/format";
+import { useGroup } from "../lib/groupContext";
 import { effectiveSuit } from "../lib/playerSuit";
 import { currentPayoutPeriod } from "../lib/stats";
 import { requireSupabase } from "../lib/supabase";
@@ -17,6 +18,7 @@ type Player = Database["public"]["Tables"]["players"]["Row"];
 
 export default function PlayersPage() {
   const { isAdmin } = useCurrentUser();
+  const { path } = useGroup();
   const { data, error: loadError, reload } = useLeagueData();
   const { sessions, buyIns, cashOuts, payouts } = data ?? EMPTY_LEAGUE_DATA;
   const [error, setError] = useState<string | null>(null);
@@ -120,7 +122,7 @@ export default function PlayersPage() {
           </p>
         </div>
         <Link
-          to="/records"
+          to={path("/records")}
           className="text-sm text-card-50/70 underline hover:text-card-50"
         >
           Payout records →
@@ -274,6 +276,7 @@ function PlayerCard({
   canDelete: boolean;
   onDelete: () => void;
 }) {
+  const { path } = useGroup();
   const { suit, rank } = effectiveSuit(player);
   const isPending = player.status === "pending";
   return (
@@ -284,12 +287,12 @@ function PlayerCard({
       accent={isPending ? "gold" : player.is_guest ? "gold" : "neutral"}
     >
       <div className="flex items-center gap-4 p-5">
-        <Link to={`/players/${player.id}`}>
+        <Link to={path(`/players/${player.id}`)}>
           <PlayerAvatar player={player} size="lg" />
         </Link>
         <div className="flex-1">
           <Link
-            to={`/players/${player.id}`}
+            to={path(`/players/${player.id}`)}
             className="font-display text-2xl text-ink-900 hover:underline"
           >
             {player.display_name ?? player.name}

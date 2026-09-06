@@ -5,6 +5,7 @@ import Card from "../components/Card";
 import { useCurrentUser } from "../lib/auth";
 import { describeError } from "../lib/errors";
 import { formatPlayedAt } from "../lib/format";
+import { useGroup } from "../lib/groupContext";
 import { formatSignedCents } from "../lib/money";
 import { requireSupabase } from "../lib/supabase";
 import type { Database } from "../types/database";
@@ -19,6 +20,7 @@ type SessionWithStats = Session & {
 
 export default function SessionsListPage() {
   const { isAdmin } = useCurrentUser();
+  const { path } = useGroup();
   const [sessions, setSessions] = useState<SessionWithStats[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -122,7 +124,7 @@ export default function SessionsListPage() {
           </p>
         </div>
         {isAdmin && (
-          <Link to="/sessions/new">
+          <Link to={path("/sessions/new")}>
             <Button>+ New session</Button>
           </Link>
         )}
@@ -176,6 +178,7 @@ function SessionCard({
   deleting: boolean;
   onDelete: () => void;
 }) {
+  const { path } = useGroup();
   const accent = session.needs_review
     ? "crimson"
     : session.reconciled
@@ -187,7 +190,7 @@ function SessionCard({
 
   return (
     <div className="relative">
-      <Link to={`/sessions/${session.id}`}>
+      <Link to={path(`/sessions/${session.id}`)}>
         <Card
           as="article"
           accent={accent}

@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import Card from "../components/Card";
 import PlayerAvatar from "../components/PlayerAvatar";
 import PlayerStatsCard from "../components/PlayerStatsCard";
+import { useGroup } from "../lib/groupContext";
 import {
   leaderboard,
   playerRating,
@@ -11,6 +12,7 @@ import { EMPTY_LEAGUE_DATA, useLeagueData } from "../lib/useLeagueData";
 
 export default function PlayerProfilePage() {
   const { id } = useParams();
+  const { path } = useGroup();
   const { data, loading, error } = useLeagueData();
   const {
     players: allPlayers,
@@ -51,7 +53,10 @@ export default function PlayerProfilePage() {
         <p className="text-sm text-crimson-700">
           {error ?? "Player not found."}
         </p>
-        <Link to="/players" className="mt-2 inline-block text-xs text-sage-700 underline">
+        <Link
+          to={path("/players")}
+          className="mt-2 inline-block text-xs text-sage-700 underline"
+        >
           Back to players
         </Link>
       </Card>
@@ -84,6 +89,7 @@ export default function PlayerProfilePage() {
         highlightHero
         rankAllTime={allTimeRank}
         rankRating={ratingRank}
+        ratingHref={path(`/players/${player.id}/rating`)}
       />
     </div>
   );

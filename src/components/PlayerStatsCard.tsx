@@ -26,6 +26,8 @@ type Props = {
   rankAllTime?: number | null;
   /** All-time rank by player rating (1 = #1). Optional. */
   rankRating?: number | null;
+  /** Group-aware rating URL. Omitted on the global profile route. */
+  ratingHref?: string;
 };
 
 export default function PlayerStatsCard({
@@ -37,6 +39,7 @@ export default function PlayerStatsCard({
   highlightHero = false,
   rankAllTime = null,
   rankRating = null,
+  ratingHref,
 }: Props) {
   const stats = playerStats(player.id, sessions, buyIns, cashOuts);
   const nets = playerSessionNets(player.id, sessions, buyIns, cashOuts);
@@ -74,9 +77,9 @@ export default function PlayerStatsCard({
               <div className="text-xs font-medium uppercase tracking-wide text-ink-500">
                 Player rating
               </div>
-              {rating.rating != null && (
+              {rating.rating != null && ratingHref && (
                 <Link
-                  to={`/players/${player.id}/rating`}
+                  to={ratingHref}
                   className="text-xs text-sage-700 underline"
                 >
                   How is this calculated?
@@ -162,9 +165,9 @@ export default function PlayerStatsCard({
             label="E(X)/session"
             value={mean == null ? "—" : formatSignedCents(Math.round(mean))}
           />
-          {rating.rating != null ? (
+          {rating.rating != null && ratingHref ? (
             <Link
-              to={`/players/${player.id}/rating`}
+              to={ratingHref}
               className="rounded-md bg-card-100/60 px-2 py-1.5 text-center transition hover:bg-card-100"
             >
               <div className="text-[10px] font-medium uppercase tracking-wide text-ink-500">
@@ -174,6 +177,15 @@ export default function PlayerStatsCard({
                 {rating.rating.toFixed(1)}/10
               </div>
             </Link>
+          ) : rating.rating != null ? (
+            <div className="rounded-md bg-card-100/60 px-2 py-1.5 text-center">
+              <div className="text-[10px] font-medium uppercase tracking-wide text-ink-500">
+                Rating
+              </div>
+              <div className="font-display text-base tabular text-ink-900">
+                {rating.rating.toFixed(1)}/10
+              </div>
+            </div>
           ) : (
             <Stat label="Rating" value="—" />
           )}
