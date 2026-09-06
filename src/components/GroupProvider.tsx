@@ -42,23 +42,27 @@ export default function GroupProvider({ children }: { children: ReactNode }) {
           .maybeSingle();
         if (groupError) throw groupError;
         if (!group) {
-          setState({
-            slug,
-            group: null,
-            membership: null,
-            notFound: true,
-            loading: false,
-          });
+          if (!cancelled) {
+            setState({
+              slug,
+              group: null,
+              membership: null,
+              notFound: true,
+              loading: false,
+            });
+          }
           return;
         }
         if (!user) {
-          setState({
-            slug,
-            group,
-            membership: null,
-            notFound: false,
-            loading: false,
-          });
+          if (!cancelled) {
+            setState({
+              slug,
+              group,
+              membership: null,
+              notFound: false,
+              loading: false,
+            });
+          }
           return;
         }
 
@@ -109,6 +113,9 @@ export default function GroupProvider({ children }: { children: ReactNode }) {
       notFound: slug ? state.notFound : false,
       path: (sub: string) => {
         const clean = sub.replace(/^\/+|\/+$/g, "");
+        // Outside a group route there is no prefix to add; returning
+        // "/g//players" would be a broken link.
+        if (!groupSlug) return clean ? `/${clean}` : "/";
         return clean ? `/g/${groupSlug}/${clean}` : `/g/${groupSlug}`;
       },
     };
