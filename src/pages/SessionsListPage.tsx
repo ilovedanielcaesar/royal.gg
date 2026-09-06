@@ -20,7 +20,8 @@ type SessionWithStats = Session & {
 
 export default function SessionsListPage() {
   const { isAdmin } = useCurrentUser();
-  const { path } = useGroup();
+  const { path, group } = useGroup();
+  const groupId = group?.id ?? "";
   const [sessions, setSessions] = useState<SessionWithStats[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -33,6 +34,7 @@ export default function SessionsListPage() {
         .select(
           "*, buy_ins(amount_cents, player_id), cash_outs(adjusted_amount_cents, player_id)"
         )
+        .eq("group_id", groupId)
         .order("played_at", { ascending: false });
       if (error) throw error;
 
@@ -88,8 +90,13 @@ export default function SessionsListPage() {
   }
 
   useEffect(() => {
+    // groupId, not [] — React Router keeps this component mounted when only
+    // the :slug param changes, so an empty dep list would show the previous
+    // group's sessions after a switch.
+    if (!groupId) return;
     void load();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupId]);
 
   async function handleDelete(id: string) {
     if (
@@ -103,7 +110,11 @@ export default function SessionsListPage() {
     setError(null);
     try {
       const sb = requireSupabase();
-      const { error } = await sb.from("sessions").delete().eq("id", id);
+      const { error } = await sb
+        .from("sessions")
+        .delete()
+        .eq("id", id)
+        .eq("group_id", groupId);
       if (error) throw error;
       setSessions((prev) => (prev ? prev.filter((s) => s.id !== id) : prev));
     } catch (e) {

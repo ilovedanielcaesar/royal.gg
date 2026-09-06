@@ -18,7 +18,8 @@ type Player = Database["public"]["Tables"]["players"]["Row"];
 
 export default function PlayersPage() {
   const { isAdmin } = useCurrentUser();
-  const { path } = useGroup();
+  const { path, group } = useGroup();
+  const groupId = group?.id ?? "";
   const { data, error: loadError, reload } = useLeagueData();
   const { sessions, buyIns, cashOuts, payouts } = data ?? EMPTY_LEAGUE_DATA;
   const [error, setError] = useState<string | null>(null);
@@ -60,7 +61,12 @@ export default function PlayersPage() {
       const sb = requireSupabase();
       const { error } = await sb
         .from("players")
-        .insert({ name: name.trim(), is_guest: isGuest, status: "active" });
+        .insert({
+          name: name.trim(),
+          is_guest: isGuest,
+          status: "active",
+          group_id: groupId,
+        });
       if (error) throw error;
       setName("");
       setIsGuest(true);
@@ -80,7 +86,11 @@ export default function PlayersPage() {
     setError(null);
     try {
       const sb = requireSupabase();
-      const { error } = await sb.from("players").delete().eq("id", id);
+      const { error } = await sb
+        .from("players")
+        .delete()
+        .eq("id", id)
+        .eq("group_id", groupId);
       if (error) throw error;
       await reload();
     } catch (e) {
@@ -97,6 +107,7 @@ export default function PlayersPage() {
     try {
       const sb = requireSupabase();
       const { error } = await sb.from("payouts").insert({
+        group_id: groupId,
         period_end_date: todayIsoDate(),
         distributor_player_id: distributorId,
       });

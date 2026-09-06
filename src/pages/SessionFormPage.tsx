@@ -51,7 +51,8 @@ function parseCount(raw: string): number {
 export default function SessionFormPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { path } = useGroup();
+  const { path, group } = useGroup();
+  const groupId = group?.id ?? "";
   const isEdit = Boolean(id);
 
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
@@ -81,6 +82,7 @@ export default function SessionFormPage() {
       const { data: players, error: pErr } = await sb
         .from("players")
         .select("*")
+        .eq("group_id", groupId)
         .neq("status", "rejected")
         .order("name");
       if (pErr) throw pErr;
@@ -92,7 +94,12 @@ export default function SessionFormPage() {
           { data: buyIns, error: biErr },
           { data: cashOuts, error: coErr },
         ] = await Promise.all([
-          sb.from("sessions").select("*").eq("id", id).single(),
+          sb
+            .from("sessions")
+            .select("*")
+            .eq("id", id)
+            .eq("group_id", groupId)
+            .single(),
           sb.from("buy_ins").select("*").eq("session_id", id),
           sb.from("cash_outs").select("*").eq("session_id", id),
         ]);
@@ -136,7 +143,7 @@ export default function SessionFormPage() {
     } finally {
       setLoading(false);
     }
-  }, [id, isEdit]);
+  }, [id, isEdit, groupId]);
 
   useEffect(() => {
     void load();
@@ -171,7 +178,7 @@ export default function SessionFormPage() {
       const sb = requireSupabase();
       const { data, error: insErr } = await sb
         .from("players")
-        .insert({ name, is_guest: true, status: "active" })
+        .insert({ name, is_guest: true, status: "active", group_id: groupId })
         .select()
         .single();
       if (insErr) throw insErr;
@@ -242,7 +249,8 @@ export default function SessionFormPage() {
             needs_review: reconcileSummary.needsReview,
             discrepancy_cents: reconcileSummary.discrepancyCents,
           })
-          .eq("id", sessionId);
+          .eq("id", sessionId)
+          .eq("group_id", groupId);
         if (sErr) throw sErr;
         const { error: delBiErr } = await sb
           .from("buy_ins")
@@ -253,6 +261,7 @@ export default function SessionFormPage() {
         const { data: session, error: sErr } = await sb
           .from("sessions")
           .insert({
+            group_id: groupId,
             played_at: playedAt,
             notes: notes.trim() || null,
             reconciled: !reconcileSummary.needsReview,
@@ -655,7 +664,8 @@ export default function SessionFormPage() {
                     const { error } = await sb
                       .from("sessions")
                       .delete()
-                      .eq("id", id!);
+                      .eq("id", id!)
+                      .eq("group_id", groupId);
                     if (error) throw error;
                     navigate(path("/sessions"));
                   } catch (e) {
