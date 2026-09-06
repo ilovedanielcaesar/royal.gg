@@ -21,7 +21,7 @@ the checkbox — a tick with no log entry is how this file rots.
 | **4** | Game log states | `[ ]` not started | 0/6 |
 | **5** | Settings, guest linking, admin | `[ ]` not started | 0/5 |
 
-**Current focus:** Phase 2 — group routing. `0007` is live and verified;
+**Current focus:** Phase 2 chunk B — routing (chunk A landed). `0007` is live and verified;
 `0008` (contract) waits until the frontend has moved over.
 
 **Last updated:** 2026-09-05 · design agreed, nothing built.
@@ -243,6 +243,13 @@ Found in the audit, deliberately not done yet.
 
 Newest first. One line per meaningful change.
 
+- **2026-09-06** — Phase 2 chunk A done: groupContext, GroupProvider,
+  RequireGroupMember, RequireGroupAdmin. Reviewed; fixed 2 defects (missing
+  cancelled guards, path() double-slash). Not wired up yet — chunk B is routing.
+- **2026-09-06** — Codex Phase 2 (one big spec) FAILED twice: run 1 interrupted,
+  run 2 killed at 30min. Run 2's partial output was accidentally swept into
+  2fa9263 by `git add -A` and broke the build; reverted in 8eae510. Lesson:
+  give Codex one small chunk at a time, and check `git status` before staging.
 - **2026-09-05** — Found 4 undocumented `using (true)` RLS policies in prod
   (`*_select_all`) that exist in no migration. They would silently defeat
   group isolation, since policies are OR-ed. Recorded as a hard requirement
