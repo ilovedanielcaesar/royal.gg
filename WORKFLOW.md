@@ -16,14 +16,15 @@ the checkbox — a tick with no log entry is how this file rots.
 |:--:|---|---|:--:|
 | **0** | Provider consolidation | `[x]` **done** | 5/5 |
 | **1** | `0007`+`0008` applied | `[~]` `0009`/`0010` deferred | 9/12 |
-| **2** | Group routing + picker | `[~]` code done, untested | 7/8 |
+| **2** | Group routing + picker | `[x]` **done** | 8/8 |
 | **3** | Joining + membership | `[ ]` not started | 0/7 |
 | **4** | Game log states | `[ ]` not started | 0/6 |
 | **5** | Settings, guest linking, admin | `[ ]` not started | 0/5 |
 
-**Current focus:** Phase 2 code complete (chunks A–D). Needs Will's browser
-test before Phase 3. `0007` is live and verified;
-`0008` (contract) waits until the frontend has moved over.
+**Current focus:** Phase 3 — auth onto `profiles`, then joining, then `0009`.
+
+Phase 2 verified by Will in the browser: a new group shows no Royal members,
+guests or sessions.
 
 **Last updated:** 2026-09-05 · design agreed, nothing built.
 
@@ -190,16 +191,51 @@ the API directly still sees every group. Real isolation is `0009`.
 
 **Exit gate** — code done, needs a browser run:
 - [x] `tsc` 0, build passes, lint 5 → 3 warnings / 0 errors
-- [ ] Sign in → lands on `/g/royal`, all 16 sessions and correct totals
-- [ ] Create a second group at `/groups/new`, switch between them
+- [x] Sign in → lands on `/g/royal`, all 16 sessions and correct totals
+- [x] Create a second group at `/groups/new`, switch between them
 - [x] Second group starts empty — verified in-DB with a rolled-back probe
       group: royal 18/16, test1 0/0, probe 1/1
-- [ ] A pasted `/g/royal/players/<id>` link opens the right page
+- [x] A pasted `/g/royal/players/<id>` link opens the right page
 
 ---
 
 ## Phase 3 — Joining and membership
 
+Split into chunks, same as Phase 2 — one small Codex spec at a time.
+
+**⚠ LIVE ISSUE this phase fixes:** `signUp()` still writes a `players` row with
+no `group_id`, so every new signup today becomes a *pending player in Royal*,
+whichever group they meant to join. Verified with a rolled-back probe.
+
+**3A — auth onto `profiles`** (prerequisite for everything else)
+- [ ] `signUp()` creates the auth user + a `profiles` row. No `players` row,
+      no group. A new account belongs to nothing until it joins one.
+- [ ] `AuthProvider` reads identity from `profiles`, not `players`
+- [ ] App-owner flag from `profiles.is_app_owner`, replacing the
+      `username === ADMIN_USERNAME` check
+- [ ] `isPending`/`isApproved` now mean *group* membership, not account status;
+      signed in with no groups → `/groups`
+- [ ] Retire the global `/pending` page and `/admin/approvals` (both become
+      per-group in 3C)
+
+**3B — joining**
+- [ ] `/join/:code` accepts a standing `join_code` or a `group_invites` token
+- [ ] `join_policy`: `code` → active immediately; `code_approve` → pending
+- [ ] `/g/:slug/settings`: show + regenerate the code, create/revoke invites
+- [ ] Refuse expired and used-up invites
+
+**3C — membership management**
+- [ ] Per-group approvals queue; approving creates the member's `players`
+      roster row in that group
+- [ ] Promote / demote / remove
+- [ ] Last-admin guard as a DB trigger, not just UI
+
+**3D — the migrations**
+- [ ] `0009` RLS isolation (drop the 4 rogue `using (true)` policies!)
+- [ ] `0010` contract: drop old columns, indexes, `is_admin()`, and the
+      transitional `default_group_id()` defaults
+
+Original checklist, for reference:
 - [ ] Standing `join_code` per group + admin regenerate
 - [ ] `group_invites`: expiring / limited-use links
 - [ ] `/join/:code` accepts either a code or an invite token
@@ -276,6 +312,9 @@ Found in the audit, deliberately not done yet.
 
 Newest first. One line per meaningful change.
 
+- **2026-09-06** — Phase 2 DONE, verified by Will in the browser. Phase 3
+  planned in 4 chunks (3A auth→profiles, 3B joining, 3C membership,
+  3D migrations 0009/0010).
 - **2026-09-06** — Fixed group leakage in SessionsListPage / SessionFormPage /
   PlayersPage: 2 unscoped reads and 4 unscoped writes, plus stale-group effect
   deps. Found by Will testing a second group.
