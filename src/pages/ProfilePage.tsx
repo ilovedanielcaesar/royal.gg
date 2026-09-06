@@ -1,122 +1,121 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import Button from "../components/Button";
 import Card from "../components/Card";
-import PlayerAvatar from "../components/PlayerAvatar";
-import PlayerStatsCard from "../components/PlayerStatsCard";
-import SuitRankPicker from "../components/SuitRankPicker";
 import { useCurrentUser } from "../lib/auth";
 import { describeError } from "../lib/errors";
-import type { Rank, Suit } from "../lib/playerSuit";
 import { requireSupabase } from "../lib/supabase";
-import { EMPTY_LEAGUE_DATA, useLeagueData } from "../lib/useLeagueData";
+
+type GroupSummary = {
+  name: string;
+  slug: string;
+  stakes_label: string | null;
+};
+
+type ActiveMembership = {
+  group_id: string;
+  groups: GroupSummary | null;
+};
 
 export default function ProfilePage() {
-  const { player, refresh } = useCurrentUser();
-  const { data, loading, error: loadError } = useLeagueData();
-  const {
-    players: allPlayers,
-    sessions,
-    buyIns,
-    cashOuts,
-  } = data ?? EMPTY_LEAGUE_DATA;
-  const [saveError, setSaveError] = useState<string | null>(null);
-
+  const { user } = useCurrentUser();
+  const [loadedUserId, setLoadedUserId] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [username, setUsername] = useState("");
-  const [suit, setSuit] = useState<Suit | null>(null);
-  const [rank, setRank] = useState<Rank | null>(null);
+  const [groups, setGroups] = useState<GroupSummary[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!player) return;
-    setDisplayName(player.display_name ?? player.name);
-    setUsername(player.username ?? "");
-    setSuit(player.chosen_suit);
-    setRank(player.chosen_rank);
-  }, [player]);
+    if (!user) return;
 
-  const error = saveError ?? loadError;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const supabase = requireSupabase();
+        const [profileResult, groupsResult] = await Promise.all([
+          supabase
+            .from("profiles")
+            .select("display_name, username")
+            .eq("id", user.id)
+            .single(),
+          supabase
+            .from("group_members")
+            .select("group_id, groups(name, slug, stakes_label)")
+            .eq("profile_id", user.id)
+            .eq("status", "active"),
+        ]);
+        if (profileResult.error) throw profileResult.error;
+        if (groupsResult.error) throw groupsResult.error;
 
-  const taken = useMemo(() => {
-    const t = new Set<string>();
-    for (const p of allPlayers) {
-      if (
-        p.id !== player?.id &&
-        p.status === "active" &&
-        p.chosen_suit &&
-        p.chosen_rank
-      ) {
-        t.add(`${p.chosen_suit}:${p.chosen_rank}`);
+        const memberships = (groupsResult.data ?? []) as unknown as ActiveMembership[];
+        const activeGroups = memberships
+          .flatMap((membership) =>
+            membership.groups ? [membership.groups] : []
+          )
+          .sort((a, b) => a.name.localeCompare(b.name));
+        if (!cancelled) {
+          setDisplayName(profileResult.data.display_name);
+          setUsername(profileResult.data.username);
+          setGroups(activeGroups);
+          setLoadError(null);
+          setLoadedUserId(user.id);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setGroups([]);
+          setLoadError(describeError(error));
+          setLoadedUserId(user.id);
+        }
       }
-    }
-    return t;
-  }, [allPlayers, player?.id]);
+    })();
 
-  if (!player) {
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  if (!user || loadedUserId !== user.id) {
     return <div className="text-sm text-card-50/60">Dealing in…</div>;
   }
 
-  async function onSave(e: React.FormEvent) {
-    e.preventDefault();
-    if (!player) return;
+  async function onSave(event: React.FormEvent) {
+    event.preventDefault();
+    if (!user) return;
     setSaving(true);
     setSaveError(null);
     try {
       const supabase = requireSupabase();
       const { error } = await supabase
-        .from("players")
+        .from("profiles")
         .update({
           display_name: displayName.trim(),
-          username: username.trim() || null,
-          chosen_suit: suit,
-          chosen_rank: rank,
+          username: username.trim(),
         })
-        .eq("id", player.id);
+        .eq("id", user.id);
       if (error) throw error;
-      await refresh();
       setSavedAt(Date.now());
-    } catch (e) {
-      setSaveError(describeError(e));
+    } catch (error) {
+      setSaveError(describeError(error));
     } finally {
       setSaving(false);
     }
   }
 
+  const error = saveError ?? loadError;
+
   return (
     <div className="space-y-6">
-      <header className="flex items-center gap-4">
-        <PlayerAvatar
-          player={{ ...player, chosen_suit: suit, chosen_rank: rank }}
-          size="lg"
-        />
-        <div>
-          <h1 className="font-display text-3xl text-card-50">
-            {displayName || player.name}
-          </h1>
-          <p className="text-sm text-card-50/70">@{username || "—"}</p>
-        </div>
+      <header>
+        <h1 className="font-display text-3xl text-card-50">
+          {displayName || "Your profile"}
+        </h1>
+        <p className="text-sm text-card-50/70">@{username || "—"}</p>
       </header>
 
       <Card className="p-5" accent="sage">
-        <h2 className="font-display text-xl text-ink-900">Your card</h2>
-        <p className="mt-1 text-xs text-ink-500">
-          Pick the suit and rank that represent you across the app.
-        </p>
-        <div className="mt-4">
-          <SuitRankPicker
-            suit={suit}
-            rank={rank}
-            taken={taken}
-            onChange={(s, r) => {
-              setSuit(s);
-              setRank(r);
-            }}
-          />
-        </div>
-      </Card>
-
-      <Card className="p-5">
         <h2 className="font-display text-xl text-ink-900">Profile</h2>
         <form className="mt-3 space-y-3" onSubmit={onSave}>
           <label className="block">
@@ -125,7 +124,7 @@ export default function ProfilePage() {
             </span>
             <input
               value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
+              onChange={(event) => setDisplayName(event.target.value)}
               className="mt-1 w-full rounded-md border border-card-200 bg-card-50 px-3 py-2 text-sm focus:border-sage-600 focus:outline-none"
             />
           </label>
@@ -133,7 +132,7 @@ export default function ProfilePage() {
             <span className="text-xs font-medium text-ink-700">Username</span>
             <input
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={(event) => setUsername(event.target.value)}
               className="mt-1 w-full rounded-md border border-card-200 bg-card-50 px-3 py-2 text-sm focus:border-sage-600 focus:outline-none"
             />
           </label>
@@ -151,14 +150,30 @@ export default function ProfilePage() {
         </form>
       </Card>
 
-      {!loading && (
-        <PlayerStatsCard
-          player={player}
-          sessions={sessions}
-          buyIns={buyIns}
-          cashOuts={cashOuts}
-        />
-      )}
+      <Card className="p-5">
+        <h2 className="font-display text-xl text-ink-900">Your groups</h2>
+        {groups.length === 0 ? (
+          <p className="mt-2 text-sm text-ink-500">
+            You are not an active member of any groups yet.
+          </p>
+        ) : (
+          <ul className="mt-3 divide-y divide-card-100">
+            {groups.map((group) => (
+              <li key={group.slug}>
+                <Link
+                  to={`/g/${group.slug}`}
+                  className="flex items-center justify-between gap-4 py-3 text-sm text-ink-700 hover:text-ink-900"
+                >
+                  <span className="font-medium">{group.name}</span>
+                  <span className="text-xs text-sage-700">
+                    Open group →
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
     </div>
   );
 }

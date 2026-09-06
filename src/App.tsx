@@ -17,6 +17,7 @@ import CreateGroupPage from "./pages/CreateGroupPage";
 import DashboardPage from "./pages/DashboardPage";
 import GroupsPage from "./pages/GroupsPage";
 import LoginPage from "./pages/LoginPage";
+import MyGroupProfilePage from "./pages/MyGroupProfilePage";
 import PendingPage from "./pages/PendingPage";
 import PlayerProfilePage from "./pages/PlayerProfilePage";
 import PlayerRatingPage from "./pages/PlayerRatingPage";
@@ -87,6 +88,7 @@ export default function App() {
             }
           >
             <Route index element={<DashboardPage />} />
+            <Route path="profile" element={<MyGroupProfilePage />} />
             <Route path="sessions" element={<SessionsListPage />} />
             <Route
               path="sessions/new"

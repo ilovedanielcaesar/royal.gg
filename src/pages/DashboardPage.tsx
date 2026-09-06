@@ -136,14 +136,22 @@ export default function DashboardPage() {
         <div className="p-5">
           <div className="flex items-center justify-between">
             <h2 className="font-display text-2xl text-ink-900">Your last 10</h2>
-            {me && (
+            <div className="flex items-center gap-3">
               <Link
-                to={path(`/players/${me.id}`)}
+                to={path("/profile")}
                 className="text-xs text-ink-500 hover:text-ink-900"
               >
-                Your profile →
+                Your card →
               </Link>
-            )}
+              {me && (
+                <Link
+                  to={path(`/players/${me.id}`)}
+                  className="text-xs text-ink-500 hover:text-ink-900"
+                >
+                  Your profile →
+                </Link>
+              )}
+            </div>
           </div>
           {!myLast10 ? (
             <p className="mt-3 text-sm text-ink-500">
