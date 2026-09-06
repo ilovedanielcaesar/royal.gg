@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Button from "../components/Button";
 import Card from "../components/Card";
 import { useCurrentUser } from "../lib/auth";
@@ -18,7 +18,9 @@ type ActiveMembership = {
 };
 
 export default function GroupsPage() {
+  const navigate = useNavigate();
   const { user } = useCurrentUser();
+  const [joinCode, setJoinCode] = useState("");
   const [state, setState] = useState<{
     userId: string;
     groups: GroupSummary[];
@@ -75,9 +77,14 @@ export default function GroupsPage() {
             Choose a table or start a new one.
           </p>
         </div>
-        <Link to="/groups/new">
-          <Button>Create group</Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link to="/join">
+            <Button variant="ghost">Join with a code</Button>
+          </Link>
+          <Link to="/groups/new">
+            <Button>Create group</Button>
+          </Link>
+        </div>
       </div>
 
       {state?.error && (
@@ -96,8 +103,36 @@ export default function GroupsPage() {
             </h2>
             <p className="mt-2 max-w-xl text-sm text-ink-500">
               Create a group to start your own table, or ask a group admin for
-              a join code. Joining with a code is coming later.
+              a join code.
             </p>
+            <form
+              className="mt-5 flex max-w-md flex-col gap-3 sm:flex-row"
+              onSubmit={(event) => {
+                event.preventDefault();
+                const code = joinCode.trim();
+                navigate(code ? `/join/${encodeURIComponent(code)}` : "/join");
+              }}
+            >
+              <label className="flex-1">
+                <span className="sr-only">Join code</span>
+                <input
+                  value={joinCode}
+                  onChange={(event) => setJoinCode(event.target.value)}
+                  placeholder="Join code"
+                  autoComplete="off"
+                  className="w-full rounded-md bg-card-50 px-3 py-2 text-sm text-ink-900 ring-1 ring-card-200 focus:outline-none focus:ring-2 focus:ring-gold-500"
+                />
+              </label>
+              <Button type="submit" variant="secondary">
+                Join group
+              </Button>
+            </form>
+            <Link
+              to="/join"
+              className="mt-3 inline-block text-xs text-sage-700 underline"
+            >
+              Enter a code on the join page
+            </Link>
           </div>
         </Card>
       ) : (

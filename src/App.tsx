@@ -14,6 +14,7 @@ import RequireGroupMember from "./components/RequireGroupMember";
 import CreateGroupPage from "./pages/CreateGroupPage";
 import DashboardPage from "./pages/DashboardPage";
 import GroupsPage from "./pages/GroupsPage";
+import JoinPage from "./pages/JoinPage";
 import LoginPage from "./pages/LoginPage";
 import MyGroupProfilePage from "./pages/MyGroupProfilePage";
 import PlayerProfilePage from "./pages/PlayerProfilePage";
@@ -49,6 +50,22 @@ export default function App() {
             element={
               <RequireAuth>
                 <CreateGroupPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/join"
+            element={
+              <RequireAuth>
+                <JoinPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/join/:code"
+            element={
+              <RequireAuth>
+                <JoinPage />
               </RequireAuth>
             }
           />

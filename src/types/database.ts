@@ -301,6 +301,9 @@ export type Database = {
     Views: Record<string, never>;
     Functions: {
       is_admin: { Args: Record<string, never>; Returns: boolean };
+      is_group_member: { Args: { gid: string }; Returns: boolean };
+      is_group_admin: { Args: { gid: string }; Returns: boolean };
+      join_group: { Args: { p_code: string }; Returns: unknown };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
