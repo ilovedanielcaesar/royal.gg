@@ -26,7 +26,7 @@ never asked about.
 .claude/skills/codex/run.sh "$SCRATCH/codex-last.md" "<spec>"
 ```
 
-The wrapper pins the settings the user requested — **model `gpt-5.6-terra`, reasoning
+The wrapper pins the settings the user requested — **model `gpt-5.6-sol`, reasoning
 effort `high`, sandbox `workspace-write`** — so they are never forgotten. Do not call
 `codex exec` directly unless you deliberately need different settings.
 
@@ -64,7 +64,7 @@ collide on the same files:
 
 ```bash
 git worktree add ../royal-task-a -b task-a
-codex exec --cd ../royal-task-a -s workspace-write -m gpt-5.6-terra \
+codex exec --cd ../royal-task-a -s workspace-write -m gpt-5.6-sol \
   -c model_reasoning_effort="high" -o a.md "<spec>"
 ```
 

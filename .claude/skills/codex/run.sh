@@ -5,7 +5,7 @@ set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 
-MODEL="gpt-5.6-terra"
+MODEL="gpt-5.6-sol"
 EFFORT="high"
 SANDBOX="workspace-write"
 
