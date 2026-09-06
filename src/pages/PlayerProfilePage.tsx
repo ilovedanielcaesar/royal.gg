@@ -8,11 +8,9 @@ import {
   playerRating,
 } from "../lib/stats";
 import { EMPTY_LEAGUE_DATA, useLeagueData } from "../lib/useLeagueData";
-import { useGroup } from "../lib/groupContext";
 
 export default function PlayerProfilePage() {
   const { id } = useParams();
-  const { path } = useGroup();
   const { data, loading, error } = useLeagueData();
   const {
     players: allPlayers,
@@ -53,7 +51,7 @@ export default function PlayerProfilePage() {
         <p className="text-sm text-crimson-700">
           {error ?? "Player not found."}
         </p>
-        <Link to={path("/players")} className="mt-2 inline-block text-xs text-sage-700 underline">
+        <Link to="/players" className="mt-2 inline-block text-xs text-sage-700 underline">
           Back to players
         </Link>
       </Card>

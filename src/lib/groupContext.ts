@@ -1,10 +1,10 @@
 import { createContext, useContext } from "react";
 import type { Database } from "../types/database";
 
-export type GroupRole = "admin" | "member" | null;
 export type Group = Database["public"]["Tables"]["groups"]["Row"];
 export type GroupMembership =
   Database["public"]["Tables"]["group_members"]["Row"];
+export type GroupRole = "admin" | "member" | null;
 
 export type GroupContextValue = {
   loading: boolean;

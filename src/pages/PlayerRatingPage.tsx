@@ -4,11 +4,9 @@ import PlayerAvatar from "../components/PlayerAvatar";
 import { formatSignedCents } from "../lib/money";
 import { playerRating } from "../lib/stats";
 import { EMPTY_LEAGUE_DATA, useLeagueData } from "../lib/useLeagueData";
-import { useGroup } from "../lib/groupContext";
 
 export default function PlayerRatingPage() {
   const { id } = useParams();
-  const { path } = useGroup();
   const { data, loading, error } = useLeagueData();
   const { players, sessions, buyIns, cashOuts } = data ?? EMPTY_LEAGUE_DATA;
   const player = players.find((candidate) => candidate.id === id) ?? null;
@@ -32,7 +30,7 @@ export default function PlayerRatingPage() {
     <div className="space-y-6">
       <div>
         <Link
-          to={path(`/players/${player.id}`)}
+          to={`/players/${player.id}`}
           className="text-xs text-card-50/60 hover:text-card-50"
         >
           ← Back to {display}

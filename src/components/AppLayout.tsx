@@ -1,11 +1,10 @@
-import { NavLink, Outlet, useParams } from "react-router-dom";
+import { NavLink, Outlet } from "react-router-dom";
 import { useCurrentUser } from "../lib/auth";
 import { isSupabaseConfigured } from "../lib/supabase";
 import ErrorBoundary from "./ErrorBoundary";
 import SetupNotice from "./SetupNotice";
 import SuitBadge from "./SuitBadge";
 import UserMenu from "./UserMenu";
-import GroupSwitcher from "./GroupSwitcher";
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   [
@@ -17,8 +16,7 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 
 export default function AppLayout() {
   const { user, isApproved } = useCurrentUser();
-  const { slug } = useParams<{ slug: string }>();
-  const showAppNav = isSupabaseConfigured && !!user && isApproved && !!slug;
+  const showAppNav = isSupabaseConfigured && !!user && isApproved;
 
   return (
     <div className="min-h-full">
@@ -36,18 +34,17 @@ export default function AppLayout() {
           <div className="flex items-center gap-3">
             {showAppNav && (
               <nav className="flex items-center gap-1">
-                <NavLink to={`/g/${slug}`} end className={navLinkClass}>
+                <NavLink to="/" end className={navLinkClass}>
                   Dashboard
                 </NavLink>
-                <NavLink to={`/g/${slug}/sessions`} className={navLinkClass}>
+                <NavLink to="/sessions" className={navLinkClass}>
                   Sessions
                 </NavLink>
-                <NavLink to={`/g/${slug}/players`} className={navLinkClass}>
+                <NavLink to="/players" className={navLinkClass}>
                   League
                 </NavLink>
               </nav>
             )}
-            {slug && user && <GroupSwitcher slug={slug} />}
             {user && <UserMenu />}
           </div>
         </div>

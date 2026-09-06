@@ -18,7 +18,6 @@ import {
   type Player,
 } from "../lib/stats";
 import { useLeagueData } from "../lib/useLeagueData";
-import { useGroup } from "../lib/groupContext";
 
 const WINNER_COLORS = [
   "var(--color-sage-600)",
@@ -32,8 +31,7 @@ const LOSER_COLORS = [
 ];
 
 export default function DashboardPage() {
-  const { player: me } = useCurrentUser();
-  const { isGroupAdmin, path } = useGroup();
+  const { player: me, isAdmin } = useCurrentUser();
   const { data, error } = useLeagueData();
 
   const totals = useMemo(
@@ -124,8 +122,8 @@ export default function DashboardPage() {
             Welcome to the table, {greetingName}.
           </p>
         </div>
-        {isGroupAdmin && (
-          <Link to={path("/sessions/new")}>
+        {isAdmin && (
+          <Link to="/sessions/new">
             <Button>+ New session</Button>
           </Link>
         )}
@@ -138,7 +136,7 @@ export default function DashboardPage() {
             <h2 className="font-display text-2xl text-ink-900">Your last 10</h2>
             {me && (
               <Link
-                to={path(`/players/${me.id}`)}
+                to={`/players/${me.id}`}
                 className="text-xs text-ink-500 hover:text-ink-900"
               >
                 Your profile →
@@ -147,7 +145,7 @@ export default function DashboardPage() {
           </div>
           {!myLast10 ? (
             <p className="mt-3 text-sm text-ink-500">
-              {isGroupAdmin
+              {isAdmin
                 ? "You don't have a player row yet — add yourself on the Players page to see personal stats."
                 : "No sessions yet."}
             </p>
@@ -167,7 +165,7 @@ export default function DashboardPage() {
                   return (
                     <Link
                       key={n.session.id}
-                      to={path(`/sessions/${n.session.id}`)}
+                      to={`/sessions/${n.session.id}`}
                       className="flex min-w-[4rem] flex-col items-center justify-center gap-1.5 rounded-lg bg-card-100/50 p-2 text-center transition hover:bg-card-100 sm:min-w-[5rem] sm:p-3"
                     >
                       <span
@@ -272,7 +270,7 @@ export default function DashboardPage() {
                       </div>
                       <PlayerAvatar player={row.player} size="sm" />
                       <Link
-                        to={path(`/players/${row.playerId}`)}
+                        to={`/players/${row.playerId}`}
                         className="flex-1 hover:underline"
                       >
                         <div className="font-medium text-ink-900">
@@ -327,7 +325,7 @@ export default function DashboardPage() {
                   Current payout period
                 </h2>
                 <Link
-                  to={path("/players")}
+                  to="/players"
                   className="text-xs text-ink-500 hover:text-ink-900"
                 >
                   Settle up →

@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import { formatSignedCents } from "../lib/money";
 import { seasonLeaders, type BuyIn, type CashOut, type Player, type Session } from "../lib/stats";
 import PlayerAvatar from "./PlayerAvatar";
-import { useGroup } from "../lib/groupContext";
 
 type Props = {
   players: Player[];
@@ -19,7 +18,6 @@ export default function SeasonLeaders({
   cashOuts,
   monthsBack = 3,
 }: Props) {
-  const { path } = useGroup();
   const since = new Date();
   since.setMonth(since.getMonth() - monthsBack);
   const ranked = seasonLeaders(players, sessions, buyIns, cashOuts, since);
@@ -44,13 +42,11 @@ export default function SeasonLeaders({
         rows={winners}
         empty="No winners this window."
         positive
-        path={path}
       />
       <RankList
         title="Biggest losses"
         rows={losers}
         empty="No losers this window."
-        path={path}
       />
     </div>
   );
@@ -61,13 +57,11 @@ function RankList({
   rows,
   empty,
   positive,
-  path,
 }: {
   title: string;
   rows: Array<{ player: Player; netCents: number }>;
   empty: string;
   positive?: boolean;
-  path: (sub: string) => string;
 }) {
   return (
     <div>
@@ -81,7 +75,7 @@ function RankList({
           {rows.map((r) => (
             <li key={r.player.id}>
               <Link
-                to={path(`/players/${r.player.id}`)}
+                to={`/players/${r.player.id}`}
                 className="flex items-center gap-3 py-2 hover:bg-card-100/40"
               >
                 <PlayerAvatar player={r.player} size="sm" />

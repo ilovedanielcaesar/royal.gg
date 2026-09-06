@@ -24,7 +24,6 @@ import {
 } from "../lib/reconcile";
 import { requireSupabase } from "../lib/supabase";
 import type { Database } from "../types/database";
-import { useGroup } from "../lib/groupContext";
 
 type Player = Database["public"]["Tables"]["players"]["Row"];
 type BuyIn = Database["public"]["Tables"]["buy_ins"]["Row"];
@@ -51,7 +50,6 @@ function parseCount(raw: string): number {
 export default function SessionFormPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { group, path } = useGroup();
   const isEdit = Boolean(id);
 
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
@@ -81,7 +79,6 @@ export default function SessionFormPage() {
       const { data: players, error: pErr } = await sb
         .from("players")
         .select("*")
-        .eq("group_id", group!.id)
         .neq("status", "rejected")
         .order("name");
       if (pErr) throw pErr;
@@ -93,7 +90,7 @@ export default function SessionFormPage() {
           { data: buyIns, error: biErr },
           { data: cashOuts, error: coErr },
         ] = await Promise.all([
-          sb.from("sessions").select("*").eq("id", id).eq("group_id", group!.id).single(),
+          sb.from("sessions").select("*").eq("id", id).single(),
           sb.from("buy_ins").select("*").eq("session_id", id),
           sb.from("cash_outs").select("*").eq("session_id", id),
         ]);
@@ -137,7 +134,7 @@ export default function SessionFormPage() {
     } finally {
       setLoading(false);
     }
-  }, [group, id, isEdit]);
+  }, [id, isEdit]);
 
   useEffect(() => {
     void load();
@@ -172,7 +169,7 @@ export default function SessionFormPage() {
       const sb = requireSupabase();
       const { data, error: insErr } = await sb
         .from("players")
-        .insert({ name, is_guest: true, status: "active", group_id: group!.id })
+        .insert({ name, is_guest: true, status: "active" })
         .select()
         .single();
       if (insErr) throw insErr;
@@ -243,7 +240,7 @@ export default function SessionFormPage() {
             needs_review: reconcileSummary.needsReview,
             discrepancy_cents: reconcileSummary.discrepancyCents,
           })
-          .eq("id", sessionId).eq("group_id", group!.id);
+          .eq("id", sessionId);
         if (sErr) throw sErr;
         const { error: delBiErr } = await sb
           .from("buy_ins")
@@ -259,7 +256,6 @@ export default function SessionFormPage() {
             reconciled: !reconcileSummary.needsReview,
             needs_review: reconcileSummary.needsReview,
             discrepancy_cents: reconcileSummary.discrepancyCents,
-            group_id: group!.id,
           })
           .select()
           .single();
@@ -304,7 +300,7 @@ export default function SessionFormPage() {
         if (coErr) throw coErr;
       }
 
-      navigate(path(`/sessions/${sessionId}`));
+      navigate(`/sessions/${sessionId}`);
       if (isEdit) {
         await load();
       }
@@ -328,7 +324,7 @@ export default function SessionFormPage() {
       <div className="flex items-start justify-between">
         <div>
           <Link
-            to={path("/sessions")}
+            to="/sessions"
             className="text-xs text-card-50/60 hover:text-card-50"
           >
             ← Sessions
@@ -637,7 +633,7 @@ export default function SessionFormPage() {
           <Button
             type="button"
             variant="ghost"
-            onClick={() => navigate(path("/sessions"))}
+            onClick={() => navigate("/sessions")}
           >
             Cancel
           </Button>
@@ -657,9 +653,9 @@ export default function SessionFormPage() {
                     const { error } = await sb
                       .from("sessions")
                       .delete()
-                      .eq("id", id!).eq("group_id", group!.id);
+                      .eq("id", id!);
                     if (error) throw error;
-                    navigate(path("/sessions"));
+                    navigate("/sessions");
                   } catch (e) {
                     setError(describeError(e));
                     setBusy(false);
