@@ -172,6 +172,18 @@ Codex stopped and asked rather than hacking round it. Resolved by having
 `GroupNav` parse the slug from the URL; it's the one place allowed to, and
 says so in a comment.
 
+**Leak found by Will's browser test, now fixed (`cce16fb`).** `SessionsListPage`
+and `SessionFormPage` were never moved onto `useLeagueData` (different query
+shapes), so they read every group's rows. Worse, four INSERT paths omitted
+`group_id` — `0008`'s transitional default then filed them under the *oldest*
+group, so a session logged in a new group would have landed in Royal. Also
+fixed: React Router keeps those components mounted when only `:slug` changes,
+so their effects served the previous group's data after a switch.
+
+*Lesson:* a page that doesn't use the shared data hook is invisible to
+"scope the data" work. Grep `\.from("` and check every call site, not just the
+ones the hook covers.
+
 ⚠ **Scoping is client-side only.** `useLeagueData` asks for one group's rows,
 but RLS still returns everything to any authenticated user — anyone who calls
 the API directly still sees every group. Real isolation is `0009`.
@@ -180,7 +192,8 @@ the API directly still sees every group. Real isolation is `0009`.
 - [x] `tsc` 0, build passes, lint 5 → 3 warnings / 0 errors
 - [ ] Sign in → lands on `/g/royal`, all 16 sessions and correct totals
 - [ ] Create a second group at `/groups/new`, switch between them
-- [ ] Second group starts empty — no sessions or players leak from `royal`
+- [x] Second group starts empty — verified in-DB with a rolled-back probe
+      group: royal 18/16, test1 0/0, probe 1/1
 - [ ] A pasted `/g/royal/players/<id>` link opens the right page
 
 ---
@@ -263,6 +276,9 @@ Found in the audit, deliberately not done yet.
 
 Newest first. One line per meaningful change.
 
+- **2026-09-06** — Fixed group leakage in SessionsListPage / SessionFormPage /
+  PlayersPage: 2 unscoped reads and 4 unscoped writes, plus stale-group effect
+  deps. Found by Will testing a second group.
 - **2026-09-06** — Phase 2 chunks B/C/D done: routing, group-aware links +
   switcher, group-scoped data, ProfilePage split. Codex model switched to
   gpt-5.6-sol (soul/terra unsupported on a ChatGPT account); fixed run.sh's
