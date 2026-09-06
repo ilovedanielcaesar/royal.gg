@@ -15,20 +15,22 @@ the checkbox — a tick with no log entry is how this file rots.
 | Phase | What | State | Done |
 |:--:|---|---|:--:|
 | **0** | Provider consolidation | `[x]` **done** | 5/5 |
-| **1** | `0007`–`0010` applied | `[~]` RLS + contract left | 12/15 |
+| **1** | `0007`–`0011` applied | `[~]` RLS + contract left | 13/16 |
 | **2** | Group routing + picker | `[x]` **done** | 8/8 |
-| **3** | Joining + membership | `[~]` 3A done, 3B started | 1.5/4 |
+| **3** | Joining + membership | `[~]` 3A/3B done, 3C started | 2.5/4 |
 | **4** | Game log states | `[ ]` not started | 0/6 |
 | **5** | Settings, guest linking, admin | `[ ]` not started | 0/5 |
 
-**Current focus:** Phase 3B — `0010` is applied; the two UI chunks are with
-Codex.
+**Current focus:** Phase 3C — `0011` is applied; the members page is with
+Codex. Approvals were pulled ahead of 3B-2 settings: `code_approve` is the
+default join policy, so pending members are the normal case and nobody could
+act on them.
 
 Phase 2 verified by Will in the browser: a new group shows no Royal members,
 guests or sessions.
 
-**Last updated:** 2026-09-06 · `0010_group_join.sql` applied and green;
-3B-1 handed to Codex.
+**Last updated:** 2026-09-06 · `0011` applied and green; 3C-1 handed to
+Codex. 3B-2 settings deferred behind it.
 
 ---
 
@@ -299,9 +301,13 @@ once before 3B builds join-by-code on top of it.
 - [x] A `removed`/`rejected` member is refused, not readmitted (decision 9)
 - [x] `node scripts/smoke-3b.mjs --rehearse` — 32/32 against live data, then
       pushed and re-run green by Will
-- [ ] `/join/:code` and the `/groups` empty state — **Codex chunk 3B-1**
+- [x] `/join/:code` and the `/groups` empty state — Codex chunk 3B-1,
+      reviewed and committed (`32fe518`). Two defects fixed on review: the
+      pending card outlived a change of `:code` and hid the next error (same
+      class as the Phase 2 leak), and the join form existed only in the
+      `/groups` empty state, so anyone already in a group had no route to it.
 - [ ] `/g/:slug/settings`: show + regenerate the code, create/revoke invites —
-      **Codex chunk 3B-2**
+      **Codex chunk 3B-2**, deferred until after 3C-1
 
 **Why joining is an RPC and not a client insert.** `group_members` INSERT is
 reachable only by `group_members_write_admin` (`is_admin()`) and
@@ -326,11 +332,39 @@ owns roster creation, must drop those three indexes first, and must cover BOTH
 paths — approval, and an instant-active join under `join_policy = 'code'`, which
 never passes through an approval at all.
 
-**3C — membership management**
-- [ ] Per-group approvals queue; approving creates the member's `players`
-      roster row in that group
-- [ ] Promote / demote / remove
-- [ ] Last-admin guard as a DB trigger, not just UI
+**3C — membership management** `[~]` migration applied, UI delegated
+- [x] **`0011_membership_management.sql` applied.** Additive:
+      `group_members_update_group_admin` (a group admin may UPDATE memberships
+      in their own group — approve/reject/promote/remove are all UPDATEs, and
+      the table was writable only by `is_admin()` and the founder policy), plus
+      the `group_members_last_admin` guard trigger.
+- [x] Last-admin guard as a DB trigger, not just UI. Covers demotion, status
+      change AND outright DELETE — a superuser delete is refused too. A
+      *pending* admin does not count as cover, or you could demote yourself
+      while your replacement waits on an approval only you can grant.
+- [x] `node scripts/smoke-3c.mjs --rehearse` — 18/18, then pushed and re-run
+      green by Will
+- [ ] Per-group approvals queue + promote/demote/remove UI — **Codex 3C-1**,
+      `/g/:slug/members`
+- [ ] **Approving creates the member's `players` roster row** — second half,
+      blocked on the index drops below
+
+**Roster creation is blocked, and this is the gate.** `players_name_unique`
+(`lower(name)`, NOT partial), `players_user_id_unique` and
+`players_username_unique` are all still global. The first means two groups
+cannot both have a "Dan"; the second means one account can hold at most ONE
+`players` row app-wide — exactly the blocker `GROUPS.md` §1 names. Nothing can
+create a roster row on approval until they are dropped. That is the first
+genuinely destructive step in this sequence, so run `scripts/db-backup.mjs`
+immediately before it (free tier: no managed backups).
+
+Verified live: `dale` now holds memberships in both `royal` and `test1`, which
+only worked because joining creates no roster row.
+
+**A separate `/g/:slug/members` page.** `GROUPS.md` §9.2 has members inside
+`/g/:slug/settings`; folding approvals, roles, removal, the join code, invites
+and the join policy into one page would blow well past the ~200-line
+convention. 3B-2's settings page links to it instead.
 
 **3D — the migrations**
 - [ ] **RLS isolation** (drop the 4 rogue `using (true)` policies!), and
@@ -419,6 +453,15 @@ Found in the audit, deliberately not done yet.
 
 Newest first. One line per meaningful change.
 
+- **2026-09-06** — `0011_membership_management.sql` applied: a group admin can
+  finally act on their own membership list, and the last-admin guard is a
+  trigger covering update AND delete. Found by testing: joining `test1` from a
+  second account landed `pending` with nowhere to see it, because `/admin/
+  approvals` went away in 3A and the per-group queue did not exist yet. So 3C
+  was pulled ahead of 3B-2. 18/18 rehearsed, then pushed. Roster creation on
+  approval stays blocked on dropping the three global unique indexes.
+- **2026-09-06** — Phase 3B-1 (join page) delivered by Codex against a scoped
+  spec, reviewed, two defects fixed, committed as `32fe518`.
 - **2026-09-06** — `0010_group_join.sql` written, rehearsed 32/32, pushed by
   Will and re-run green. Adds `is_group_member()`/`is_group_admin()`,
   `join_group()`, and group-admin policies for `groups`/`group_invites`. The
