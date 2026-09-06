@@ -132,9 +132,14 @@ export default function DashboardPage() {
           </p>
         </div>
         {isGroupAdmin && (
-          <Link to={path("/sessions/new")}>
-            <Button>+ New session</Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link to={path("/members")}>
+              <Button variant="ghost">Manage members</Button>
+            </Link>
+            <Link to={path("/sessions/new")}>
+              <Button>+ New session</Button>
+            </Link>
+          </div>
         )}
       </div>
 
