@@ -15,14 +15,36 @@ the checkbox — a tick with no log entry is how this file rots.
 | Phase | What | State | Done |
 |:--:|---|---|:--:|
 | **0** | Provider consolidation | `[x]` **done** | 5/5 |
-| **1** | `0007`–`0013` applied | `[~]` RLS + contract left | 15/18 |
+| **1** | `0007`–`0014` applied | `[!]` `0015`/`0016` NOT PUSHED | 15/18 |
 | **2** | Group routing + picker | `[x]` **done** | 8/8 |
 | **3** | Joining + membership | `[x]` **code done**, needs browser | 4/4 |
 | **4** | Game log states | `[~]` 4A done, 4B left | 5/6 |
 | **5** | Settings, guest linking, admin | `[ ]` not started | 0/5 |
 
-**Current focus:** Phase 4B — the admin review UI. `0015` and `0016` are both
-written and rehearsed but **not pushed**.
+**Current focus:** Phase 4B — the admin review UI.
+
+> ### ⚠ START HERE — the database is behind the code
+>
+> `0015_rls_isolation.sql` and `0016_game_log_states.sql` are committed and
+> rehearsed but **NOT APPLIED**. Verified against the live database on
+> 2026-09-06: `is_app_owner()` absent, `sessions_state` trigger absent, nine
+> `using (true)` policies still live, `is_admin()` still present.
+>
+> Until Will runs `npx supabase db push` (he runs it; the permission system
+> blocks it here):
+> * Group isolation is **client-side only** — any authenticated user calling
+>   the API directly reads every group's money.
+> * Phase 4A's UI is live but unsupported. `sessions/new` and `sessions/:id`
+>   no longer require admin, yet the live policy is still `is_admin()`, so a
+>   member reaching the form gets an RLS error on Save.
+>
+> After the push, verify with:
+> ```
+> node scripts/smoke-rls.mjs      # expects 38/38
+> node scripts/smoke-phase4.mjs   # expects 31/31
+> ```
+> Then note that **a submitted log cannot be approved by anyone until 4B
+> ships.** Do not log a real game in between.
 
 Phase 2 verified by Will in the browser: a new group shows no Royal members,
 guests or sessions.
@@ -518,6 +540,30 @@ anyone, because the admin buttons are 4B.
 ---
 
 ## Open items
+
+Found while testing, not blocking any phase. All three reported by Will on
+2026-09-06 and confirmed against the live database.
+
+- [ ] **No admin indicator anywhere.** Nothing tells you that you are a
+      group's admin. `isGroupAdmin` is already in `useGroup()` and gates the
+      Settings button, but no badge or label names the role, so a member and
+      an admin see nearly the same chrome. `MemberRow` already renders role
+      text, so the vocabulary exists.
+- [ ] **Former members look active on the League roster.** After someone
+      leaves, `group_members.status` is `left` (correct) but their `players`
+      row stays with `players.status = 'active'` — a different column.
+      `/members` shows them correctly under "No longer members"; the League
+      page and leaderboard show them as ordinary players with no marker.
+      Keeping them is BY DESIGN (Will's call, matching decision 9) — the gap
+      is the missing visual. Needs `group_members.status` joined into the
+      roster read. Do NOT filter them out; the numbers must keep counting.
+- [ ] **Four copies of the "my active groups" query.** `GroupSwitcher`,
+      `IndexRoute`, `GroupsPage` and `ProfilePage` each run their own. This
+      already caused one bug: `GroupSwitcher` is rendered by `AppLayout` and
+      never unmounts, so it kept listing a group the user had just left
+      (patched in `501221c` by adding `pathname` to its deps — a symptom fix).
+      Proper answer is a `MyGroupsProvider` + `useMyGroups()` with `reload()`,
+      the same consolidation Phase 0 did for auth and league data.
 
 Carried from `GROUPS.md` §11 — not blocking any phase.
 
