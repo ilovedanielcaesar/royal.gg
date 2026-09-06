@@ -16,12 +16,13 @@ the checkbox — a tick with no log entry is how this file rots.
 |:--:|---|---|:--:|
 | **0** | Provider consolidation | `[x]` **done** | 5/5 |
 | **1** | `0007`+`0008` applied | `[~]` `0009`/`0010` deferred | 9/12 |
-| **2** | Group routing + picker | `[ ]` not started | 0/6 |
+| **2** | Group routing + picker | `[~]` code done, untested | 7/8 |
 | **3** | Joining + membership | `[ ]` not started | 0/7 |
 | **4** | Game log states | `[ ]` not started | 0/6 |
 | **5** | Settings, guest linking, admin | `[ ]` not started | 0/5 |
 
-**Current focus:** Phase 2 chunk B — routing (chunk A landed). `0007` is live and verified;
+**Current focus:** Phase 2 code complete (chunks A–D). Needs Will's browser
+test before Phase 3. `0007` is live and verified;
 `0008` (contract) waits until the frontend has moved over.
 
 **Last updated:** 2026-09-05 · design agreed, nothing built.
@@ -152,16 +153,35 @@ real insert probe did. Probe writes, not just reads, after any schema change.
 
 ## Phase 2 — Group routing
 
-- [ ] `/groups` picker + `/groups/new`
-- [ ] `/g/:slug/*` for all existing pages
-- [ ] `/` redirects: one group → its dashboard, else `/groups`
-- [ ] Every `<Link>` and `navigate()` rewritten to be slug-aware
-- [ ] Group switcher in the header
-- [ ] `/profile` becomes global (account + your groups)
+- [x] `/groups` picker + `/groups/new` (chunk B)
+- [x] `/g/:slug/*` for all existing pages, nested so `GroupProvider` is
+      declared once inside the `:slug` route (chunk B)
+- [x] `/` redirects: one group → its dashboard, else `/groups` (chunk B)
+- [x] Every `<Link>`/`navigate()` slug-aware via `path()` — verified by grep,
+      zero stale refs (chunk C)
+- [x] Group switcher + `GroupNav` in the header (chunk C)
+- [x] `/profile` global (account + groups); new `/g/:slug/profile` for your
+      card and per-group stats (chunk D)
+- [x] `useLeagueData` scoped to the active group (chunk D)
+- [ ] **Browser test by Will** — see exit gate
 
-**Exit gate**
-- [ ] Can create a second group and switch between them
-- [ ] A pasted deep link opens the right group for the right person
+**Delivered in 4 Codex chunks (A–D).** One big spec failed twice; small specs
+worked first time. Chunk C's spec had a real contradiction (a nav rendered by
+AppLayout can't call `useGroup()`, since AppLayout is above `GroupProvider`) —
+Codex stopped and asked rather than hacking round it. Resolved by having
+`GroupNav` parse the slug from the URL; it's the one place allowed to, and
+says so in a comment.
+
+⚠ **Scoping is client-side only.** `useLeagueData` asks for one group's rows,
+but RLS still returns everything to any authenticated user — anyone who calls
+the API directly still sees every group. Real isolation is `0009`.
+
+**Exit gate** — code done, needs a browser run:
+- [x] `tsc` 0, build passes, lint 5 → 3 warnings / 0 errors
+- [ ] Sign in → lands on `/g/royal`, all 16 sessions and correct totals
+- [ ] Create a second group at `/groups/new`, switch between them
+- [ ] Second group starts empty — no sessions or players leak from `royal`
+- [ ] A pasted `/g/royal/players/<id>` link opens the right page
 
 ---
 
@@ -243,6 +263,10 @@ Found in the audit, deliberately not done yet.
 
 Newest first. One line per meaningful change.
 
+- **2026-09-06** — Phase 2 chunks B/C/D done: routing, group-aware links +
+  switcher, group-scoped data, ProfilePage split. Codex model switched to
+  gpt-5.6-sol (soul/terra unsupported on a ChatGPT account); fixed run.sh's
+  --resume path, which passed --cd/-s that `codex exec resume` rejects.
 - **2026-09-06** — Phase 2 chunk A done: groupContext, GroupProvider,
   RequireGroupMember, RequireGroupAdmin. Reviewed; fixed 2 defects (missing
   cancelled guards, path() double-slash). Not wired up yet — chunk B is routing.
