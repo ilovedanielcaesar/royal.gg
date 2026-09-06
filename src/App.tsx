@@ -1,9 +1,21 @@
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import {
+  BrowserRouter,
+  Navigate,
+  Outlet,
+  Route,
+  Routes,
+} from "react-router-dom";
 import AppLayout from "./components/AppLayout";
+import GroupProvider from "./components/GroupProvider";
 import IndexRoute from "./components/IndexRoute";
 import RequireAdmin from "./components/RequireAdmin";
 import RequireAuth from "./components/RequireAuth";
+import RequireGroupAdmin from "./components/RequireGroupAdmin";
+import RequireGroupMember from "./components/RequireGroupMember";
 import AdminApprovalsPage from "./pages/AdminApprovalsPage";
+import CreateGroupPage from "./pages/CreateGroupPage";
+import DashboardPage from "./pages/DashboardPage";
+import GroupsPage from "./pages/GroupsPage";
 import LoginPage from "./pages/LoginPage";
 import PendingPage from "./pages/PendingPage";
 import PlayerProfilePage from "./pages/PlayerProfilePage";
@@ -25,57 +37,21 @@ export default function App() {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/pending" element={<PendingPage />} />
 
-          {/* Index: login form for guests, dashboard for approved users. */}
+          {/* Index: login form for guests, group redirect for approved users. */}
           <Route index element={<IndexRoute />} />
           <Route
-            path="/sessions"
+            path="/groups"
             element={
               <RequireAuth>
-                <SessionsListPage />
+                <GroupsPage />
               </RequireAuth>
             }
           />
           <Route
-            path="/sessions/new"
+            path="/groups/new"
             element={
               <RequireAuth>
-                <RequireAdmin>
-                  <SessionFormPage />
-                </RequireAdmin>
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/sessions/:id"
-            element={
-              <RequireAuth>
-                <RequireAdmin>
-                  <SessionFormPage />
-                </RequireAdmin>
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/players"
-            element={
-              <RequireAuth>
-                <PlayersPage />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/players/:id"
-            element={
-              <RequireAuth>
-                <PlayerProfilePage />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/players/:id/rating"
-            element={
-              <RequireAuth>
-                <PlayerRatingPage />
+                <CreateGroupPage />
               </RequireAuth>
             }
           />
@@ -84,14 +60,6 @@ export default function App() {
             element={
               <RequireAuth>
                 <ProfilePage />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/records"
-            element={
-              <RequireAuth>
-                <RecordsPage />
               </RequireAuth>
             }
           />
@@ -105,6 +73,45 @@ export default function App() {
               </RequireAuth>
             }
           />
+
+          <Route
+            path="/g/:slug"
+            element={
+              <RequireAuth>
+                <GroupProvider>
+                  <RequireGroupMember>
+                    <Outlet />
+                  </RequireGroupMember>
+                </GroupProvider>
+              </RequireAuth>
+            }
+          >
+            <Route index element={<DashboardPage />} />
+            <Route path="sessions" element={<SessionsListPage />} />
+            <Route
+              path="sessions/new"
+              element={
+                <RequireGroupAdmin>
+                  <SessionFormPage />
+                </RequireGroupAdmin>
+              }
+            />
+            <Route
+              path="sessions/:id"
+              element={
+                <RequireGroupAdmin>
+                  <SessionFormPage />
+                </RequireGroupAdmin>
+              }
+            />
+            <Route path="players" element={<PlayersPage />} />
+            <Route path="players/:id" element={<PlayerProfilePage />} />
+            <Route
+              path="players/:id/rating"
+              element={<PlayerRatingPage />}
+            />
+            <Route path="records" element={<RecordsPage />} />
+          </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
