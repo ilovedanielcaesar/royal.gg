@@ -41,7 +41,8 @@ export default function LeaveGroupCard() {
       <p className="mt-1 text-xs text-ink-500">
         You keep your place on the leaderboard and every game you played stays
         recorded. You can rejoin later with the group&rsquo;s code.
-        {isGroupAdmin && " Promote another admin first — a group cannot be left without one."}
+        {isGroupAdmin &&
+          " If you are the group's only admin, promote someone else first — a group cannot be left without one."}
       </p>
       {error && (
         <div className="mt-3 rounded-md bg-crimson-500/10 px-3 py-2 text-xs text-crimson-700">

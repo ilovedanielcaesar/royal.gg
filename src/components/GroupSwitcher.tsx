@@ -54,7 +54,12 @@ export default function GroupSwitcher() {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+    // Deliberately re-reads on navigation. This component is rendered by
+    // AppLayout, so it never unmounts — with [user] alone it kept showing a
+    // group after the user left it, and would equally miss one they had just
+    // joined. The query is one small row set, and this makes the header
+    // self-heal on any membership change made anywhere in the app.
+  }, [pathname, user]);
 
   if (!user) return null;
 
