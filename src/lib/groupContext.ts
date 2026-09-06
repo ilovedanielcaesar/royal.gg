@@ -13,6 +13,8 @@ export type GroupContextValue = {
   role: GroupRole;
   isGroupAdmin: boolean;
   notFound: boolean;
+  /** Re-read the group after changing it. See the note in GroupProvider. */
+  reload: () => Promise<void>;
   path: (sub: string) => string;
 };
 

@@ -17,19 +17,19 @@ the checkbox — a tick with no log entry is how this file rots.
 | **0** | Provider consolidation | `[x]` **done** | 5/5 |
 | **1** | `0007`–`0013` applied | `[~]` RLS + contract left | 15/18 |
 | **2** | Group routing + picker | `[x]` **done** | 8/8 |
-| **3** | Joining + membership | `[~]` 3A/3B/3C done, 3B-2 left | 3.5/4 |
+| **3** | Joining + membership | `[x]` **code done**, needs browser | 4/4 |
 | **4** | Game log states | `[ ]` not started | 0/6 |
 | **5** | Settings, guest linking, admin | `[ ]` not started | 0/5 |
 
-**Current focus:** 3B-2 — the group settings page, the last piece of Phase 3.
-The join code is still only reachable through `scripts/db.mjs`, and the join
-policy cannot be changed from the UI at all.
+**Current focus:** RLS isolation. Phase 3 is code-complete; group scoping is
+still CLIENT-SIDE ONLY, so any authenticated user calling the API directly
+reads every group's money.
 
 Phase 2 verified by Will in the browser: a new group shows no Royal members,
 guests or sessions.
 
-**Last updated:** 2026-09-06 · Phase 3C complete: members page committed,
-`0012` applied, `0013` written and rehearsed.
+**Last updated:** 2026-09-06 · Phase 3 code-complete. Settings page in;
+awaiting a browser run of /members and /settings.
 
 ---
 
@@ -305,8 +305,19 @@ once before 3B builds join-by-code on top of it.
       pending card outlived a change of `:code` and hid the next error (same
       class as the Phase 2 leak), and the join form existed only in the
       `/groups` empty state, so anyone already in a group had no route to it.
-- [ ] `/g/:slug/settings`: show + regenerate the code, create/revoke invites —
-      **Codex chunk 3B-2**, deferred until after 3C-1
+- [x] `/g/:slug/settings`: show + regenerate the code, switch the join policy,
+      mint/revoke invites — Codex chunk 3B-2, reviewed. Split cleanly into
+      `InviteLinksCard` + `InviteLinkRow`, and `generateJoinCode()` lifted out
+      of `CreateGroupPage` into `lib/joinCode.ts`.
+- [x] `GroupProvider` gained `reload()`. Its effect only refires on
+      `[authLoading, slug, user]`, so nothing reloaded the group when
+      navigating within a slug: rotate the join code, go to members and back,
+      and the remounted settings page read the STALE context and displayed a
+      code that had genuinely stopped working. The page now re-reads through
+      `reload()` instead of mirroring the value into local state.
+- [x] Dashboard admin block: "Manage members" replaced by "Settings" — three
+      buttons was too many on a phone, and settings is now the admin hub with
+      members one click in.
 
 **Why joining is an RPC and not a client insert.** `group_members` INSERT is
 reachable only by `group_members_write_admin` (`is_admin()`) and
@@ -488,6 +499,13 @@ Found in the audit, deliberately not done yet.
 
 Newest first. One line per meaningful change.
 
+- **2026-09-06** — Phase 3 code-complete. 3B-2 group settings from Codex
+  (join code + copy/regenerate, join policy, invite links, link through to
+  members), reviewed. One real defect fixed at the source: `GroupProvider`
+  never refetched within a slug, so a regenerated join code went stale on
+  remount and the page showed a code that no longer worked — the provider now
+  exposes `reload()` and the page dropped its local mirror. Still outstanding
+  for Phase 3: a browser run of `/members` and `/settings`.
 - **2026-09-06** — Phase 3C done. `0012_roster_on_activation.sql` dropped the
   four global unique indexes (including `players_user_id_unique`, the blocker
   GROUPS.md §1 names) and added a trigger that creates the roster row whenever

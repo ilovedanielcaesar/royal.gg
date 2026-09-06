@@ -5,23 +5,14 @@ import Card from "../components/Card";
 import CurrencyInput from "../components/CurrencyInput";
 import { useCurrentUser } from "../lib/auth";
 import { describeError } from "../lib/errors";
+import { generateJoinCode } from "../lib/joinCode";
 import { requireSupabase } from "../lib/supabase";
-
-const JOIN_CODE_CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
 function slugify(name: string): string {
   return name
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
-}
-
-function generateJoinCode(): string {
-  const values = crypto.getRandomValues(new Uint32Array(8));
-  return Array.from(
-    values,
-    (value) => JOIN_CODE_CHARACTERS[value % JOIN_CODE_CHARACTERS.length]
-  ).join("");
 }
 
 function dollarsToCents(value: string, label: string): number {

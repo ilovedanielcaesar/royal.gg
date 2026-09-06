@@ -14,6 +14,7 @@ import RequireGroupMember from "./components/RequireGroupMember";
 import CreateGroupPage from "./pages/CreateGroupPage";
 import DashboardPage from "./pages/DashboardPage";
 import GroupMembersPage from "./pages/GroupMembersPage";
+import GroupSettingsPage from "./pages/GroupSettingsPage";
 import GroupsPage from "./pages/GroupsPage";
 import JoinPage from "./pages/JoinPage";
 import LoginPage from "./pages/LoginPage";
@@ -97,6 +98,14 @@ export default function App() {
               element={
                 <RequireGroupAdmin>
                   <GroupMembersPage />
+                </RequireGroupAdmin>
+              }
+            />
+            <Route
+              path="settings"
+              element={
+                <RequireGroupAdmin>
+                  <GroupSettingsPage />
                 </RequireGroupAdmin>
               }
             />
