@@ -208,8 +208,12 @@ no `group_id`, so every new signup today becomes a *pending player in Royal*,
 whichever group they meant to join. Verified with a rolled-back probe.
 
 **3A — auth onto `profiles`** (prerequisite for everything else)
-- [ ] `signUp()` creates the auth user + a `profiles` row. No `players` row,
-      no group. A new account belongs to nothing until it joins one.
+- [ ] **`0009a`: trigger on `auth.users` that creates the `profiles` row**, and
+      make `profiles.username` nullable. Provider-agnostic, so Google sign-in
+      later needs no frontend change. See `GROUPS.md` §10b.
+- [ ] `signUp()` creates the auth user only — the trigger makes the profile.
+      No `players` row, no group. A new account belongs to nothing until it
+      joins one.
 - [ ] `AuthProvider` reads identity from `profiles`, not `players`
 - [ ] App-owner flag from `profiles.is_app_owner`, replacing the
       `username === ADMIN_USERNAME` check
@@ -217,6 +221,8 @@ whichever group they meant to join. Verified with a rolled-back probe.
       signed in with no groups → `/groups`
 - [ ] Retire the global `/pending` page and `/admin/approvals` (both become
       per-group in 3C)
+- [ ] New account with no groups → `/groups`, whose empty state offers
+      "create a group" or "join with a code" (decided; no welcome screen)
 
 **3B — joining**
 - [ ] `/join/:code` accepts a standing `join_code` or a `group_invites` token

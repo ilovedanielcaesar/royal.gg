@@ -368,6 +368,34 @@ additive.
 
 ---
 
+## 10b. Auth: prepared for OAuth, not built
+
+Today: Supabase Auth with username + password. Supabase does the real work
+(hashing, JWTs, sessions); the only trick is `syntheticEmail()` inventing
+`<username>@royal.gg.local` so users never see an email field.
+
+**Decision (2026-09-06):** Google (or similar) sign-in comes later. We do not
+build it now, but nothing we build may block it. Three rules:
+
+1. **Profile creation belongs in a DB trigger on `auth.users`, not in
+   `signUp()`.** The standard Supabase pattern. A trigger fires for a user
+   created by *any* provider, so OAuth needs no frontend change to get a
+   profile. Password signup stops needing to insert one at all.
+2. **`profiles.username` becomes nullable.** An OAuth user arrives with an
+   email and a display name, no username. It becomes a display handle people
+   set on `/profile`, not a login credential. The trigger seeds it from the
+   email local part.
+3. **No new code may depend on the synthetic email domain.** `is_app_owner`
+   on `profiles` already replaces the old `is_admin()` email match and is
+   provider-agnostic. Keep it that way.
+
+When Google is wanted: enable the provider in the Supabase dashboard, add a
+`signInWithOAuth({ provider: "google" })` button. The trigger handles the rest.
+
+Onboarding for a brand-new account with no groups: send them to `/groups`,
+whose empty state offers **create a group** or **join with a code**. No
+separate welcome screen (decided 2026-09-06).
+
 ## 11. Open items
 
 Not blocking, but unanswered:
