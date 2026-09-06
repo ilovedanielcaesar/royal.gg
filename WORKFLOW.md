@@ -18,17 +18,16 @@ the checkbox — a tick with no log entry is how this file rots.
 | **1** | `0007`–`0013` applied | `[~]` RLS + contract left | 15/18 |
 | **2** | Group routing + picker | `[x]` **done** | 8/8 |
 | **3** | Joining + membership | `[x]` **code done**, needs browser | 4/4 |
-| **4** | Game log states | `[ ]` not started | 0/6 |
+| **4** | Game log states | `[~]` 4A done, 4B left | 5/6 |
 | **5** | Settings, guest linking, admin | `[ ]` not started | 0/5 |
 
-**Current focus:** Phase 4 — game log states. RLS isolation (`0015`) is
-written and rehearsed, awaiting a push.
+**Current focus:** Phase 4B — the admin review UI. `0015` and `0016` are both
+written and rehearsed but **not pushed**.
 
 Phase 2 verified by Will in the browser: a new group shows no Royal members,
 guests or sessions.
 
-**Last updated:** 2026-09-06 · `0015` RLS isolation written, 38/38
-rehearsed, not yet pushed.
+**Last updated:** 2026-09-06 · Phase 4A in. `0015` and `0016` await a push.
 
 ---
 
@@ -469,12 +468,32 @@ Original checklist, for reference:
 
 ## Phase 4 — Game log states
 
-- [ ] `draft → submitted → approved` on `sessions`
-- [ ] Any member creates/edits a draft; creator can delete their own
-- [ ] Submit for approval
-- [ ] Admin approve / send back with note / reopen
-- [ ] Approval blocked while `needs_review` (over the group's threshold)
-- [ ] `SessionFormPage` respects state + role (currently admin-only throughout)
+- [x] `draft → submitted → approved` on `sessions` — `0016`, written and
+      rehearsed 31/31, **awaiting push** alongside `0015`
+- [x] Any member creates/edits a draft; creator can delete their own
+- [x] Submit for approval
+- [ ] Admin approve / send back with note / reopen — **Codex 4B**
+- [x] Approval blocked while `needs_review` — enforced by the trigger, not the
+      UI, so it holds however the row is reached
+- [x] `SessionFormPage` respects state + role. Also split: 704 lines → 170,
+      with 9 components and 3 hooks, all under 200. The
+      `set-state-in-effect` warning at its old line 149 went with it, 3 → 2.
+
+**Two mechanisms, deliberately.** POLICIES decide who may touch a row; a
+TRIGGER decides which transitions are legal and stamps `submitted_by` /
+`approved_by`. RLS cannot express "from this state to that state" — `with
+check` sees only the new row — and audit columns written by the client are
+worth nothing, since `approved_by` would be whoever the browser claimed.
+
+**A rule worth remembering, found by the smoke test:** `WITH CHECK` clauses are
+OR-ed across every permissive policy for a command, *independently of which
+policy's `USING` matched the row*. `sessions_admin_review`'s check has to stay
+loose enough for `submitted → approved`, and that looseness rescued a straight
+edit of an approved row that `sessions_admin_reopen`'s `USING` had admitted. It
+is not expressible in RLS; the trigger refuses it instead.
+
+**Interim state between 4A and 4B:** a submitted log cannot be approved by
+anyone, because the admin buttons are 4B.
 
 **Exit gate**
 - [ ] Member submits, admin sends back, member fixes, admin approves
@@ -528,6 +547,15 @@ Found in the audit, deliberately not done yet.
 
 Newest first. One line per meaningful change.
 
+- **2026-09-06** — Phase 4A: `SessionFormPage` obeys state and role, and any
+  member can keep a draft. Delivered by Codex, whose run was KILLED before it
+  wrote a report — so the tree was treated as suspect and verified from
+  scratch. It turned out complete: tsc 0, build clean, lint 3 → 2, and the
+  money writes byte-identical to the original (`git show HEAD:` diffed against
+  them). One fix on review: a delete refused by RLS returns zero rows and no
+  error, so the button navigated away reporting success for a session still in
+  the database.
+- **2026-09-06** — `0016_game_log_states.sql`, 31/31 rehearsed. Not pushed.
 - **2026-09-06** — `0015_rls_isolation.sql`: real group isolation at last.
   Twelve permissive SELECT policies removed (the four undocumented
   `*_select_all` AND eight the migrations themselves shipped), ten `is_admin()`

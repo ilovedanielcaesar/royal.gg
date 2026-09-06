@@ -110,22 +110,8 @@ export default function App() {
               }
             />
             <Route path="sessions" element={<SessionsListPage />} />
-            <Route
-              path="sessions/new"
-              element={
-                <RequireGroupAdmin>
-                  <SessionFormPage />
-                </RequireGroupAdmin>
-              }
-            />
-            <Route
-              path="sessions/:id"
-              element={
-                <RequireGroupAdmin>
-                  <SessionFormPage />
-                </RequireGroupAdmin>
-              }
-            />
+            <Route path="sessions/new" element={<SessionFormPage />} />
+            <Route path="sessions/:id" element={<SessionFormPage />} />
             <Route path="players" element={<PlayersPage />} />
             <Route path="players/:id" element={<PlayerProfilePage />} />
             <Route
