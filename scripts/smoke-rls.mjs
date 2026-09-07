@@ -197,6 +197,25 @@ try {
   );
   const t = truth.rows[0];
 
+  // Pinned by id, resolved at runtime. An earlier version of the check below
+  // updated every session in royal and expected zero rows, on the reasoning
+  // that they were all approved. Two were reopened on 2026-09-07 to fix nights
+  // that never balanced, and a member editing a draft is exactly right — so the
+  // check failed on correct data. Ask for an approved row instead of assuming
+  // one.
+  const approvedId = (
+    await client.query(
+      "select id from sessions where group_id=$1 and status='approved' limit 1",
+      [royal]
+    )
+  ).rows[0]?.id;
+  const draftId = (
+    await client.query(
+      "select id from sessions where group_id=$1 and status='draft' limit 1",
+      [royal]
+    )
+  ).rows[0]?.id;
+
   console.log(`\n  A member of royal (${t.players} players, ${t.sessions} sessions)\n`);
 
   await asUser(dale, async () => {
@@ -260,12 +279,22 @@ try {
     check("cannot start one in a group they are not in", foreign.refused !== null,
       "the insert succeeded");
 
-    // Every royal session is approved, so sessions_update_draft matches none.
     const u = await probe(
-      "update sessions set review_note='x' where group_id=$1", [royal]
+      "update sessions set review_note='x' where id=$1", [approvedId]
     );
     check("cannot edit an approved one", u.rowCount === 0,
       u.refused ?? `matched ${u.rowCount} rows`);
+
+    // The other half of the same rule, and the reason the check above had to be
+    // narrowed rather than widened: a reopened night is a draft, and any member
+    // may work on it.
+    if (draftId) {
+      const d = await probe(
+        "update sessions set review_note='x' where id=$1", [draftId]
+      );
+      check("  but CAN edit a reopened one, which is the point of a draft",
+        d.rowCount === 1, d.refused ?? `matched ${d.rowCount} rows`);
+    }
 
     const p = await probe("delete from payouts where group_id=$1", [royal]);
     check("cannot delete a payout", p.rowCount === 0,

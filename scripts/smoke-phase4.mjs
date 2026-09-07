@@ -172,16 +172,16 @@ try {
   check("0015's guarantees survive on the money tables", leak.rowCount === 0,
     leak.rows.map((r) => `${r.tablename}.${r.policyname}`).join(", "));
 
-  // Scoped to created_by is null, which is what marks a row 0007 backfilled.
-  // This was an unscoped "no session is anything but approved", which held only
-  // until the first real draft existed — Will's browser pass on 2026-09-07 left
-  // one behind and the check started failing on correct data.
+  // Not "every legacy night is still approved". That was a snapshot, and it
+  // expired the moment Will used 4B's Reopen on the two nights that never
+  // balanced — which is the feature working, not a fault. Assert the RULE the
+  // trigger enforces instead: a night that does not balance cannot be
+  // approved. That one cannot expire, because the database refuses to break it.
   const historical = await client.query(
-    `select count(*)::int as n from sessions
-      where created_by is null and status <> 'approved'`
+    "select count(*)::int as n from sessions where status='approved' and needs_review"
   );
-  check("every pre-Phase-4 session is still approved", historical.rows[0].n === 0,
-    `${historical.rows[0].n} are not`);
+  check("no approved session is carrying books that do not balance",
+    historical.rows[0].n === 0, `${historical.rows[0].n} are`);
 
   // --- fixtures -------------------------------------------------------------
   const admin = await makeAccount("admin");
