@@ -13,10 +13,24 @@
 
 name: CI
 
+# Every push, every branch — one run per commit.
+#
+# This started as `pull_request` plus `push` on [main, v1.1.0], which meant a
+# phase branch got no CI at all until a PR was opened. Pushes to
+# phase-5-settings triggered nothing.
+#
+# `pull_request` is gone rather than added to, because it would double-run: a
+# push to a branch with an open PR fires both, on different refs. A check run
+# attaches to a commit SHA, not to a PR, so a push-triggered run still shows up
+# in the PR's checks — the status is there either way.
+#
+# What that trades away: `pull_request` tests the MERGE result, while `push`
+# tests the branch tip. Those differ when the base has moved on underneath you.
+# Here they do not — this history is linear and every merge is a fast-forward,
+# so the merge result IS the branch tip. Revisit if that ever stops being true.
 on:
-  pull_request:
   push:
-    branches: [main, v1.1.0]
+  workflow_dispatch:
 
 jobs:
   check:
