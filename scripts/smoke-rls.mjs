@@ -226,18 +226,45 @@ try {
       (await count("select count(*)::int as n from groups where id=$1", [test1])) === 0);
   });
 
-  console.log("\n  A member cannot write the books\n");
+  // 0015 let only an admin write a session. 0016 reverses that on purpose —
+  // GROUPS.md §4, "create a game log" is a member's right — so what is worth
+  // asserting is no longer "a member cannot", but the shape of what they can:
+  // their own draft, in their own group, starting at the bottom of the ladder.
+  console.log("\n  A member writes drafts, and only drafts\n");
 
   await asUser(dale, async () => {
+    // The trigger defaults created_by to auth.uid(); that default is what
+    // satisfies sessions_insert_member's `created_by = auth.uid()` check.
     const s = await probe(
       "insert into sessions (group_id, played_at) values ($1, current_date)", [royal]
     );
-    check("cannot create a session", s.refused !== null, "the insert succeeded");
+    check("CAN start a draft", s.refused === null, s.refused ?? "");
 
+    const forged = await probe(
+      `insert into sessions (group_id, played_at, created_by)
+        values ($1, current_date, $2)`, [royal, will]
+    );
+    check("cannot put someone else's name on it", forged.refused !== null,
+      "the insert succeeded");
+
+    const jumped = await probe(
+      `insert into sessions (group_id, played_at, status)
+        values ($1, current_date, 'approved')`, [royal]
+    );
+    check("cannot open one pre-approved", jumped.refused !== null,
+      "the insert succeeded");
+
+    const foreign = await probe(
+      "insert into sessions (group_id, played_at) values ($1, current_date)", [test1]
+    );
+    check("cannot start one in a group they are not in", foreign.refused !== null,
+      "the insert succeeded");
+
+    // Every royal session is approved, so sessions_update_draft matches none.
     const u = await probe(
       "update sessions set review_note='x' where group_id=$1", [royal]
     );
-    check("cannot edit one", u.rowCount === 0,
+    check("cannot edit an approved one", u.rowCount === 0,
       u.refused ?? `matched ${u.rowCount} rows`);
 
     const p = await probe("delete from payouts where group_id=$1", [royal]);
