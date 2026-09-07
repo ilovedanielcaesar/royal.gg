@@ -55,51 +55,40 @@ immediately before anything destructive.
 | **2** | Group routing + picker | `[x]` **done** | 8/8 |
 | **3** | Joining + membership | `[x]` **done**, browser-verified | 4/4 |
 | **4** | Game log states | `[x]` **done**, browser-verified | 6/6 |
-| **5** | Settings, guest linking, admin | `[!]` `0017` NOT PUSHED | 0/6 |
+| **5** | Settings, guest linking, admin | `[~]` `0017` in, UI next | 1/6 |
 
 **Current focus:** Phase 5 — settings, guest linking, admin.
 
 > ### ⚠ START HERE — the database is level with the code
 >
-> `0015_rls_isolation.sql` and `0016_game_log_states.sql` were **applied on
-> 2026-09-07**. The ledger reads `0016 game_log_states`, `is_admin()` is gone,
-> `is_app_owner()` and the `sessions_state` trigger exist, and no `using (true)`
-> policy survives on any table that holds money.
+> `0015`, `0016` and `0017` are all **applied**. The ledger reads
+> `0017 session_buy_in`, and `sessions_state` is back to `tgenabled = 'O'` —
+> worth checking by hand after `0017`, because that migration disables the
+> trigger to get its backfill past `0016`'s approved-row rule.
 >
 > ```
-> node scripts/smoke-rls.mjs      # 41/41
+> node scripts/smoke-rls.mjs      # 42/42
 > node scripts/smoke-phase4.mjs   # 31/31
+> node scripts/smoke-0017.mjs     # 24/24
 > ```
 >
-> The push surfaced one failure, and it was the **test** that was stale:
-> `smoke-rls` still asserted 0015's admin-only write rule against 0016's
-> deliberate reversal of it (`13f3dd9`). The four checks that replaced it are
-> the ones worth keeping — a member may open a draft, but may not forge
-> `created_by`, may not open one already submitted or approved, and may not
-> reach into a group they are not in.
+> **`src/types/database.ts` is hand-maintained, and `0017` landed without it.**
+> `sessions.buy_in_cents` was added to the type on 2026-09-07 after the fact.
+> Any future migration that adds a column has to touch that file in the same
+> commit, or the column is invisible to TypeScript.
 >
-> 4B shipped (`3f8cd56`), and Will walked Phases 3 and 4 in a browser on
-> 2026-09-07 across two accounts: joining, promotion, approval, session
-> permissions and leaving all behave. Minor visual glitches noted and accepted.
->
-> **`0017_session_buy_in.sql` is written and rehearsed 23/23, NOT APPLIED.**
-> Until Will runs `npx supabase db push`, `sessions.buy_in_cents` does not
-> exist, so no settings UI may ship — the stakes form is exactly what makes the
-> silent rewrite reachable.
->
-> ```
-> node scripts/db-backup.mjs        # 0017 disables a trigger mid-migration
-> npx supabase db push
-> node scripts/smoke-0017.mjs       # expects 23/23
-> node scripts/smoke-phase4.mjs     # expects 31/31
-> node scripts/smoke-rls.mjs        # expects 41/41
-> ```
+> **Two nights are open drafts on purpose.** Will reopened the −$110.00 on
+> 2026-08-26 and the +$107.50 on 2026-08-30 through 4B. 08-30 now balances
+> exactly. 08-26 is still $110 over — nine buy-ins came to $360 against $470
+> cashed out — so `needs_review` holds and the trigger refuses to approve it
+> until the counts are fixed. That is a real chip-count discrepancy from that
+> night, not a bug.
 
 Phase 2 verified by Will in the browser: a new group shows no Royal members,
 guests or sessions.
 
-**Last updated:** 2026-09-07 · `0017` written and rehearsed 23/23, awaiting a
-push. Nothing else in Phase 5 can start until it lands.
+**Last updated:** 2026-09-07 · `0017` applied. All three suites green. Next is
+spec 5A, the settings form, on `phase-5-settings`.
 
 ---
 
@@ -586,24 +575,41 @@ then guest linking, then `/admin` last.
 
 - [x] `0017` — `sessions.buy_in_cents`, stamped at creation, backfilled from
       what `buy_ins` actually recorded ahead of the group's current setting.
-      **Decision 13.** Written and rehearsed 23/23, **awaiting push**.
+      **Decision 13.** Applied 2026-09-07, 24/24 live.
       The rehearsal caught a defect reading alone would not have: the backfill
       UPDATE touches sixteen approved rows and `0016`'s trigger refuses any
       update to an approved row, so it aborted on its first row. The trigger
       now comes off for the backfill and back on inside the same transaction,
       and the assert checks `tgenabled = 'O'` rather than mere existence.
-- [ ] `/g/:slug/settings` — stakes, buy-in, threshold. `GroupSettingsPage`
-      already owns join code and join policy; these are additions to it.
-- [ ] `DEFAULT_BUY_IN_CENTS` / `RECONCILE_THRESHOLD_CENTS` deleted, read from
-      the group. **Five call sites**: `SessionFormPage:40`,
-      `SessionAmountsCard:35`, `SessionPlayerRow:32`,
-      `SessionReconciliationSummary:59`, `useSessionFormSave:110`. The first
-      four are display or new-session paths; the fifth writes money and takes
-      the session's stamped value, not the group's.
-- [ ] Guest linking — admin sets `profile_id` on a guest row BEFORE the person
-      joins. **Decision 14.** `ensure_group_roster_row()` is already idempotent
-      on `(group_id, profile_id)`, so the join adopts the row rather than
-      inserting a second one. No `buy_ins` or `cash_outs` move.
+- [x] `src/types/database.ts` — `sessions.buy_in_cents` added to the type.
+      `0017` landed without it and the file is hand-maintained, so the column
+      was invisible to TypeScript until this.
+- [ ] **5A — Codex.** `/g/:slug/settings` gains stakes label, buy-in and
+      reconcile threshold. `GroupSettingsPage` already owns join code and join
+      policy and already has the `save()` + `reload()` shape to extend. Form
+      only: it writes `groups`, and touches no session and no money.
+- [ ] **5B — mine, not delegated.** Thread the values through and delete
+      `DEFAULT_BUY_IN_CENTS` / `RECONCILE_THRESHOLD_CENTS`. **Five call
+      sites**: `SessionFormPage:40`, `SessionAmountsCard:35`,
+      `SessionPlayerRow:32`, `SessionReconciliationSummary:59`,
+      `useSessionFormSave:110`.
+      Kept in-house because every one of them is money arithmetic — four feed
+      `reconcile()` or render a computed total, and the fifth writes
+      `buy_ins.amount_cents`. That last one must read the SESSION's stamped
+      value, never the group's; taking the group's is precisely the silent
+      rewrite `0017` exists to prevent, and it would look correct in review.
+- [ ] **5C — split, once 5B is in.** Guest linking. Admin sets `profile_id` on
+      a guest row BEFORE the person joins (**decision 14**), and
+      `ensure_group_roster_row()` is already idempotent on
+      `(group_id, profile_id)`, so the join adopts the row. No `buy_ins` or
+      `cash_outs` move.
+      **No new policy needed** — `players_update_admin` is
+      `is_group_admin(group_id)` on both `USING` and `WITH CHECK`, so an admin
+      may already write `profile_id` on their own group's roster. What it needs
+      is guards, and those are mine: refusing a profile that already holds a
+      row in the group (`players_group_profile_unique` would raise a raw
+      constraint error at the user), refusing a profile that is not a member,
+      and deciding whether `is_guest` flips on link. UI on top is Codex's.
 - [ ] Per-group card picker (unique within the group)
 - [ ] `/admin` superadmin overview — accounts + groups, **no money**
 

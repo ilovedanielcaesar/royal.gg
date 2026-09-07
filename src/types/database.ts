@@ -80,6 +80,12 @@ export type Database = {
           review_note: string | null;
           played_at: string;
           notes: string | null;
+          /**
+           * The stake this night was played at. Stamped from the group at
+           * creation and never re-read from it, so a later change to the
+           * group's default cannot rewrite a settled game (0017, decision 13).
+           */
+          buy_in_cents: number;
           reconciled: boolean;
           discrepancy_cents: number;
           needs_review: boolean;
@@ -98,6 +104,8 @@ export type Database = {
           review_note?: string | null;
           played_at: string;
           notes?: string | null;
+          /** Optional: the trigger stamps it from the group when omitted. */
+          buy_in_cents?: number;
           reconciled?: boolean;
           discrepancy_cents?: number;
           needs_review?: boolean;
