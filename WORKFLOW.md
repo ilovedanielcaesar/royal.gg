@@ -45,7 +45,7 @@ immediately before anything destructive.
 | Phase | What | State | Done |
 |:--:|---|---|:--:|
 | **0** | Provider consolidation | `[x]` **done** | 5/5 |
-| **1** | `0007`–`0014` applied | `[!]` `0015`/`0016` NOT PUSHED | 15/18 |
+| **1** | `0007`–`0016` applied | `[x]` **done** | 18/18 |
 | **2** | Group routing + picker | `[x]` **done** | 8/8 |
 | **3** | Joining + membership | `[x]` **code done**, needs browser | 4/4 |
 | **4** | Game log states | `[~]` 4A done, 4B left | 5/6 |
@@ -53,33 +53,33 @@ immediately before anything destructive.
 
 **Current focus:** Phase 4B — the admin review UI.
 
-> ### ⚠ START HERE — the database is behind the code
+> ### ⚠ START HERE — the database is level with the code
 >
-> `0015_rls_isolation.sql` and `0016_game_log_states.sql` are committed and
-> rehearsed but **NOT APPLIED**. Verified against the live database on
-> 2026-09-06: `is_app_owner()` absent, `sessions_state` trigger absent, nine
-> `using (true)` policies still live, `is_admin()` still present.
+> `0015_rls_isolation.sql` and `0016_game_log_states.sql` were **applied on
+> 2026-09-07**. The ledger reads `0016 game_log_states`, `is_admin()` is gone,
+> `is_app_owner()` and the `sessions_state` trigger exist, and no `using (true)`
+> policy survives on any table that holds money.
 >
-> Until Will runs `npx supabase db push` (he runs it; the permission system
-> blocks it here):
-> * Group isolation is **client-side only** — any authenticated user calling
->   the API directly reads every group's money.
-> * Phase 4A's UI is live but unsupported. `sessions/new` and `sessions/:id`
->   no longer require admin, yet the live policy is still `is_admin()`, so a
->   member reaching the form gets an RLS error on Save.
->
-> After the push, verify with:
 > ```
-> node scripts/smoke-rls.mjs      # expects 38/38
-> node scripts/smoke-phase4.mjs   # expects 31/31
+> node scripts/smoke-rls.mjs      # 41/41
+> node scripts/smoke-phase4.mjs   # 31/31
 > ```
-> Then note that **a submitted log cannot be approved by anyone until 4B
-> ships.** Do not log a real game in between.
+>
+> The push surfaced one failure, and it was the **test** that was stale:
+> `smoke-rls` still asserted 0015's admin-only write rule against 0016's
+> deliberate reversal of it (`13f3dd9`). The four checks that replaced it are
+> the ones worth keeping — a member may open a draft, but may not forge
+> `created_by`, may not open one already submitted or approved, and may not
+> reach into a group they are not in.
+>
+> **Still true until 4B ships: a submitted log cannot be approved by anyone.**
+> Do not log a real game in between.
 
 Phase 2 verified by Will in the browser: a new group shows no Royal members,
 guests or sessions.
 
-**Last updated:** 2026-09-06 · Phase 4A in. `0015` and `0016` await a push.
+**Last updated:** 2026-09-07 · `0015` and `0016` pushed; both suites green.
+4B is the only thing between here and a usable approval flow.
 
 ---
 
@@ -151,7 +151,7 @@ Touches live data. The risky one.
 - [x] **`0010_group_join.sql` applied** — Phase 3B. Additive: the two
       membership helpers, `join_group()`, and the group-admin policies for
       `groups` and `group_invites`. 32/32 rehearsed, then pushed.
-- [x] **`0015_rls_isolation.sql` written and rehearsed 38/38.** Replaces the
+- [x] **`0015_rls_isolation.sql` applied 2026-09-07; suite now 41/41.** Replaces the
       entire policy surface on nine tables with `is_group_member()` /
       `is_group_admin()`, adds `is_app_owner()` and `shares_group_with()`, and
       drops `is_admin()`. **TWELVE permissive SELECTs went, not four** — the
@@ -520,8 +520,8 @@ Original checklist, for reference:
 
 ## Phase 4 — Game log states
 
-- [x] `draft → submitted → approved` on `sessions` — `0016`, written and
-      rehearsed 31/31, **awaiting push** alongside `0015`
+- [x] `draft → submitted → approved` on `sessions` — `0016`, **applied
+      2026-09-07**, 31/31 against the live schema
 - [x] Any member creates/edits a draft; creator can delete their own
 - [x] Submit for approval
 - [ ] Admin approve / send back with note / reopen — **Codex 4B**
