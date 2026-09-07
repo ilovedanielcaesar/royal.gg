@@ -52,6 +52,28 @@ revisit.
 | 11 | Game log flow | Full round trip: send back to draft, reopen after approval |
 | 12 | Guest linking | Admin links a guest row to a newly-joined account |
 
+Two more, settled 2026-09-07 once Phase 5 was scoped against the live schema:
+
+| # | Decision | Choice |
+|---|---|---|
+| 13 | Stakes vs. history | `sessions.buy_in_cents`, stamped at creation. A night keeps the stakes it was played at |
+| 14 | Linking direction | Admin links the guest row **before** the person joins; the join then adopts it |
+
+**On 13.** Decision 7 puts the buy-in on the group, which is right for a new
+session and wrong for an old one: reopening a game logged at $40 after the
+group moved to $50 would recompute its buy-ins at the new rate and silently
+rewrite a night that is already settled. The group value becomes the *default a
+session is stamped with*, not a value read live at edit time. Historical rows
+backfill from `groups.default_buy_in_cents`, which is where they came from.
+
+**On 14.** `0013` refuses a join whose roster name is already taken, and names
+this feature as the missing fix. Linking first means the clash never happens:
+the guest row gains a `profile_id`, and `ensure_group_roster_row()` is already
+idempotent on `(group_id, profile_id)`, so the join adopts that row instead of
+inserting a second one. The alternative — let both rows exist, then merge — has
+to move `buy_ins` and `cash_outs` between players, and moving money to fix a
+naming problem is a bad trade.
+
 ---
 
 ## 3. Schema

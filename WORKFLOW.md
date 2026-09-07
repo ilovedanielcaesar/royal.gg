@@ -47,9 +47,9 @@ immediately before anything destructive.
 | **0** | Provider consolidation | `[x]` **done** | 5/5 |
 | **1** | `0007`–`0016` applied | `[x]` **done** | 18/18 |
 | **2** | Group routing + picker | `[x]` **done** | 8/8 |
-| **3** | Joining + membership | `[x]` **code done**, needs browser | 4/4 |
-| **4** | Game log states | `[x]` **code done**, needs browser | 6/6 |
-| **5** | Settings, guest linking, admin | `[ ]` not started | 0/5 |
+| **3** | Joining + membership | `[x]` **done**, browser-verified | 4/4 |
+| **4** | Game log states | `[x]` **done**, browser-verified | 6/6 |
+| **5** | Settings, guest linking, admin | `[~]` decisions 13/14 settled | 0/5 |
 
 **Current focus:** Phase 5 — settings, guest linking, admin.
 
@@ -72,15 +72,20 @@ immediately before anything destructive.
 > `created_by`, may not open one already submitted or approved, and may not
 > reach into a group they are not in.
 >
-> 4B shipped (`3f8cd56`), so the loop closes: a submitted log can now be
-> approved, sent back with a note, or reopened. **Not yet walked in a browser**
-> — that is the Phase 4 exit gate below.
+> 4B shipped (`3f8cd56`), and Will walked Phases 3 and 4 in a browser on
+> 2026-09-07 across two accounts: joining, promotion, approval, session
+> permissions and leaving all behave. Minor visual glitches noted and accepted.
+>
+> **Next: Phase 5, settings first.** See decisions 13 and 14 in `GROUPS.md` §2 —
+> both were settled after Phase 5 was scoped against the live schema, and 13
+> needs a migration before the settings UI can be trusted.
 
 Phase 2 verified by Will in the browser: a new group shows no Royal members,
 guests or sessions.
 
-**Last updated:** 2026-09-07 · `0015`/`0016` pushed, both suites green, 4B in.
-Phase 4 needs one browser pass, then Phase 5 starts.
+**Last updated:** 2026-09-07 · Phases 3 and 4 browser-verified. Phase 5 begins
+with `0017`, because decision 13 has to be in the database before stakes become
+editable.
 
 ---
 
@@ -562,9 +567,25 @@ anyone, because the admin buttons are 4B.
 
 ## Phase 5 — Settings, linking, admin
 
-- [ ] `/g/:slug/settings` — stakes, buy-in, threshold, join policy
-- [ ] `DEFAULT_BUY_IN_CENTS` / `RECONCILE_THRESHOLD_CENTS` deleted, read from group
-- [ ] Guest linking — admin merges a guest row into a joined account
+Order settled 2026-09-07: **settings first** (self-contained, no money moves),
+then guest linking, then `/admin` last.
+
+- [ ] `0017` — `sessions.buy_in_cents`, stamped at creation, backfilled from
+      `groups.default_buy_in_cents`. **Decision 13.** Mine, not Codex's: it is
+      a money column. Must land BEFORE the settings UI, or the first stakes
+      change rewrites the history of every game reopened afterwards.
+- [ ] `/g/:slug/settings` — stakes, buy-in, threshold. `GroupSettingsPage`
+      already owns join code and join policy; these are additions to it.
+- [ ] `DEFAULT_BUY_IN_CENTS` / `RECONCILE_THRESHOLD_CENTS` deleted, read from
+      the group. **Five call sites**: `SessionFormPage:40`,
+      `SessionAmountsCard:35`, `SessionPlayerRow:32`,
+      `SessionReconciliationSummary:59`, `useSessionFormSave:110`. The first
+      four are display or new-session paths; the fifth writes money and takes
+      the session's stamped value, not the group's.
+- [ ] Guest linking — admin sets `profile_id` on a guest row BEFORE the person
+      joins. **Decision 14.** `ensure_group_roster_row()` is already idempotent
+      on `(group_id, profile_id)`, so the join adopts the row rather than
+      inserting a second one. No `buy_ins` or `cash_outs` move.
 - [ ] Per-group card picker (unique within the group)
 - [ ] `/admin` superadmin overview — accounts + groups, **no money**
 
