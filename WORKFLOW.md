@@ -49,7 +49,7 @@ immediately before anything destructive.
 | **2** | Group routing + picker | `[x]` **done** | 8/8 |
 | **3** | Joining + membership | `[x]` **done**, browser-verified | 4/4 |
 | **4** | Game log states | `[x]` **done**, browser-verified | 6/6 |
-| **5** | Settings, guest linking, admin | `[~]` decisions 13/14 settled | 0/5 |
+| **5** | Settings, guest linking, admin | `[!]` `0017` NOT PUSHED | 0/6 |
 
 **Current focus:** Phase 5 — settings, guest linking, admin.
 
@@ -76,16 +76,24 @@ immediately before anything destructive.
 > 2026-09-07 across two accounts: joining, promotion, approval, session
 > permissions and leaving all behave. Minor visual glitches noted and accepted.
 >
-> **Next: Phase 5, settings first.** See decisions 13 and 14 in `GROUPS.md` §2 —
-> both were settled after Phase 5 was scoped against the live schema, and 13
-> needs a migration before the settings UI can be trusted.
+> **`0017_session_buy_in.sql` is written and rehearsed 23/23, NOT APPLIED.**
+> Until Will runs `npx supabase db push`, `sessions.buy_in_cents` does not
+> exist, so no settings UI may ship — the stakes form is exactly what makes the
+> silent rewrite reachable.
+>
+> ```
+> node scripts/db-backup.mjs        # 0017 disables a trigger mid-migration
+> npx supabase db push
+> node scripts/smoke-0017.mjs       # expects 23/23
+> node scripts/smoke-phase4.mjs     # expects 31/31
+> node scripts/smoke-rls.mjs        # expects 41/41
+> ```
 
 Phase 2 verified by Will in the browser: a new group shows no Royal members,
 guests or sessions.
 
-**Last updated:** 2026-09-07 · Phases 3 and 4 browser-verified. Phase 5 begins
-with `0017`, because decision 13 has to be in the database before stakes become
-editable.
+**Last updated:** 2026-09-07 · `0017` written and rehearsed 23/23, awaiting a
+push. Nothing else in Phase 5 can start until it lands.
 
 ---
 
@@ -570,10 +578,14 @@ anyone, because the admin buttons are 4B.
 Order settled 2026-09-07: **settings first** (self-contained, no money moves),
 then guest linking, then `/admin` last.
 
-- [ ] `0017` — `sessions.buy_in_cents`, stamped at creation, backfilled from
-      `groups.default_buy_in_cents`. **Decision 13.** Mine, not Codex's: it is
-      a money column. Must land BEFORE the settings UI, or the first stakes
-      change rewrites the history of every game reopened afterwards.
+- [x] `0017` — `sessions.buy_in_cents`, stamped at creation, backfilled from
+      what `buy_ins` actually recorded ahead of the group's current setting.
+      **Decision 13.** Written and rehearsed 23/23, **awaiting push**.
+      The rehearsal caught a defect reading alone would not have: the backfill
+      UPDATE touches sixteen approved rows and `0016`'s trigger refuses any
+      update to an approved row, so it aborted on its first row. The trigger
+      now comes off for the backfill and back on inside the same transaction,
+      and the assert checks `tgenabled = 'O'` rather than mere existence.
 - [ ] `/g/:slug/settings` — stakes, buy-in, threshold. `GroupSettingsPage`
       already owns join code and join policy; these are additions to it.
 - [ ] `DEFAULT_BUY_IN_CENTS` / `RECONCILE_THRESHOLD_CENTS` deleted, read from
