@@ -34,6 +34,12 @@ once wrote 20 files after the tree looked clean and was committed broken
 turned out complete, but only because it was re-verified from scratch, money
 writes included (`git show HEAD:` diffed against the new ones).
 
+**Work reaches `v1.1.0` through a PR from a short-lived branch**, one per
+phase, since 2026-09-07 — `phase-5-settings` is the first. CI (typecheck,
+build, lint at `--max-warnings 2`) runs on every PR. `v1.1.0` is the
+integration branch and ends when Phase 5 lands: it fast-forwards into `main`,
+gets tagged `v1.1.0`, and is deleted. The convention is in `CLAUDE.md`.
+
 **Will runs `npx supabase db push` himself** — the permission system blocks it
 here. Free tier means no managed backups, so `node scripts/db-backup.mjs` runs
 immediately before anything destructive.
