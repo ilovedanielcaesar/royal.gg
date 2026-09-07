@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Button from "../components/Button";
 import Card from "../components/Card";
+import SessionStatusBadge from "../components/SessionStatusBadge";
+import { useCurrentUser } from "../lib/authContext";
 import { describeError } from "../lib/errors";
 import { formatPlayedAt } from "../lib/format";
 import { useGroup } from "../lib/groupContext";
@@ -19,6 +21,7 @@ type SessionWithStats = Session & {
 
 export default function SessionsListPage() {
   const { isGroupAdmin, path, group } = useGroup();
+  const { user } = useCurrentUser();
   const groupId = group?.id ?? "";
   const [sessions, setSessions] = useState<SessionWithStats[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -108,12 +111,18 @@ export default function SessionsListPage() {
     setError(null);
     try {
       const sb = requireSupabase();
-      const { error } = await sb
+      const { data, error } = await sb
         .from("sessions")
         .delete()
         .eq("id", id)
-        .eq("group_id", groupId);
+        .eq("group_id", groupId)
+        .select("id");
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error(
+          "That game log could not be deleted. Only a draft can be deleted, and only by its author or an admin."
+        );
+      }
       setSessions((prev) => (prev ? prev.filter((s) => s.id !== id) : prev));
     } catch (e) {
       console.error(e);
@@ -132,11 +141,9 @@ export default function SessionsListPage() {
             Every night, in reverse-chronological order.
           </p>
         </div>
-        {isGroupAdmin && (
-          <Link to={path("/sessions/new")}>
-            <Button>+ New session</Button>
-          </Link>
-        )}
+        <Link to={path("/sessions/new")}>
+          <Button>+ New session</Button>
+        </Link>
       </div>
 
       {error && (
@@ -150,10 +157,7 @@ export default function SessionsListPage() {
       ) : sessions.length === 0 ? (
         <Card>
           <p className="p-6 text-sm text-ink-500">
-            No sessions yet.
-            {isGroupAdmin
-              ? ' Hit "New session" to log the first night.'
-              : " Once the host logs a night, it'll appear here."}
+            No sessions yet. Hit "New session" to log the first night.
           </p>
         </Card>
       ) : (
@@ -163,7 +167,10 @@ export default function SessionsListPage() {
               key={s.id}
               session={s}
               dealIn={idx * 60}
-              isGroupAdmin={isGroupAdmin}
+              canDelete={
+                s.status === "draft" &&
+                (isGroupAdmin || s.created_by === user?.id)
+              }
               deleting={deletingId === s.id}
               onDelete={() => void handleDelete(s.id)}
             />
@@ -177,13 +184,13 @@ export default function SessionsListPage() {
 function SessionCard({
   session,
   dealIn,
-  isGroupAdmin,
+  canDelete,
   deleting,
   onDelete,
 }: {
   session: SessionWithStats;
   dealIn: number;
-  isGroupAdmin: boolean;
+  canDelete: boolean;
   deleting: boolean;
   onDelete: () => void;
 }) {
@@ -240,11 +247,14 @@ function SessionCard({
                 </div>
               </div>
             </div>
-            <StatusPill session={session} />
+            <div className="flex flex-wrap gap-2">
+              <SessionStatusBadge status={session.status} />
+              <StatusPill session={session} />
+            </div>
           </div>
         </Card>
       </Link>
-      {isGroupAdmin && (
+      {canDelete && (
         <button
           type="button"
           onClick={(e) => {

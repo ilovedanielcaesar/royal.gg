@@ -6,6 +6,7 @@ import SessionDetailsCard from "../components/SessionDetailsCard";
 import SessionFormActions from "../components/SessionFormActions";
 import SessionPlayerPicker from "../components/SessionPlayerPicker";
 import SessionReconciliationSummary from "../components/SessionReconciliationSummary";
+import SessionReviewActions from "../components/SessionReviewActions";
 import { useCurrentUser } from "../lib/authContext";
 import { formatPlayedAt } from "../lib/format";
 import { useGroup } from "../lib/groupContext";
@@ -153,6 +154,14 @@ export default function SessionFormPage() {
                   : "This session is reconciled."}
             </p>
           </Card>
+        )}
+        {session && isGroupAdmin && (
+          <SessionReviewActions
+            session={session}
+            groupId={groupId}
+            onError={form.setError}
+            reload={form.load}
+          />
         )}
         <SessionFormActions
           canEdit={canEdit}
