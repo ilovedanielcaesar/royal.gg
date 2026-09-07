@@ -48,10 +48,10 @@ immediately before anything destructive.
 | **1** | `0007`–`0016` applied | `[x]` **done** | 18/18 |
 | **2** | Group routing + picker | `[x]` **done** | 8/8 |
 | **3** | Joining + membership | `[x]` **code done**, needs browser | 4/4 |
-| **4** | Game log states | `[~]` 4A done, 4B left | 5/6 |
+| **4** | Game log states | `[x]` **code done**, needs browser | 6/6 |
 | **5** | Settings, guest linking, admin | `[ ]` not started | 0/5 |
 
-**Current focus:** Phase 4B — the admin review UI.
+**Current focus:** Phase 5 — settings, guest linking, admin.
 
 > ### ⚠ START HERE — the database is level with the code
 >
@@ -72,14 +72,15 @@ immediately before anything destructive.
 > `created_by`, may not open one already submitted or approved, and may not
 > reach into a group they are not in.
 >
-> **Still true until 4B ships: a submitted log cannot be approved by anyone.**
-> Do not log a real game in between.
+> 4B shipped (`3f8cd56`), so the loop closes: a submitted log can now be
+> approved, sent back with a note, or reopened. **Not yet walked in a browser**
+> — that is the Phase 4 exit gate below.
 
 Phase 2 verified by Will in the browser: a new group shows no Royal members,
 guests or sessions.
 
-**Last updated:** 2026-09-07 · `0015` and `0016` pushed; both suites green.
-4B is the only thing between here and a usable approval flow.
+**Last updated:** 2026-09-07 · `0015`/`0016` pushed, both suites green, 4B in.
+Phase 4 needs one browser pass, then Phase 5 starts.
 
 ---
 
@@ -524,7 +525,12 @@ Original checklist, for reference:
       2026-09-07**, 31/31 against the live schema
 - [x] Any member creates/edits a draft; creator can delete their own
 - [x] Submit for approval
-- [ ] Admin approve / send back with note / reopen — **Codex 4B**
+- [x] Admin approve / send back with note / reopen — Codex 4B (`3f8cd56`).
+      Three buttons over `useSessionReview`; every mutation `.select("id")`s and
+      treats zero rows as failure, because an RLS refusal on an UPDATE is not an
+      error. Also fixed two list-page gates `0016` had invalidated: `+ New
+      session` was admin-only though members may create logs, and `Delete`
+      showed on approved cards where the policy could only refuse it.
 - [x] Approval blocked while `needs_review` — enforced by the trigger, not the
       UI, so it holds however the row is reached
 - [x] `SessionFormPage` respects state + role. Also split: 704 lines → 170,
