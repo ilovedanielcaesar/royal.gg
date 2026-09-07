@@ -55,7 +55,7 @@ immediately before anything destructive.
 | **2** | Group routing + picker | `[x]` **done** | 8/8 |
 | **3** | Joining + membership | `[x]` **done**, browser-verified | 4/4 |
 | **4** | Game log states | `[x]` **done**, browser-verified | 6/6 |
-| **5** | Settings, guest linking, admin | `[~]` `0017` in, UI next | 1/6 |
+| **5** | Settings, guest linking, admin | `[~]` 5A + 5B in, 5C next | 3/6 |
 
 **Current focus:** Phase 5 — settings, guest linking, admin.
 
@@ -87,8 +87,10 @@ immediately before anything destructive.
 Phase 2 verified by Will in the browser: a new group shows no Royal members,
 guests or sessions.
 
-**Last updated:** 2026-09-07 · `0017` applied. All three suites green. Next is
-spec 5A, the settings form, on `phase-5-settings`.
+**Last updated:** 2026-09-07 · 5A and 5B in on `phase-5-settings`. A group's
+stakes now reach its games. Needs a browser pass — change the buy-in, log a
+night, confirm an OLDER night reopened afterwards still prices at its own
+stake. Then 5C.
 
 ---
 
@@ -584,20 +586,27 @@ then guest linking, then `/admin` last.
 - [x] `src/types/database.ts` — `sessions.buy_in_cents` added to the type.
       `0017` landed without it and the file is hand-maintained, so the column
       was invisible to TypeScript until this.
-- [ ] **5A — Codex.** `/g/:slug/settings` gains stakes label, buy-in and
-      reconcile threshold. `GroupSettingsPage` already owns join code and join
+- [x] **5A — Codex** (`8eb6edd`). `/g/:slug/settings` gains stakes label,
+      buy-in and reconcile threshold. `GroupSettingsPage` already owns join code and join
       policy and already has the `save()` + `reload()` shape to extend. Form
       only: it writes `groups`, and touches no session and no money.
-- [ ] **5B — mine, not delegated.** Thread the values through and delete
-      `DEFAULT_BUY_IN_CENTS` / `RECONCILE_THRESHOLD_CENTS`. **Five call
-      sites**: `SessionFormPage:40`, `SessionAmountsCard:35`,
-      `SessionPlayerRow:32`, `SessionReconciliationSummary:59`,
-      `useSessionFormSave:110`.
-      Kept in-house because every one of them is money arithmetic — four feed
-      `reconcile()` or render a computed total, and the fifth writes
-      `buy_ins.amount_cents`. That last one must read the SESSION's stamped
-      value, never the group's; taking the group's is precisely the silent
-      rewrite `0017` exists to prevent, and it would look correct in review.
+- [x] **5B — mine, not delegated** (`355e983`). Both constants are gone from
+      `src/`; all five call sites read the group or the session.
+      The rule has a name and a home now — `resolveBuyInCents()` in
+      `sessionForm.ts`: an existing night is priced at the stake stamped on it,
+      only a new one takes the group's current default. Kept in-house because
+      every call site is money arithmetic and the wrong version of this reads
+      as correct.
+      `reconcile()`'s threshold is required rather than defaulting to 500, so a
+      forgotten argument is a compile error instead of a silently wrong policy.
+      The insert states `buy_in_cents` instead of letting the trigger infer it,
+      so an admin changing stakes while the form is open cannot price the
+      session header and its `buy_ins` rows differently.
+      `parseDraftCents` is exact — it multiplied a float, so `"1.005"` rounded
+      DOWN to `100` and `"1e3"` became `100000`. It stays separate from
+      `parseDollarsToCents` because strictness that suits a setting would blank
+      a running total mid-keystroke.
+
 - [ ] **5C — split, once 5B is in.** Guest linking. Admin sets `profile_id` on
       a guest row BEFORE the person joins (**decision 14**), and
       `ensure_group_roster_row()` is already idempotent on
