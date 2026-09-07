@@ -3,12 +3,16 @@ import { Link } from "react-router-dom";
 import Button from "../components/Button";
 import Card from "../components/Card";
 import InviteLinksCard from "../components/InviteLinksCard";
+import StakesCard, { type StakesUpdate } from "../components/StakesCard";
 import { describeError } from "../lib/errors";
-import { useGroup } from "../lib/groupContext";
+import { useGroup, type Group } from "../lib/groupContext";
 import { generateJoinCode } from "../lib/joinCode";
 import { requireSupabase } from "../lib/supabase";
 
 type JoinPolicy = "code" | "code_approve";
+type GroupSettingsUpdate = Partial<
+  Pick<Group, "join_code" | "join_policy"> & StakesUpdate
+>;
 
 const POLICIES: Array<[JoinPolicy, string]> = [
   ["code", "Anyone with the code joins straight away."],
@@ -33,14 +37,26 @@ export default function GroupSettingsPage() {
    * code, navigate to members and back, and the stale context would show the
    * old code — one that has genuinely stopped working.
    */
-  async function save(update: { join_code?: string; join_policy?: JoinPolicy }) {
+  async function save(update: GroupSettingsUpdate) {
     setError(null);
     try {
-      const { error: updateError } = await requireSupabase()
+      // .select() so a refusal is visible. RLS turns "you are no longer an
+      // admin here" into zero matched rows with no error, and without this the
+      // form would report success, reload(), and quietly show the old values
+      // back. Reachable without any foul play: be demoted or leave the group
+      // in another tab while this page is open, and every save silently stops
+      // working. Same shape as DeleteSessionButton and useSessionReview.
+      const { data, error: updateError } = await requireSupabase()
         .from("groups")
         .update(update)
-        .eq("id", groupId);
+        .eq("id", groupId)
+        .select("id");
       if (updateError) throw updateError;
+      if (!data || data.length === 0) {
+        throw new Error(
+          "Those settings could not be saved. You may no longer be an admin of this group."
+        );
+      }
       await reload();
     } catch (caught) {
       setError(describeError(caught));
@@ -74,7 +90,7 @@ export default function GroupSettingsPage() {
       <header>
         <h1 className="font-display text-4xl text-card-50">Settings</h1>
         <p className="mt-1 text-sm text-card-50/60">
-          Manage how people join {group.name}.
+          Manage {group.name}'s table and membership settings.
         </p>
       </header>
 
@@ -150,6 +166,13 @@ export default function GroupSettingsPage() {
           </p>
         </div>
       </Card>
+
+      <StakesCard
+        key={`${group.stakes_label}:${group.default_buy_in_cents}:${group.reconcile_threshold_cents}`}
+        group={group}
+        isGroupAdmin={isGroupAdmin}
+        save={save}
+      />
 
       <InviteLinksCard key={groupId} groupId={groupId} />
 
