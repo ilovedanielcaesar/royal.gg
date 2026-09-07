@@ -10,6 +10,36 @@ the checkbox — a tick with no log entry is how this file rots.
 
 ---
 
+## How the work is split
+
+Established over Phases 3 and 4, and worth keeping.
+
+**Migrations, RLS and anything security-shaped are written by Claude, never
+delegated.** The failure mode is silent: a wrong policy leaks money while the
+app looks perfectly correct. Every migration since `0009` was rehearsed against
+live data inside a rolled-back transaction (`scripts/smoke-*.mjs`) before Will
+pushed it, and that rehearsal caught real defects every single time — anon
+holding a default EXECUTE grant, an admin editing an approved log, a smoke test
+passing for the wrong reason.
+
+**UI chunks go to Codex**, one at a time, via `.claude/skills/codex/run.sh`.
+Spec length matters: 83–125 lines succeed, a 167-line spec failed twice. Each
+spec names the files in scope, what is explicitly OUT of scope, the invariants,
+and the exact lint baseline to beat.
+
+**Never trust a Codex run's self-report.** Check `git status` before staging —
+never `git add -A` — and verify `tsc`, the build and lint yourself. A killed run
+once wrote 20 files after the tree looked clean and was committed broken
+(`2fa9263`). Phase 4A's run was also killed with no report at all; the work
+turned out complete, but only because it was re-verified from scratch, money
+writes included (`git show HEAD:` diffed against the new ones).
+
+**Will runs `npx supabase db push` himself** — the permission system blocks it
+here. Free tier means no managed backups, so `node scripts/db-backup.mjs` runs
+immediately before anything destructive.
+
+---
+
 ## Status
 
 | Phase | What | State | Done |
