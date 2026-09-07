@@ -1,5 +1,3 @@
-export const RECONCILE_THRESHOLD_CENTS = 500;
-
 export type ReconcileInput = {
   playerId: string;
   buyInCents: number;
@@ -22,9 +20,15 @@ export type ReconcileSummary = {
   totalReportedCents: number;
 };
 
+/**
+ * `thresholdCents` is required on purpose. It used to default to a hardcoded
+ * 500, which meant a call site that forgot to pass the group's threshold got
+ * $5 and looked entirely correct. Every group now sets its own, and a missing
+ * argument has to be a compile error rather than a silently wrong policy.
+ */
 export function reconcile(
   rows: ReconcileInput[],
-  thresholdCents: number = RECONCILE_THRESHOLD_CENTS
+  thresholdCents: number
 ): ReconcileSummary {
   const totalBuyInCents = rows.reduce((s, r) => s + r.buyInCents, 0);
   const totalReportedCents = rows.reduce(

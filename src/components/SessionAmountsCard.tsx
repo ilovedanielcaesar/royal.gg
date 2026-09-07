@@ -1,4 +1,4 @@
-import { DEFAULT_BUY_IN_CENTS } from "../lib/money";
+import { formatCents } from "../lib/money";
 import type { ReconcileSummary } from "../lib/reconcile";
 import type {
   SessionFormPlayer,
@@ -9,6 +9,8 @@ import SessionPlayerRow from "./SessionPlayerRow";
 
 type Props = {
   rows: SessionFormRow[];
+  /** This session's stake, not the group's current one. See decision 13. */
+  buyInCents: number;
   playersById: Map<string, SessionFormPlayer>;
   summary: ReconcileSummary | null;
   canEdit: boolean;
@@ -20,6 +22,7 @@ type Props = {
 
 export default function SessionAmountsCard({
   rows,
+  buyInCents,
   playersById,
   summary,
   canEdit,
@@ -32,7 +35,7 @@ export default function SessionAmountsCard({
           Buy-ins & cash-outs
         </h2>
         <p className="mt-1 text-xs text-ink-500">
-          Each buy-in is ${(DEFAULT_BUY_IN_CENTS / 100).toFixed(0)}.
+          Each buy-in is {formatCents(buyInCents)}.
         </p>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full text-sm">
@@ -49,6 +52,7 @@ export default function SessionAmountsCard({
                 <SessionPlayerRow
                   key={row.playerId}
                   row={row}
+                  buyInCents={buyInCents}
                   player={playersById.get(row.playerId)}
                   summary={summary}
                   canEdit={canEdit}

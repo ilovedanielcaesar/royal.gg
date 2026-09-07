@@ -10,9 +10,12 @@ import SessionReviewActions from "../components/SessionReviewActions";
 import { useCurrentUser } from "../lib/authContext";
 import { formatPlayedAt } from "../lib/format";
 import { useGroup } from "../lib/groupContext";
-import { DEFAULT_BUY_IN_CENTS } from "../lib/money";
 import { reconcile, type ReconcileInput } from "../lib/reconcile";
-import { parseCount, parseDraftCents } from "../lib/sessionForm";
+import {
+  parseCount,
+  parseDraftCents,
+  resolveBuyInCents,
+} from "../lib/sessionForm";
 import useSessionFormData from "../lib/useSessionFormData";
 import useSessionFormSave from "../lib/useSessionFormSave";
 
@@ -28,6 +31,10 @@ export default function SessionFormPage() {
   const canEdit =
     isDraft || (isGroupAdmin && session?.status === "submitted");
 
+  // See resolveBuyInCents — an existing night keeps the stake it was played at.
+  const buyInCents = resolveBuyInCents(session, group);
+  const thresholdCents = group?.reconcile_threshold_cents;
+
   const playersById = useMemo(
     () => new Map(form.allPlayers.map((player) => [player.id, player])),
     [form.allPlayers]
@@ -35,13 +42,14 @@ export default function SessionFormPage() {
 
   const reconcileSummary = useMemo(() => {
     if (rows.length === 0) return null;
+    if (buyInCents === undefined || thresholdCents === undefined) return null;
     const inputs: ReconcileInput[] = rows.map((r) => ({
       playerId: r.playerId,
-      buyInCents: parseCount(r.buyInCount) * DEFAULT_BUY_IN_CENTS,
+      buyInCents: parseCount(r.buyInCount) * buyInCents,
       reportedCashOutCents: parseDraftCents(r.cashOut) ?? 0,
     }));
-    return reconcile(inputs);
-  }, [rows]);
+    return reconcile(inputs, thresholdCents);
+  }, [rows, buyInCents, thresholdCents]);
 
   const { busy, handleSubmit } = useSessionFormSave({
     id,
@@ -52,11 +60,19 @@ export default function SessionFormPage() {
     notes: form.notes,
     rows,
     summary: reconcileSummary,
+    buyInCents,
     setError: form.setError,
     reload: form.load,
   });
 
-  if (form.loading) {
+  // Narrows both to number for everything below, so no call site needs a
+  // fallback and none can quietly get the wrong one.
+  if (
+    form.loading ||
+    !group ||
+    buyInCents === undefined ||
+    thresholdCents === undefined
+  ) {
     return <p className="text-card-50/60">Dealing…</p>;
   }
 
@@ -130,6 +146,7 @@ export default function SessionFormPage() {
         {rows.length > 0 && (
           <SessionAmountsCard
             rows={rows}
+            buyInCents={buyInCents}
             playersById={playersById}
             summary={reconcileSummary}
             canEdit={canEdit}
@@ -137,7 +154,10 @@ export default function SessionFormPage() {
           />
         )}
         {reconcileSummary && rows.length > 0 && (
-          <SessionReconciliationSummary summary={reconcileSummary} />
+          <SessionReconciliationSummary
+            summary={reconcileSummary}
+            thresholdCents={thresholdCents}
+          />
         )}
         {form.error && (
           <Card accent="crimson">

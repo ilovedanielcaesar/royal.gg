@@ -6,15 +6,13 @@ import {
   type SessionFormPlayer,
   type SessionFormRow,
 } from "../lib/sessionForm";
-import {
-  DEFAULT_BUY_IN_CENTS,
-  formatCents,
-  formatSignedCents,
-} from "../lib/money";
+import { formatCents, formatSignedCents } from "../lib/money";
 import type { ReconcileSummary } from "../lib/reconcile";
 
 type Props = {
   row: SessionFormRow;
+  /** This session's stake, not the group's current one. See decision 13. */
+  buyInCents: number;
   player?: SessionFormPlayer;
   summary: ReconcileSummary | null;
   canEdit: boolean;
@@ -23,13 +21,14 @@ type Props = {
 
 export default function SessionPlayerRow({
   row,
+  buyInCents,
   player,
   summary,
   canEdit,
   onChange,
 }: Props) {
   const count = parseCount(row.buyInCount);
-  const buyTotal = count * DEFAULT_BUY_IN_CENTS;
+  const buyTotal = count * buyInCents;
   const cashCents = parseDraftCents(row.cashOut) ?? 0;
   const adjusted =
     summary?.results.find((result) => result.playerId === row.playerId)

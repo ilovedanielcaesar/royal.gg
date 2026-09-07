@@ -1,5 +1,3 @@
-export const DEFAULT_BUY_IN_CENTS = 4000;
-
 /**
  * Dollars typed by a human -> integer cents, or null if it is not a plain
  * non-negative amount with at most two decimal places.

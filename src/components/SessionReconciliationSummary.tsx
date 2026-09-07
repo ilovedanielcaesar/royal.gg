@@ -1,15 +1,15 @@
-import {
-  RECONCILE_THRESHOLD_CENTS,
-  type ReconcileSummary,
-} from "../lib/reconcile";
+import type { ReconcileSummary } from "../lib/reconcile";
 import { formatCents, formatSignedCents } from "../lib/money";
 import Card from "./Card";
 import SessionReconciliationStat from "./SessionReconciliationStat";
 
 export default function SessionReconciliationSummary({
   summary,
+  thresholdCents,
 }: {
   summary: ReconcileSummary;
+  /** The group's current reconcile threshold. */
+  thresholdCents: number;
 }) {
   return (
     <Card
@@ -55,9 +55,8 @@ export default function SessionReconciliationSummary({
           )}
           {summary.needsReview && (
             <span className="text-crimson-600">
-              Discrepancy exceeds $
-              {(RECONCILE_THRESHOLD_CENTS / 100).toFixed(2)} — will save flagged
-              for review.
+              Discrepancy exceeds {formatCents(thresholdCents)} — will save
+              flagged for review.
             </span>
           )}
         </div>

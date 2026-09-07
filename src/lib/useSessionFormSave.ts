@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useCurrentUser } from "./authContext";
 import { describeError } from "./errors";
 import { useGroup } from "./groupContext";
-import { DEFAULT_BUY_IN_CENTS } from "./money";
 import type { ReconcileSummary } from "./reconcile";
 import { parseCount, type SessionFormRow } from "./sessionForm";
 import { requireSupabase } from "./supabase";
@@ -17,6 +16,12 @@ type Props = {
   notes: string;
   rows: SessionFormRow[];
   summary: ReconcileSummary | null;
+  /**
+   * The stake to write on every buy-in row: the SESSION's stamped value for an
+   * existing night, the group's default for a new one. Undefined until the
+   * group loads, and a save is refused while it is.
+   */
+  buyInCents: number | undefined;
   setError: Dispatch<SetStateAction<string | null>>;
   reload: () => Promise<void>;
 };
@@ -30,6 +35,7 @@ export default function useSessionFormSave({
   notes,
   rows,
   summary,
+  buyInCents,
   setError,
   reload,
 }: Props) {
@@ -46,6 +52,7 @@ export default function useSessionFormSave({
       return;
     }
     if (!summary) return;
+    if (buyInCents === undefined) return;
     if (!user) {
       setError("Sign in before saving a game log.");
       return;
@@ -85,6 +92,12 @@ export default function useSessionFormSave({
             status: "draft",
             created_by: user.id,
             played_at: playedAt,
+            // Stated, not left to the trigger. The trigger would stamp the
+            // group's default AT SAVE TIME, so an admin changing the stakes
+            // while this form was open would price the buy_ins rows below at
+            // what the user saw and the session at something else. Sending it
+            // keeps the two agreeing on the number that was on screen.
+            buy_in_cents: buyInCents,
             notes: notes.trim() || null,
             reconciled: !summary.needsReview,
             needs_review: summary.needsReview,
@@ -107,7 +120,7 @@ export default function useSessionFormSave({
           buyRows.push({
             session_id: sessionId!,
             player_id: r.playerId,
-            amount_cents: DEFAULT_BUY_IN_CENTS,
+            amount_cents: buyInCents,
           });
         }
       });
