@@ -1,0 +1,41 @@
+# What a machine can check without touching the database.
+#
+# The smoke tests are deliberately NOT here. smoke-rls, smoke-phase4 and
+# smoke-0017 each need SUPABASE_DB_URL and connect to the real project, and a
+# service-role connection string does not belong in GitHub Actions for a public
+# repo. They stay a local gate, run before Will pushes a migration.
+#
+# Lint runs with --max-warnings 2, not 0. Two warnings are the known baseline
+# (GroupMembersPage:39 and SessionsListPage:98, both react-hooks/
+# set-state-in-effect). A ratchet fails the moment a third appears, while zero
+# would fail every run until the existing two are fixed. Lower the number as
+# they go; never raise it.
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, v1.1.0]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Types
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+      - name: Lint
+        run: npm run lint -- --max-warnings 2

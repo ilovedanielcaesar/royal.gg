@@ -102,6 +102,33 @@ src/
 - TS variables: camelCase
 - Components: PascalCase
 
+## Branching and releases
+
+Settled 2026-09-07. Trunk-based, sized for one person with a Vercel auto-deploy.
+
+- **`main` is the trunk** and is what Vercel serves. It must always be
+  deployable. It is GitHub's default branch.
+- **Branches are named for the work, not the version** — `phase-5-settings`,
+  `fix-group-switcher`. They live days and are deleted after merging. A version
+  number names a point in time, which is what a tag is for; a branch names a
+  line of work.
+- **Every phase goes through a PR**, even working alone: it is where the diff
+  gets read before it lands, where CI runs, and where the reasoning is kept.
+- **Releases are tags**, `git tag -a v1.1.0`. Not branches.
+- **`v1.1.0` is the one exception**, and a temporary one. It predates this
+  convention and is currently the integration branch for the multi-group work:
+  phase branches PR into it, and when Phase 5 lands it fast-forwards into
+  `main`, gets tagged `v1.1.0`, and is deleted. No branch is named after a
+  version again after that.
+
+CI (`.github/workflows/ci.yml`) runs typecheck, build and lint on every PR.
+Lint uses `--max-warnings 2`, the known baseline — a ratchet that fails on a
+third warning. Lower it as warnings are fixed; never raise it.
+
+The smoke tests are **not** in CI and should not be added: they need
+`SUPABASE_DB_URL` against the real project, and this repo is public. They are a
+local gate, run before any migration is pushed.
+
 ## Things to be careful about
 
 - **Floating point money is forbidden.** Always integer cents. `0.1 + 0.2 !== 0.3` in JS.
