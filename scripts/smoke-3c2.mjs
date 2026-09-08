@@ -180,10 +180,14 @@ try {
             (select coalesce(sum(reported_amount_cents),0) from cash_outs)::text as reported,
             (select coalesce(sum(adjusted_amount_cents),0) from cash_outs)::text as adjusted`
   );
-  const m = money.rows[0];
-  check("money is untouched (696000 / 696875 / 696250)",
-    m.buy_ins === "696000" && m.reported === "696875" && m.adjusted === "696250",
-    `${m.buy_ins} / ${m.reported} / ${m.adjusted}`);
+  // Was a hardcoded 696000 / 696875 / 696250, the totals on 2026-09-06. Every
+  // night logged since made this suite fail for a reason that had nothing to
+  // do with what it tests. Snapshot and compare instead — the claim is "this
+  // run moved no money", not "the league has never played again".
+  const moneyBefore = money.rows[0];
+  const sameMoney = (a, b) =>
+    a.buy_ins === b.buy_ins && a.reported === b.reported &&
+    a.adjusted === b.adjusted;
 
   // --- fixtures -------------------------------------------------------------
   const alice = await makeAccount("alice", "Alice");
@@ -285,8 +289,13 @@ try {
       await client.query("rollback to savepoint c2");
     }
   });
-  check("'code_approve' refuses at the door too, not at approval time",
-    approveErr !== null, "the request was accepted");
+  // 0018 reversed the rule this used to assert. 0013 refused the clash at the
+  // door under every policy, which meant no pending request was ever written —
+  // and guest linking (decision 14) needs exactly that request to attach a
+  // profile to. A 'code_approve' request now lands. The new behaviour is
+  // asserted in smoke-0018.mjs, which owns it; repeating it here would give
+  // one rule two homes that drift.
+  void approveErr;
 
   // The backstop: a clash that only appears after the request was made.
   const later = await makeAccount("later", "Carol");
@@ -370,6 +379,16 @@ try {
   }
   check("but still NOT twice within one group", refused !== null,
     "the duplicate was accepted");
+
+  const moneyAfter = (await client.query(
+    `select (select coalesce(sum(amount_cents),0) from buy_ins)::text as buy_ins,
+            (select coalesce(sum(reported_amount_cents),0) from cash_outs)::text as reported,
+            (select coalesce(sum(adjusted_amount_cents),0) from cash_outs)::text as adjusted`
+  )).rows[0];
+  check("this run moved no money",
+    sameMoney(moneyBefore, moneyAfter),
+    `${moneyBefore.buy_ins}/${moneyBefore.reported}/${moneyBefore.adjusted}` +
+    ` -> ${moneyAfter.buy_ins}/${moneyAfter.reported}/${moneyAfter.adjusted}`);
 } catch (e) {
   failed++;
   console.error(`\n  ${RED}ERROR${OFF} ${e.message}`);
