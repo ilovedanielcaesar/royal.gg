@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="./support.js"></script>
+</head>
+
+<body>
+    <x-dc>
+        <helmet data-dc-atomics>
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link
+                href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700&display=swap"
+                rel="stylesheet">
+            <style>
+                html,
+                body {
+                    margin: 0
+                }
+
+                body {
+                    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+                    -webkit-font-smoothing: antialiased;
+                    color: #f7f1de;
+                    background-color: #0d3324;
+                    background-image: radial-gradient(ellipse at 50% -6%, rgba(255, 255, 255, .05), transparent 58%), repeating-linear-gradient(45deg, rgba(255, 255, 255, .012) 0 2px, transparent 2px 6px);
+                    background-attachment: fixed
+                }
+
+                a {
+                    color: #f7f1de;
+                    text-decoration: none
+                }
+
+                a:hover {
+                    color: #ddbb6b
+                }
+
+                [data-reveal] {
+                    opacity: 0;
+                    transform: translateY(26px);
+                    transition: opacity .7s cubic-bezier(.2, .8, .2, 1), transform .7s cubic-bezier(.2, .8, .2, 1)
+                }
+
+                [data-reveal].in {
+                    opacity: 1;
+                    transform: none
+                }
+
+                [data-fan] {
+                    transition: transform .12s linear
+                }
+            </style>
+        </helmet>
+
+        <header
+            style="position:sticky;top:0;z-index:80;background:rgba(13,51,36,.72);backdrop-filter:blur(10px);border-bottom:1px solid rgba(247,241,222,.08)">
+            <div
+                style="margin:0 auto;max-width:1120px;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:14px 24px">
+                <a href="#top" style="display:flex;align-items:center;gap:8px">
+                    <span style="display:flex;align-items:center;gap:2px;opacity:.9">
+                        <svg viewBox="0 0 100 100" width="15" height="15">
+                            <path
+                                d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z"
+                                fill="#f7f1de"></path>
+                        </svg>
+                        <svg viewBox="0 0 100 100" width="15" height="15">
+                            <path d="M50 88C28 72 8 56 8 35a20 20 0 0 1 36-12 20 20 0 0 1 36 12c0 21-20 37-30 53Z"
+                                fill="#d23548"></path>
+                        </svg>
+                    </span>
+                    <span
+                        style="font-family:'DM Serif Display',Georgia,serif;font-size:25px;letter-spacing:-.02em">royal<span
+                            style="color:#d23548">.gg</span></span>
+                </a>
+                <div style="display:flex;align-items:center;gap:22px">
+                    <a href="#log" style="font-size:13px;color:rgba(247,241,222,.7)">Log a night</a>
+                    <a href="#standings" style="font-size:13px;color:rgba(247,241,222,.7)">Standings</a>
+                    <a href="#analytics" style="font-size:13px;color:rgba(247,241,222,.7)">Analytics</a>
+                    <a href="#signup"
+                        style="display:inline-flex;align-items:center;border-radius:10px;padding:10px 18px;font-size:13px;font-weight:600;background:#f7f1de;color:#1a1614;box-shadow:0 2px 0 0 rgba(0,0,0,.28)">Sign
+                        up free</a>
+                </div>
+            </div>
+        </header>
+
+        <section id="top" style="position:relative;height:195vh">
+            <div style="position:sticky;top:0;height:100vh;overflow:hidden">
+                <div
+                    style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 24px;text-align:center">
+                    <div data-hero-copy style="position:relative;z-index:3;max-width:720px">
+                        <div style="font-size:11px;font-weight:600;letter-spacing:.22em;color:#c9a24a">HOME GAME ·
+                            PROPERLY TRACKED</div>
+                        <h1
+                            style="margin:20px 0 0;font-family:'DM Serif Display',Georgia,serif;font-size:clamp(44px,6.4vw,88px);line-height:1.02;font-weight:400;letter-spacing:-.02em;text-wrap:pretty">
+                            Every night<br>goes on the record.</h1>
+                        <p
+                            style="margin:22px auto 0;max-width:52ch;font-size:17px;line-height:1.6;color:rgba(247,241,222,.72)">
+                            Log the session after the cards are away. royal.gg reconciles the chips, settles who owes
+                            whom, and keeps the lifetime numbers your group argues about.</p>
+                        <div
+                            style="margin-top:34px;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px">
+                            <a href="#signup"
+                                style="display:inline-flex;align-items:center;justify-content:center;border-radius:12px;padding:16px 30px;font-size:15px;font-weight:600;background:#f7f1de;color:#1a1614;box-shadow:0 3px 0 0 rgba(0,0,0,.3)">Sign
+                                up free</a>
+                            <a href="#log"
+                                style="display:inline-flex;align-items:center;justify-content:center;border-radius:12px;padding:15px 26px;font-size:14px;font-weight:500;color:#f7f1de;box-shadow:inset 0 0 0 1px rgba(247,241,222,.24)">See
+                                a table</a>
+                        </div>
+                        <p style="margin:18px 0 0;font-size:12px;color:rgba(247,241,222,.45)">No card required · free
+                            for your whole table</p>
+                    </div>
+
+                    <div
+                        style="position:absolute;left:50%;bottom:0;width:0;height:0;z-index:1;transform:translateX(-50%)">
+                        <div data-fan="0"
+                            style="position:absolute;left:0;top:0;width:172px;height:244px;margin-left:-86px;border-radius:14px;background:#f7f1de;box-shadow:0 0 0 1px #d9cfa8,0 26px 50px -22px rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center">
+                            <span
+                                style="position:absolute;left:12px;top:9px;font-family:'DM Serif Display',Georgia,serif;font-size:24px;line-height:1;color:#1a1614">A</span>
+                            <svg viewBox="0 0 100 100" width="60" height="60">
+                                <path
+                                    d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z"
+                                    fill="#1a1614"></path>
+                            </svg>
+                            <span
+                                style="position:absolute;right:12px;bottom:9px;font-family:'DM Serif Display',Georgia,serif;font-size:24px;line-height:1;color:#1a1614;transform:rotate(180deg)">A</span>
+                        </div>
+                        <div data-fan="1"
+                            style="position:absolute;left:0;top:0;width:172px;height:244px;margin-left:-86px;border-radius:14px;background:#f7f1de;box-shadow:0 0 0 1px #d9cfa8,0 26px 50px -22px rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center">
+                            <span
+                                style="position:absolute;left:12px;top:9px;font-family:'DM Serif Display',Georgia,serif;font-size:24px;line-height:1;color:#b21e2c">K</span>
+                            <svg viewBox="0 0 100 100" width="60" height="60">
+                                <path d="M50 88C28 72 8 56 8 35a20 20 0 0 1 36-12 20 20 0 0 1 36 12c0 21-20 37-30 53Z"
+                                    fill="#b21e2c"></path>
+                            </svg>
+                            <span
+                                style="position:absolute;right:12px;bottom:9px;font-family:'DM Serif Display',Georgia,serif;font-size:24px;line-height:1;color:#b21e2c;transform:rotate(180deg)">K</span>
+                        </div>
+                        <div data-fan="2"
+                            style="position:absolute;left:0;top:0;width:172px;height:244px;margin-left:-86px;border-radius:14px;background:#f7f1de;box-shadow:0 0 0 1px #d9cfa8,0 26px 50px -22px rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center">
+                            <span
+                                style="position:absolute;left:12px;top:9px;font-family:'DM Serif Display',Georgia,serif;font-size:24px;line-height:1;color:#1a1614">Q</span>
+                            <svg viewBox="0 0 100 100" width="60" height="60">
+                                <path
+                                    d="M50 6a17 17 0 0 0-13 28 17 17 0 1 0-9 28 17 17 0 0 0 16-3c-1 7-6 14-13 19h38c-7-5-12-12-13-19a17 17 0 0 0 16 3 17 17 0 1 0-9-28A17 17 0 0 0 50 6Z"
+                                    fill="#1a1614"></path>
+                            </svg>
+                            <span
+                                style="position:absolute;right:12px;bottom:9px;font-family:'DM Serif Display',Georgia,serif;font-size:24px;line-height:1;color:#1a1614;transform:rotate(180deg)">Q</span>
+                        </div>
+                        <div data-fan="3"
+                            style="position:absolute;left:0;top:0;width:172px;height:244px;margin-left:-86px;border-radius:14px;background:#f7f1de;box-shadow:0 0 0 1px #d9cfa8,0 26px 50px -22px rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center">
+                            <span
+                                style="position:absolute;left:12px;top:9px;font-family:'DM Serif Display',Georgia,serif;font-size:24px;line-height:1;color:#b21e2c">J</span>
+                            <svg viewBox="0 0 100 100" width="60" height="60">
+                                <path d="M50 6 88 50 50 94 12 50Z" fill="#b21e2c"></path>
+                            </svg>
+                            <span
+                                style="position:absolute;right:12px;bottom:9px;font-family:'DM Serif Display',Georgia,serif;font-size:24px;line-height:1;color:#b21e2c;transform:rotate(180deg)">J</span>
+                        </div>
+                        <div data-fan="4"
+                            style="position:absolute;left:0;top:0;width:172px;height:244px;margin-left:-86px;border-radius:14px;background:#f7f1de;box-shadow:0 0 0 1px #d9cfa8,0 26px 50px -22px rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center">
+                            <span
+                                style="position:absolute;left:12px;top:9px;font-family:'DM Serif Display',Georgia,serif;font-size:24px;line-height:1;color:#1a1614">10</span>
+                            <svg viewBox="0 0 100 100" width="60" height="60">
+                                <path
+                                    d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z"
+                                    fill="#1a1614"></path>
+                            </svg>
+                            <span
+                                style="position:absolute;right:12px;bottom:9px;font-family:'DM Serif Display',Georgia,serif;font-size:24px;line-height:1;color:#1a1614;transform:rotate(180deg)">10</span>
+                        </div>
+                        <div data-fan="5"
+                            style="position:absolute;left:0;top:0;width:172px;height:244px;margin-left:-86px;border-radius:14px;background:#0d3324;box-shadow:0 0 0 1px rgba(247,241,222,.35),0 26px 50px -22px rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center">
+                            <span style="display:flex;flex-direction:column;align-items:center;gap:6px;opacity:.55">
+                                <svg viewBox="0 0 100 100" width="34" height="34">
+                                    <path d="M50 6 88 50 50 94 12 50Z" fill="#f7f1de"></path>
+                                </svg>
+                                <span style="font-size:9px;letter-spacing:.2em;color:#f7f1de">ROYAL.GG</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div data-hero-cue
+                        style="position:absolute;left:50%;bottom:26px;transform:translateX(-50%);z-index:4;display:flex;flex-direction:column;align-items:center;gap:8px">
+                        <span style="font-size:10px;letter-spacing:.22em;color:rgba(247,241,222,.45)">SCROLL TO
+                            DEAL</span>
+                        <span
+                            style="width:1px;height:34px;background:linear-gradient(180deg,rgba(247,241,222,.5),transparent)"></span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="log" style="position:relative;padding:40px 24px 120px">
+            <div style="margin:0 auto;max-width:1120px">
+                <div data-reveal
+                    style="display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:16px;padding-bottom:28px;border-bottom:1px solid rgba(247,241,222,.12)">
+                    <div style="display:flex;align-items:baseline;gap:14px">
+                        <span
+                            style="font-family:'DM Serif Display',Georgia,serif;font-size:15px;color:#c9a24a">01</span>
+                        <h2
+                            style="margin:0;font-family:'DM Serif Display',Georgia,serif;font-size:clamp(30px,3.6vw,46px);font-weight:400;letter-spacing:-.01em">
+                            Log the night in one pass</h2>
+                    </div>
+                    <p style="margin:0;max-width:38ch;font-size:14px;line-height:1.6;color:rgba(247,241,222,.65)">No
+                        live tracking, no phone at the table. Enter buy-ins and cash-outs afterwards and let the maths
+                        land.</p>
+                </div>
+
+                <div
+                    style="margin-top:36px;display:grid;gap:36px;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));align-items:start">
+                    <div data-reveal
+                        style="border-radius:20px;background:#f7f1de;color:#1a1614;overflow:hidden;box-shadow:0 2px 0 0 rgba(0,0,0,.16),0 30px 64px -26px rgba(0,0,0,.7)">
+                        <div
+                            style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 22px;border-bottom:1px solid #ece3c8">
+                            <span style="font-family:'DM Serif Display',Georgia,serif;font-size:20px">Thu 4 Sep
+                                2026</span>
+                            <span
+                                style="padding:5px 10px;border-radius:999px;background:rgba(201,162,74,.2);font-size:11px;font-weight:600;color:#7a5d1a">Draft</span>
+                        </div>
+                        <div style="padding:6px 22px 18px">
+                            <div
+                                style="display:grid;grid-template-columns:1fr 92px 92px;gap:12px;padding:12px 0 8px;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6b5e54">
+                                <span>Player</span><span style="text-align:center">Buy-ins</span><span
+                                    style="text-align:right">Cash out</span>
+                            </div>
+                            <div
+                                style="display:grid;grid-template-columns:1fr 92px 92px;gap:12px;align-items:center;padding:10px 0;border-top:1px solid #ece3c8">
+                                <span style="display:flex;align-items:center;gap:10px"><span
+                                        style="position:relative;display:flex;height:32px;width:25px;align-items:center;justify-content:center;border-radius:5px;background:#f7f1de;box-shadow:0 0 0 1px #d9cfa8"><span
+                                            style="position:absolute;left:3px;top:2px;font-family:'DM Serif Display',Georgia,serif;font-size:10px;line-height:1">A</span><svg
+                                            viewBox="0 0 100 100" width="14" height="14">
+                                            <path
+                                                d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z"
+                                                fill="#1a1614"></path>
+                                        </svg></span><span style="font-size:14px;font-weight:500">Dan
+                                        Caesar</span></span>
+                                <span
+                                    style="display:flex;align-items:center;justify-content:center;gap:8px;padding:5px;border-radius:9px;background:rgba(236,227,200,.7)"><span
+                                        style="font-size:13px;color:#6b5e54">−</span><span
+                                        style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums">4</span><span
+                                        style="font-size:13px;color:#6b5e54">+</span></span>
+                                <span
+                                    style="text-align:right;font-size:14px;font-variant-numeric:tabular-nums;padding:6px 8px;border-radius:9px;background:rgba(236,227,200,.7)">$280.00</span>
+                            </div>
+                            <div
+                                style="display:grid;grid-template-columns:1fr 92px 92px;gap:12px;align-items:center;padding:10px 0;border-top:1px solid #ece3c8">
+                                <span style="display:flex;align-items:center;gap:10px"><span
+                                        style="position:relative;display:flex;height:32px;width:25px;align-items:center;justify-content:center;border-radius:5px;background:#f7f1de;box-shadow:0 0 0 1px #d9cfa8"><span
+                                            style="position:absolute;left:3px;top:2px;font-family:'DM Serif Display',Georgia,serif;font-size:10px;line-height:1;color:#b21e2c">Q</span><svg
+                                            viewBox="0 0 100 100" width="14" height="14">
+                                            <path
+                                                d="M50 88C28 72 8 56 8 35a20 20 0 0 1 36-12 20 20 0 0 1 36 12c0 21-20 37-30 53Z"
+                                                fill="#b21e2c"></path>
+                                        </svg></span><span style="font-size:14px;font-weight:500">Priya
+                                        Raman</span></span>
+                                <span
+                                    style="display:flex;align-items:center;justify-content:center;gap:8px;padding:5px;border-radius:9px;background:rgba(236,227,200,.7)"><span
+                                        style="font-size:13px;color:#6b5e54">−</span><span
+                                        style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums">3</span><span
+                                        style="font-size:13px;color:#6b5e54">+</span></span>
+                                <span
+                                    style="text-align:right;font-size:14px;font-variant-numeric:tabular-nums;padding:6px 8px;border-radius:9px;background:rgba(236,227,200,.7)">$164.50</span>
+                            </div>
+                            <div
+                                style="display:grid;grid-template-columns:1fr 92px 92px;gap:12px;align-items:center;padding:10px 0;border-top:1px solid #ece3c8">
+                                <span style="display:flex;align-items:center;gap:10px"><span
+                                        style="position:relative;display:flex;height:32px;width:25px;align-items:center;justify-content:center;border-radius:5px;background:#f7f1de;box-shadow:0 0 0 1px #d9cfa8"><span
+                                            style="position:absolute;left:3px;top:2px;font-family:'DM Serif Display',Georgia,serif;font-size:10px;line-height:1;color:#b21e2c">8</span><svg
+                                            viewBox="0 0 100 100" width="14" height="14">
+                                            <path d="M50 6 88 50 50 94 12 50Z" fill="#b21e2c"></path>
+                                        </svg></span><span style="font-size:14px;font-weight:500">Rory
+                                        Adeyemi</span></span>
+                                <span
+                                    style="display:flex;align-items:center;justify-content:center;gap:8px;padding:5px;border-radius:9px;background:rgba(236,227,200,.7)"><span
+                                        style="font-size:13px;color:#6b5e54">−</span><span
+                                        style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums">5</span><span
+                                        style="font-size:13px;color:#6b5e54">+</span></span>
+                                <span
+                                    style="text-align:right;font-size:14px;font-variant-numeric:tabular-nums;padding:6px 8px;border-radius:9px;background:rgba(236,227,200,.7)">$104.50</span>
+                            </div>
+                            <div
+                                style="display:grid;grid-template-columns:1fr 92px 92px;gap:12px;align-items:center;padding:10px 0;border-top:1px solid #ece3c8">
+                                <span style="display:flex;align-items:center;gap:10px"><span
+                                        style="display:flex;height:32px;width:25px;align-items:center;justify-content:center;border-radius:5px;background:#0d3324"><svg
+                                            viewBox="0 0 100 100" width="12" height="12" style="opacity:.55">
+                                            <path d="M50 6 88 50 50 94 12 50Z" fill="#f7f1de"></path>
+                                        </svg></span><span style="font-size:14px;font-weight:500">Mo <span
+                                            style="font-size:10px;font-weight:600;letter-spacing:.08em;color:#6b5e54">GUEST</span></span></span>
+                                <span
+                                    style="display:flex;align-items:center;justify-content:center;gap:8px;padding:5px;border-radius:9px;background:rgba(236,227,200,.7)"><span
+                                        style="font-size:13px;color:#6b5e54">−</span><span
+                                        style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums">2</span><span
+                                        style="font-size:13px;color:#6b5e54">+</span></span>
+                                <span
+                                    style="text-align:right;font-size:14px;font-variant-numeric:tabular-nums;padding:6px 8px;border-radius:9px;background:rgba(236,227,200,.7)">$41.00</span>
+                            </div>
+                            <div style="padding:10px 0 0;border-top:1px solid #ece3c8">
+                                <span style="font-size:12px;color:#6b5e54">+ Add player from roster</span>
+                            </div>
+                        </div>
+                        <div
+                            style="padding:16px 22px 20px;background:rgba(236,227,200,.5);border-top:1px solid #ece3c8">
+                            <div
+                                style="display:flex;align-items:center;justify-content:space-between;gap:16px;font-size:13px">
+                                <span style="color:#6b5e54">In <span
+                                        style="font-weight:600;font-variant-numeric:tabular-nums;color:#1a1614">$1,240.00</span></span>
+                                <span style="color:#6b5e54">Out <span
+                                        style="font-weight:600;font-variant-numeric:tabular-nums;color:#1a1614">$1,235.50</span></span>
+                                <span
+                                    style="padding:5px 10px;border-radius:999px;background:rgba(201,162,74,.24);font-size:12px;font-weight:600;color:#7a5d1a">Off
+                                    by $4.50</span>
+                            </div>
+                            <div style="margin-top:14px;display:flex;gap:10px">
+                                <button type="button"
+                                    style="flex:1 1 0;border:0;border-radius:11px;padding:12px;font-family:inherit;font-size:13px;font-weight:600;background:#0d3324;color:#f7f1de;cursor:pointer">Distribute
+                                    the miscount</button>
+                                <button type="button"
+                                    style="border:0;border-radius:11px;padding:12px 16px;font-family:inherit;font-size:13px;font-weight:500;background:transparent;color:#3a322b;box-shadow:inset 0 0 0 1px #d9cfa8;cursor:pointer">Flag
+                                    for review</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div data-reveal style="display:flex;flex-direction:column;gap:26px;padding-top:8px">
+                        <div>
+                            <div style="display:flex;align-items:center;gap:10px"><svg viewBox="0 0 100 100" width="13"
+                                    height="13">
+                                    <path
+                                        d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z"
+                                        fill="#c9a24a"></path>
+                                </svg><span style="font-size:16px;font-weight:600">Chips never balance. That's
+                                    fine.</span></div>
+                            <p style="margin:8px 0 0;font-size:14px;line-height:1.65;color:rgba(247,241,222,.65)">When
+                                the count is off by $4.50, royal.gg spreads the difference by the rules your table
+                                agreed — or parks the night for review. Nobody re-counts a rack at 1am.</p>
+                        </div>
+                        <div>
+                            <div style="display:flex;align-items:center;gap:10px"><svg viewBox="0 0 100 100" width="13"
+                                    height="13">
+                                    <path
+                                        d="M50 88C28 72 8 56 8 35a20 20 0 0 1 36-12 20 20 0 0 1 36 12c0 21-20 37-30 53Z"
+                                        fill="#d23548"></path>
+                                </svg><span style="font-size:16px;font-weight:600">Guests welcome, permanently</span>
+                            </div>
+                            <p style="margin:8px 0 0;font-size:14px;line-height:1.65;color:rgba(247,241,222,.65)">Add
+                                the friend who came once. If they join later, their history links to the account — the
+                                ledger doesn't fork.</p>
+                        </div>
+                        <div>
+                            <div style="display:flex;align-items:center;gap:10px"><svg viewBox="0 0 100 100" width="13"
+                                    height="13">
+                                    <path d="M50 6 88 50 50 94 12 50Z" fill="#c9a24a"></path>
+                                </svg><span style="font-size:16px;font-weight:600">Money in whole cents</span></div>
+                            <p style="margin:8px 0 0;font-size:14px;line-height:1.65;color:rgba(247,241,222,.65)">Every
+                                amount is stored as integer cents. No float drift, no mystery penny, no argument about
+                                who's short.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="standings" style="position:relative;padding:0 24px 120px">
+            <div style="margin:0 auto;max-width:1120px">
+                <div data-reveal
+                    style="display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:16px;padding-bottom:28px;border-bottom:1px solid rgba(247,241,222,.12)">
+                    <div style="display:flex;align-items:baseline;gap:14px">
+                        <span
+                            style="font-family:'DM Serif Display',Georgia,serif;font-size:15px;color:#c9a24a">02</span>
+                        <h2
+                            style="margin:0;font-family:'DM Serif Display',Georgia,serif;font-size:clamp(30px,3.6vw,46px);font-weight:400;letter-spacing:-.01em">
+                            The table, ranked forever</h2>
+                    </div>
+                    <p style="margin:0;max-width:38ch;font-size:14px;line-height:1.6;color:rgba(247,241,222,.65)">
+                        Lifetime standings that survive every payout. Settling up moves money, not the record.</p>
+                </div>
+
+                <div
+                    style="margin-top:36px;display:grid;gap:36px;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));align-items:start">
+                    <div data-reveal style="display:flex;flex-direction:column;gap:26px;padding-top:8px;order:2">
+                        <div style="display:flex;align-items:flex-start;gap:20px">
+                            <span
+                                style="font-family:'DM Serif Display',Georgia,serif;font-size:44px;line-height:.9;color:#c9a24a">24</span>
+                            <p style="margin:0;font-size:14px;line-height:1.65;color:rgba(247,241,222,.65)">nights on
+                                the board for this group — every buy-in, every cash-out, kept as an event rather than a
+                                running total.</p>
+                        </div>
+                        <div style="display:flex;align-items:flex-start;gap:20px">
+                            <span
+                                style="font-family:'DM Serif Display',Georgia,serif;font-size:44px;line-height:.9;color:#c9a24a">7</span>
+                            <p style="margin:0;font-size:14px;line-height:1.65;color:rgba(247,241,222,.65)">transfers to
+                                clear the current period. royal.gg finds the fewest payments that settle everyone.</p>
+                        </div>
+                        <div style="display:flex;align-items:flex-start;gap:20px">
+                            <span
+                                style="font-family:'DM Serif Display',Georgia,serif;font-size:44px;line-height:.9;color:#c9a24a">3</span>
+                            <p style="margin:0;font-size:14px;line-height:1.65;color:rgba(247,241,222,.65)">nights
+                                before you appear in the standings — enough that one lucky evening doesn't crown anyone.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div data-reveal
+                        style="border-radius:20px;background:#f7f1de;color:#1a1614;overflow:hidden;box-shadow:0 2px 0 0 rgba(0,0,0,.16),0 30px 64px -26px rgba(0,0,0,.7);order:1">
+                        <div
+                            style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:18px 22px;border-bottom:1px solid #ece3c8">
+                            <span style="font-family:'DM Serif Display',Georgia,serif;font-size:20px">All-time
+                                standings</span>
+                            <span
+                                style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#6b5e54">Thursday
+                                Night</span>
+                        </div>
+                        <div style="padding:8px 12px 14px">
+                            <div
+                                style="display:flex;align-items:center;gap:14px;padding:11px 12px;border-radius:12px;background:#0d3324">
+                                <span
+                                    style="width:16px;font-family:'DM Serif Display',Georgia,serif;font-size:17px;color:rgba(247,241,222,.6)">1</span>
+                                <span
+                                    style="position:relative;display:flex;height:32px;width:25px;align-items:center;justify-content:center;border-radius:5px;background:#f7f1de"><span
+                                        style="position:absolute;left:3px;top:2px;font-family:'DM Serif Display',Georgia,serif;font-size:10px;line-height:1">A</span><svg
+                                        viewBox="0 0 100 100" width="14" height="14">
+                                        <path
+                                            d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z"
+                                            fill="#1a1614"></path>
+                                    </svg></span>
+                                <span style="flex:1 1 0;font-size:14px;font-weight:600;color:#f7f1de">Dan Caesar</span>
+                                <svg width="62" height="20" viewBox="0 0 62 20" style="flex-shrink:0">
+                                    <polyline points="0,16 9,14 18,15 27,10 36,11 45,6 54,5 62,2" fill="none"
+                                        stroke="#7caa8b" stroke-width="1.6" stroke-linecap="round"
+                                        stroke-linejoin="round"></polyline>
+                                </svg>
+                                <span
+                                    style="font-family:'DM Serif Display',Georgia,serif;font-size:17px;font-variant-numeric:tabular-nums;color:#a8cbb3;width:88px;text-align:right">+$412.00</span>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:14px;padding:11px 12px">
+                                <span
+                                    style="width:16px;font-family:'DM Serif Display',Georgia,serif;font-size:17px;color:#6b5e54">2</span>
+                                <span
+                                    style="position:relative;display:flex;height:32px;width:25px;align-items:center;justify-content:center;border-radius:5px;background:#f7f1de;box-shadow:0 0 0 1px #d9cfa8"><span
+                                        style="position:absolute;left:3px;top:2px;font-family:'DM Serif Display',Georgia,serif;font-size:10px;line-height:1;color:#b21e2c">Q</span><svg
+                                        viewBox="0 0 100 100" width="14" height="14">
+                                        <path
+                                            d="M50 88C28 72 8 56 8 35a20 20 0 0 1 36-12 20 20 0 0 1 36 12c0 21-20 37-30 53Z"
+                                            fill="#b21e2c"></path>
+                                    </svg></span>
+                                <span style="flex:1 1 0;font-size:14px">Priya Raman</span>
+                                <svg width="62" height="20" viewBox="0 0 62 20" style="flex-shrink:0">
+                                    <polyline points="0,17 9,12 18,14 27,9 36,7 45,9 54,5 62,4" fill="none"
+                                        stroke="#2c9c8e" stroke-width="1.6" stroke-linecap="round"
+                                        stroke-linejoin="round"></polyline>
+                                </svg>
+                                <span
+                                    style="font-family:'DM Serif Display',Georgia,serif;font-size:17px;font-variant-numeric:tabular-nums;color:#5b8e6e;width:88px;text-align:right">+$286.50</span>
+                            </div>
+                            <div
+                                style="display:flex;align-items:center;gap:14px;padding:11px 12px;border-top:1px solid #ece3c8">
+                                <span
+                                    style="width:16px;font-family:'DM Serif Display',Georgia,serif;font-size:17px;color:#6b5e54">3</span>
+                                <span
+                                    style="position:relative;display:flex;height:32px;width:25px;align-items:center;justify-content:center;border-radius:5px;background:#f7f1de;box-shadow:0 0 0 1px #d9cfa8"><span
+                                        style="position:absolute;left:3px;top:2px;font-family:'DM Serif Display',Georgia,serif;font-size:10px;line-height:1">K</span><svg
+                                        viewBox="0 0 100 100" width="14" height="14">
+                                        <path
+                                            d="M50 6a17 17 0 0 0-13 28 17 17 0 1 0-9 28 17 17 0 0 0 16-3c-1 7-6 14-13 19h38c-7-5-12-12-13-19a17 17 0 0 0 16 3 17 17 0 1 0-9-28A17 17 0 0 0 50 6Z"
+                                            fill="#1a1614"></path>
+                                    </svg></span>
+                                <span style="flex:1 1 0;font-size:14px">Marcus Webb</span>
+                                <svg width="62" height="20" viewBox="0 0 62 20" style="flex-shrink:0">
+                                    <polyline points="0,15 9,17 18,11 27,13 36,8 45,10 54,7 62,6" fill="none"
+                                        stroke="#2a7fb8" stroke-width="1.6" stroke-linecap="round"
+                                        stroke-linejoin="round"></polyline>
+                                </svg>
+                                <span
+                                    style="font-family:'DM Serif Display',Georgia,serif;font-size:17px;font-variant-numeric:tabular-nums;color:#5b8e6e;width:88px;text-align:right">+$134.00</span>
+                            </div>
+                            <div
+                                style="display:flex;align-items:center;gap:14px;padding:11px 12px;border-top:1px solid #ece3c8">
+                                <span
+                                    style="width:16px;font-family:'DM Serif Display',Georgia,serif;font-size:17px;color:#6b5e54">4</span>
+                                <span
+                                    style="position:relative;display:flex;height:32px;width:25px;align-items:center;justify-content:center;border-radius:5px;background:#f7f1de;box-shadow:0 0 0 1px #d9cfa8"><span
+                                        style="position:absolute;left:3px;top:2px;font-family:'DM Serif Display',Georgia,serif;font-size:10px;line-height:1;color:#b21e2c">9</span><svg
+                                        viewBox="0 0 100 100" width="14" height="14">
+                                        <path d="M50 6 88 50 50 94 12 50Z" fill="#b21e2c"></path>
+                                    </svg></span>
+                                <span style="flex:1 1 0;font-size:14px">Theo Lund</span>
+                                <svg width="62" height="20" viewBox="0 0 62 20" style="flex-shrink:0">
+                                    <polyline points="0,11 9,13 18,9 27,14 36,12 45,15 54,11 62,10" fill="none"
+                                        stroke="#6b5e54" stroke-width="1.6" stroke-linecap="round"
+                                        stroke-linejoin="round"></polyline>
+                                </svg>
+                                <span
+                                    style="font-family:'DM Serif Display',Georgia,serif;font-size:17px;font-variant-numeric:tabular-nums;color:#5b8e6e;width:88px;text-align:right">+$41.50</span>
+                            </div>
+                            <div
+                                style="display:flex;align-items:center;gap:14px;padding:11px 12px;border-top:1px solid #ece3c8">
+                                <span
+                                    style="width:16px;font-family:'DM Serif Display',Georgia,serif;font-size:17px;color:#6b5e54">8</span>
+                                <span
+                                    style="position:relative;display:flex;height:32px;width:25px;align-items:center;justify-content:center;border-radius:5px;background:#f7f1de;box-shadow:0 0 0 1px #d9cfa8"><span
+                                        style="position:absolute;left:3px;top:2px;font-family:'DM Serif Display',Georgia,serif;font-size:10px;line-height:1;color:#b21e2c">8</span><svg
+                                        viewBox="0 0 100 100" width="14" height="14">
+                                        <path d="M50 6 88 50 50 94 12 50Z" fill="#b21e2c"></path>
+                                    </svg></span>
+                                <span style="flex:1 1 0;font-size:14px">Rory Adeyemi</span>
+                                <svg width="62" height="20" viewBox="0 0 62 20" style="flex-shrink:0">
+                                    <polyline points="0,4 9,7 18,10 27,9 36,13 45,16 54,18 62,19" fill="none"
+                                        stroke="#b21e2c" stroke-width="1.6" stroke-linecap="round"
+                                        stroke-linejoin="round"></polyline>
+                                </svg>
+                                <span
+                                    style="font-family:'DM Serif Display',Georgia,serif;font-size:17px;font-variant-numeric:tabular-nums;color:#b21e2c;width:88px;text-align:right">-$570.50</span>
+                            </div>
+                        </div>
+                        <div
+                            style="padding:14px 22px 18px;background:rgba(236,227,200,.5);border-top:1px solid #ece3c8;display:flex;align-items:center;justify-content:space-between;gap:12px">
+                            <span style="font-size:12px;color:#6b5e54">Season resets. Lifetime doesn't.</span>
+                            <span style="font-size:12px;font-weight:600;color:#3a322b">Records →</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="analytics" style="position:relative;padding:0 24px 120px">
+            <div style="margin:0 auto;max-width:1120px">
+                <div data-reveal
+                    style="display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:16px;padding-bottom:28px;border-bottom:1px solid rgba(247,241,222,.12)">
+                    <div style="display:flex;align-items:baseline;gap:14px">
+                        <span
+                            style="font-family:'DM Serif Display',Georgia,serif;font-size:15px;color:#c9a24a">03</span>
+                        <h2
+                            style="margin:0;font-family:'DM Serif Display',Georgia,serif;font-size:clamp(30px,3.6vw,46px);font-weight:400;letter-spacing:-.01em">
+                            See whether you're actually good</h2>
+                    </div>
+                    <p style="margin:0;max-width:38ch;font-size:14px;line-height:1.6;color:rgba(247,241,222,.65)">
+                        Cumulative net per player, expected value, variance. Enough nights and the noise separates from
+                        the edge.</p>
+                </div>
+
+                <div data-reveal
+                    style="margin-top:36px;border-radius:20px;background:#f7f1de;color:#1a1614;overflow:hidden;box-shadow:0 2px 0 0 rgba(0,0,0,.16),0 30px 64px -26px rgba(0,0,0,.7)">
+                    <div
+                        style="display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:12px;padding:20px 26px 0">
+                        <div style="display:flex;align-items:baseline;gap:12px">
+                            <span style="font-family:'DM Serif Display',Georgia,serif;font-size:22px">Cumulative
+                                net</span>
+                            <span style="font-size:12px;color:#6b5e54">six featured players · 24 nights</span>
+                        </div>
+                        <div style="display:flex;gap:2px;padding:3px;border-radius:999px;background:#ece3c8">
+                            <span
+                                style="border-radius:999px;padding:6px 13px;font-size:12px;font-weight:600;background:#f7f1de">All
+                                time</span>
+                            <span
+                                style="border-radius:999px;padding:6px 13px;font-size:12px;color:#6b5e54">Season</span>
+                        </div>
+                    </div>
+                    <div style="padding:12px 26px 8px">{{ chart }}</div>
+                    <div
+                        style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));border-top:1px solid #ece3c8;background:rgba(236,227,200,.45)">
+                        <div style="padding:18px 26px">
+                            <div
+                                style="font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6b5e54">
+                                Per night, expected</div>
+                            <div
+                                style="margin-top:4px;font-family:'DM Serif Display',Georgia,serif;font-size:24px;font-variant-numeric:tabular-nums;color:#436c54">
+                                +$17.17</div>
+                        </div>
+                        <div style="padding:18px 26px;border-left:1px solid #ece3c8">
+                            <div
+                                style="font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6b5e54">
+                                Std deviation</div>
+                            <div
+                                style="margin-top:4px;font-family:'DM Serif Display',Georgia,serif;font-size:24px;font-variant-numeric:tabular-nums">
+                                $86.40</div>
+                        </div>
+                        <div style="padding:18px 26px;border-left:1px solid #ece3c8">
+                            <div
+                                style="font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6b5e54">
+                                Win rate</div>
+                            <div
+                                style="margin-top:4px;font-family:'DM Serif Display',Georgia,serif;font-size:24px;font-variant-numeric:tabular-nums">
+                                63%</div>
+                        </div>
+                        <div style="padding:18px 26px;border-left:1px solid #ece3c8">
+                            <div
+                                style="font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6b5e54">
+                                Best night</div>
+                            <div
+                                style="margin-top:4px;font-family:'DM Serif Display',Georgia,serif;font-size:24px;font-variant-numeric:tabular-nums;color:#436c54">
+                                +$212.00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="signup" style="position:relative;padding:0 24px 140px">
+            <div data-reveal
+                style="margin:0 auto;max-width:1120px;border-radius:24px;overflow:hidden;background:linear-gradient(180deg,rgba(247,241,222,.07),rgba(247,241,222,.02));box-shadow:inset 0 0 0 1px rgba(247,241,222,.12)">
+                <div style="padding:64px 48px;display:flex;flex-direction:column;align-items:center;text-align:center">
+                    <div style="display:flex;align-items:center;gap:4px;opacity:.85">
+                        <svg viewBox="0 0 100 100" width="16" height="16">
+                            <path
+                                d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z"
+                                fill="#f7f1de"></path>
+                        </svg>
+                        <svg viewBox="0 0 100 100" width="16" height="16">
+                            <path d="M50 88C28 72 8 56 8 35a20 20 0 0 1 36-12 20 20 0 0 1 36 12c0 21-20 37-30 53Z"
+                                fill="#d23548"></path>
+                        </svg>
+                        <svg viewBox="0 0 100 100" width="16" height="16">
+                            <path
+                                d="M50 6a17 17 0 0 0-13 28 17 17 0 1 0-9 28 17 17 0 0 0 16-3c-1 7-6 14-13 19h38c-7-5-12-12-13-19a17 17 0 0 0 16 3 17 17 0 1 0-9-28A17 17 0 0 0 50 6Z"
+                                fill="#f7f1de"></path>
+                        </svg>
+                        <svg viewBox="0 0 100 100" width="16" height="16">
+                            <path d="M50 6 88 50 50 94 12 50Z" fill="#d23548"></path>
+                        </svg>
+                    </div>
+                    <h2
+                        style="margin:24px 0 0;font-family:'DM Serif Display',Georgia,serif;font-size:clamp(32px,4.4vw,54px);line-height:1.08;font-weight:400;max-width:22ch">
+                        Start the ledger before Thursday.</h2>
+                    <p
+                        style="margin:16px 0 0;max-width:46ch;font-size:15px;line-height:1.6;color:rgba(247,241,222,.65)">
+                        Create a group, invite the table with one link, log the last night you played. Ten minutes and
+                        the spreadsheet is retired.</p>
+                    <div style="margin-top:30px;display:flex;flex-wrap:wrap;gap:10px;justify-content:center">
+                        <span
+                            style="display:flex;align-items:center;min-width:260px;padding:14px 18px;border-radius:12px;background:rgba(13,51,36,.55);box-shadow:inset 0 0 0 1px rgba(247,241,222,.16);font-size:14px;color:rgba(247,241,222,.5)">you@yourtable.com</span>
+                        <a href="#top"
+                            style="display:inline-flex;align-items:center;justify-content:center;border-radius:12px;padding:15px 28px;font-size:15px;font-weight:600;background:#f7f1de;color:#1a1614;box-shadow:0 3px 0 0 rgba(0,0,0,.3)">Sign
+                            up free</a>
+                    </div>
+                    <p style="margin:16px 0 0;font-size:12px;color:rgba(247,241,222,.45)">Or continue with Google · free
+                        while your table is under 20 players</p>
+                </div>
+            </div>
+            <div
+                style="margin:36px auto 0;max-width:1120px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;font-size:12px;color:rgba(247,241,222,.4)">
+                <span
+                    style="font-family:'DM Serif Display',Georgia,serif;font-size:18px;color:rgba(247,241,222,.7)">royal<span
+                        style="color:#d23548">.gg</span></span>
+                <span>Buy-ins, cash-outs, and lifetime records for home games.</span>
+            </div>
+        </section>
+    </x-dc>
+    <script type="text/x-dc" data-dc-script
+        data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:900}}">
+const SERIES = [
+  { color: "#436c54", width: 2.6, final: 41200, seed: 7, start: 0, label: "Dan" },
+  { color: "#2c9c8e", width: 2, final: 28650, seed: 19, start: 2, label: "Priya" },
+  { color: "#2a7fb8", width: 2, final: 13400, seed: 31, start: 5, label: "Marcus" },
+  { color: "#d6a13a", width: 2, final: -8800, seed: 79, start: 4, label: "Jonah" },
+  { color: "#d97a3b", width: 2, final: -20350, seed: 61, start: 1, label: "Lena" },
+  { color: "#b21e2c", width: 2, final: -57050, seed: 43, start: 0, label: "Rory" },
+];
+const N = 24;
+
+function walk(seed, n, final) {
+  let h = (seed * 2654435761) >>> 0;
+  const swing = Math.max(3500, (Math.abs(final) / n) * 3.2);
+  const cum = [];
+  let acc = 0;
+  for (let i = 0; i < n; i += 1) {
+    h = (h * 1103515245 + 12345) >>> 0;
+    acc += final / n + (h / 4294967296 - 0.5) * swing;
+    cum.push(acc);
+  }
+  const drift = final - cum[n - 1];
+  return cum.map((v, i) => Math.round(v + (drift * (i + 1)) / n));
+}
+
+function smooth(pts) {
+  if (pts.length < 2) return "";
+  let d = "M" + pts[0][0].toFixed(1) + "," + pts[0][1].toFixed(1);
+  for (let i = 0; i < pts.length - 1; i += 1) {
+    const p0 = pts[i - 1] || pts[i];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[i + 2] || p2;
+    d += "C" + (p1[0] + (p2[0] - p0[0]) / 6).toFixed(1) + "," + (p1[1] + (p2[1] - p0[1]) / 6).toFixed(1) +
+      " " + (p2[0] - (p3[0] - p1[0]) / 6).toFixed(1) + "," + (p2[1] - (p3[1] - p1[1]) / 6).toFixed(1) +
+      " " + p2[0].toFixed(1) + "," + p2[1].toFixed(1);
+  }
+  return d;
+}
+
+const FAN = [
+  { a: -30, x: -300, y: 44 },
+  { a: -18, x: -180, y: 14 },
+  { a: -6, x: -60, y: 0 },
+  { a: 6, x: 60, y: 0 },
+  { a: 18, x: 180, y: 14 },
+  { a: 30, x: 300, y: 44 },
+];
+
+class Component extends DCLogic {
+  collect() {
+    this.cards = Array.prototype.slice.call(document.querySelectorAll("[data-fan]"));
+    this.hero = document.getElementById("top");
+    this.copy = document.querySelector("[data-hero-copy]");
+    this.cue = document.querySelector("[data-hero-cue]");
+    return this.cards.length > 0 && !!this.hero;
+  }
+
+  componentDidMount() {
+    this.collect();
+    this.alive = true;
+    this.lastP = -1;
+    // Polled with rAF rather than a scroll listener: the preview host does not
+    // always deliver scroll events, and polling a rect is cheap.
+    const loop = () => {
+      if (!this.alive) return;
+      this.frame();
+      this.raf = requestAnimationFrame(loop);
+    };
+    loop();
+
+    if ("IntersectionObserver" in window) {
+      this.io = new IntersectionObserver(
+        (entries) => entries.forEach((e) => { if (e.isIntersecting) e.target.classList.add("in"); }),
+        { rootMargin: "0px 0px -12% 0px", threshold: 0.08 }
+      );
+      document.querySelectorAll("[data-reveal]").forEach((n) => this.io.observe(n));
+    } else {
+      document.querySelectorAll("[data-reveal]").forEach((n) => n.classList.add("in"));
+    }
+  }
+
+  componentWillUnmount() {
+    this.alive = false;
+    if (this.raf) cancelAnimationFrame(this.raf);
+    if (this.io) this.io.disconnect();
+  }
+
+  frame() {
+    if (!this.hero || !this.cards || this.cards.length !== 6) {
+      if (!this.collect()) return;
+    }
+    const travel = Math.max(this.hero.offsetHeight - window.innerHeight, 1);
+    const raw = Math.min(Math.max(-this.hero.getBoundingClientRect().top / travel, 0), 1);
+    if (Math.abs(raw - this.lastP) < 0.0015) return;
+    this.lastP = raw;
+    const p = raw < 0.5 ? 2 * raw * raw : 1 - Math.pow(-2 * raw + 2, 2) / 2; // ease-in-out
+    const scaleFit = Math.min(window.innerWidth / 1180, 1);
+
+    this.cards.forEach((el, i) => {
+      const t = FAN[i] || FAN[FAN.length - 1];
+      const stackA = (i - 2.5) * 1.4;
+      const stackY = i * -1.5;
+      const a = stackA + (t.a - stackA) * p;
+      const x = (t.x * p) * scaleFit;
+      const peek = Math.min(168, window.innerHeight * 0.26);
+      const rise = Math.min(224, window.innerHeight * 0.34);
+      const y = -peek + stackY - rise * p + t.y * p;
+      const s = (0.94 + 0.06 * p) * scaleFit;
+      el.style.zIndex = String(10 + i);
+      el.style.transform = "translate(" + x.toFixed(1) + "px," + y.toFixed(1) + "px) rotate(" + a.toFixed(2) + "deg) scale(" + s.toFixed(3) + ")";
+    });
+
+    if (this.copy) {
+      this.copy.style.transform = "translateY(" + (-46 * p).toFixed(1) + "px)";
+      this.copy.style.opacity = String(Math.max(1 - Math.max(p - 0.74, 0) / 0.26, 0.14));
+    }
+    if (this.cue) this.cue.style.opacity = String(Math.max(1 - p * 3, 0));
+
+    // Reveal fallback in case IntersectionObserver never fires in the host.
+    const pending = document.querySelectorAll("[data-reveal]:not(.in)");
+    for (let i = 0; i < pending.length; i += 1) {
+      if (pending[i].getBoundingClientRect().top < window.innerHeight * 0.92) pending[i].classList.add("in");
+    }
+  }
+
+  renderVals() {
+    const el = React.createElement;
+    const W = 1040, H = 300, PL = 48, PR = 62, PT = 14, PB = 26;
+    const innerW = W - PL - PR, innerH = H - PT - PB;
+
+    const data = SERIES.map((s) => {
+      const n = N - s.start;
+      return { ...s, points: walk(s.seed, n, s.final).map((c, i) => [s.start + i, c]) };
+    });
+    let min = 0, max = 0;
+    data.forEach((s) => s.points.forEach((p) => { if (p[1] < min) min = p[1]; if (p[1] > max) max = p[1]; }));
+    const pad = (max - min) * 0.12;
+    min -= pad; max += pad;
+    const xOf = (i) => PL + (i / (N - 1)) * innerW;
+    const yOf = (c) => PT + (1 - (c - min) / (max - min)) * innerH;
+
+    const kids = [
+      el("defs", { key: "df" }, el("linearGradient", { id: "lgFill", x1: "0", y1: "0", x2: "0", y2: "1" },
+        el("stop", { offset: "0%", stopColor: "#5b8e6e", stopOpacity: 0.22 }),
+        el("stop", { offset: "100%", stopColor: "#5b8e6e", stopOpacity: 0 })
+      )),
+    ];
+    for (let i = 0; i <= 4; i += 1) {
+      const t = i / 4;
+      const y = PT + t * innerH;
+      const dollars = Math.round((min + (max - min) * (1 - t)) / 100);
+      kids.push(el("line", { key: "g" + i, x1: PL, y1: y, x2: W - PR, y2: y, stroke: "#6b5e54", strokeOpacity: 0.14, strokeDasharray: "2 5" }));
+      kids.push(el("text", { key: "gl" + i, x: PL - 10, y: y + 3, textAnchor: "end", fontSize: 11, fill: "#6b5e54", style: { fontVariantNumeric: "tabular-nums" } }, (dollars > 0 ? "+$" : dollars < 0 ? "-$" : "$") + Math.abs(dollars)));
+    }
+    kids.push(el("line", { key: "z", x1: PL, y1: yOf(0), x2: W - PR, y2: yOf(0), stroke: "#c9a24a", strokeOpacity: 0.6 }));
+
+    data.forEach((s) => {
+      const pts = s.points.map((p) => [xOf(p[0]), yOf(p[1])]);
+      const d = smooth(pts);
+      if (s.label === "Dan") {
+        kids.push(el("path", { key: s.label + "f", d: d + "L" + pts[pts.length - 1][0].toFixed(1) + "," + yOf(0).toFixed(1) + "L" + pts[0][0].toFixed(1) + "," + yOf(0).toFixed(1) + "Z", fill: "url(#lgFill)" }));
+      }
+      kids.push(el("path", { key: s.label, d, fill: "none", stroke: s.color, strokeWidth: s.width, strokeLinecap: "round", strokeLinejoin: "round" }));
+      const last = pts[pts.length - 1];
+      kids.push(el("circle", { key: s.label + "d", cx: last[0], cy: last[1], r: 3, fill: s.color }));
+      kids.push(el("text", { key: s.label + "t", x: last[0] + 7, y: last[1] + 4, fontSize: 11, fill: s.color, fontWeight: s.label === "Dan" ? 600 : 400 }, s.label));
+    });
+
+    const start = new Date(2026, 2, 27);
+    [0, 5, 11, 17, 23].forEach((i) => {
+      const d = new Date(start.getTime() + i * 7 * 864e5);
+      kids.push(el("text", { key: "x" + i, x: xOf(i), y: H - 4, textAnchor: "middle", fontSize: 11, fill: "#6b5e54" }, d.toLocaleDateString("en-GB", { day: "numeric", month: "short" })));
+    });
+
+    return { chart: el("svg", { viewBox: "0 0 " + W + " " + H, width: "100%", style: { display: "block", overflow: "visible" } }, kids) };
+  }
+}
+</script>
+</body>
+
+</html>

@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="./support.js"></script>
+</head>
+
+<body>
+    <x-dc>
+        <helmet data-dc-atomics>
+            <meta name="design_doc_mode" content="canvas">
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link
+                href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700&display=swap"
+                rel="stylesheet">
+            <style>
+                html,
+                body {
+                    margin: 0
+                }
+
+                body {
+                    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+                    -webkit-font-smoothing: antialiased;
+                    background: #080e0b;
+                    color: #f7f1de
+                }
+
+                a {
+                    color: inherit;
+                    text-decoration: none
+                }
+
+                a:hover {
+                    color: inherit
+                }
+            </style>
+        </helmet>
+        <div style="display:flex;align-items:flex-start;gap:64px;padding:56px 64px 80px">
+
+            <div style="display:flex;flex-direction:column;gap:14px">
+                <div style="display:flex;align-items:baseline;gap:10px">
+                    <span
+                        style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.08em;padding:5px 8px;border-radius:4px;background:#f7f1de;color:#1a1614">DESKTOP</span>
+                    <span style="font-size:12px;color:rgba(247,241,222,.55)">Dashboard — one sheet, your money
+                        first</span>
+                </div>
+
+                <div data-screen-label="Dashboard desktop"
+                    style="width:1280px;border-radius:20px;overflow:hidden;background-color:#0d3324;background-image:radial-gradient(ellipse at 50% -10%,rgba(255,255,255,.05),transparent 60%),repeating-linear-gradient(45deg,rgba(255,255,255,.012) 0 2px,transparent 2px 6px);box-shadow:0 40px 90px -30px rgba(0,0,0,.8)">
+
+                    <header style="border-bottom:1px solid rgba(247,241,222,.08);background:rgba(13,51,36,.7)">
+                        <div
+                            style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 32px">
+                            <a href="#" style="display:flex;align-items:center;gap:8px">
+                                <span style="display:flex;align-items:center;gap:2px;opacity:.9">
+                                    <svg viewBox="0 0 100 100" width="14" height="14">
+                                        <path
+                                            d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z"
+                                            fill="#f7f1de"></path>
+                                    </svg>
+                                    <svg viewBox="0 0 100 100" width="14" height="14">
+                                        <path
+                                            d="M50 88C28 72 8 56 8 35a20 20 0 0 1 36-12 20 20 0 0 1 36 12c0 21-20 37-30 53Z"
+                                            fill="#d23548"></path>
+                                    </svg>
+                                </span>
+                                <span
+                                    style="font-family:'DM Serif Display',Georgia,serif;font-size:24px;letter-spacing:-.02em;color:#f7f1de">royal<span
+                                        style="color:#d23548">.gg</span></span>
+                            </a>
+                            <div style="display:flex;align-items:center;gap:12px">
+                                <nav
+                                    style="display:flex;align-items:center;gap:2px;padding:3px;border-radius:999px;background:rgba(247,241,222,.06)">
+                                    <a href="#"
+                                        style="border-radius:999px;padding:7px 16px;font-size:13px;font-weight:500;background:#f7f1de;color:#1a1614">Dashboard</a>
+                                    <a href="#"
+                                        style="border-radius:999px;padding:7px 16px;font-size:13px;font-weight:500;color:rgba(247,241,222,.7)">Sessions</a>
+                                    <a href="#"
+                                        style="border-radius:999px;padding:7px 16px;font-size:13px;font-weight:500;color:rgba(247,241,222,.7)">League</a>
+                                    <a href="#"
+                                        style="border-radius:999px;padding:7px 16px;font-size:13px;font-weight:500;color:rgba(247,241,222,.7)">You</a>
+                                </nav>
+                                <span style="width:1px;height:22px;background:rgba(247,241,222,.12)"></span>
+                                <a href="#" style="font-size:12px;color:rgba(247,241,222,.6)">Thursday Night ▾</a>
+                                <a href="#" style="display:flex;align-items:center;gap:8px">
+                                    <span
+                                        style="position:relative;display:flex;height:32px;width:25px;flex-shrink:0;align-items:center;justify-content:center;border-radius:5px;background:#f7f1de;box-shadow:0 0 0 1px #d9cfa8">
+                                        <span
+                                            style="position:absolute;left:3px;top:2px;font-family:'DM Serif Display',Georgia,serif;font-size:10px;line-height:1;color:#1a1614">A</span>
+                                        <svg viewBox="0 0 100 100" width="14" height="14">
+                                            <path
+                                                d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z"
+                                                fill="#1a1614"></path>
+                                        </svg>
+                                    </span>
+                                    <span style="font-size:12px;font-weight:500;color:#f7f1de">Dan</span>
+                                </a>
+                            </div>
+                        </div>
+                    </header>
+
+                    <div style="padding:32px">
+                        <div
+                            style="border-radius:24px;background:#f7f1de;color:#1a1614;box-shadow:0 2px 0 0 rgba(0,0,0,.14),0 30px 70px -28px rgba(0,0,0,.65),0 0 0 1px #ece3c8;overflow:hidden">
+
+                            <div style="display:grid;grid-template-columns:1fr 380px">
+                                <div style="padding:40px">
+                                    <div
+                                        style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:#6b5e54">
+                                        Lifetime · Thursday Night</div>
+                                    <div style="display:flex;align-items:flex-end;gap:16px;margin-top:14px">
+                                        <div
+                                            style="font-family:'DM Serif Display',Georgia,serif;font-size:76px;line-height:.9;font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:#436c54">
+                                            +$412.00</div>
+                                        <div
+                                            style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:rgba(201,162,74,.16);margin-bottom:8px">
+                                            <svg viewBox="0 0 100 100" width="11" height="11">
+                                                <path d="M50 6 88 50 50 94 12 50Z" fill="#8a6a1f"></path>
+                                            </svg>
+                                            <span
+                                                style="font-size:11px;font-weight:600;letter-spacing:.02em;color:#7a5d1a">3
+                                                of your last 4 nights up</span>
+                                        </div>
+                                    </div>
+                                    <p
+                                        style="margin:12px 0 0;font-size:14px;line-height:1.5;color:#3a322b;max-width:44ch">
+                                        Up across 24 nights — 15 wins, 9 losses. You average <span
+                                            style="font-weight:600;font-variant-numeric:tabular-nums">+$17.17</span> a
+                                        night, the best mark at the table.</p>
+
+                                    <sc-if value="{{ showGoal }}" hint-placeholder-val="{{ true }}">
+                                        <div style="margin-top:32px">
+                                            <div
+                                                style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+                                                <span
+                                                    style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#6b5e54">Season
+                                                    net</span>
+                                                <span style="font-size:12px;color:#6b5e54"><span
+                                                        style="font-weight:600;color:#436c54">51%</span> of your $500
+                                                    season goal</span>
+                                            </div>
+                                            <div
+                                                style="margin-top:10px;position:relative;height:14px;border-radius:999px;background:#ece3c8;overflow:hidden">
+                                                <div
+                                                    style="position:absolute;left:0;top:0;bottom:0;width:51%;border-radius:999px;background:linear-gradient(90deg,#b21e2c 0%,#d97a3b 26%,#c9a24a 52%,#7caa8b 78%,#436c54 100%)">
+                                                </div>
+                                            </div>
+                                            <div
+                                                style="margin-top:6px;display:flex;align-items:baseline;justify-content:space-between;font-size:11px;font-variant-numeric:tabular-nums;color:#6b5e54">
+                                                <span>$0</span>
+                                                <span style="font-weight:600;color:#1a1614">+$252.50 so far</span>
+                                                <span>$500</span>
+                                            </div>
+                                        </div>
+                                    </sc-if>
+                                </div>
+
+                                <div
+                                    style="padding:40px 40px 40px 32px;border-left:1px solid #ece3c8;background:linear-gradient(180deg,rgba(236,227,200,.35),rgba(236,227,200,0))">
+                                    <div
+                                        style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+                                        <span
+                                            style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#6b5e54">Last
+                                            night</span>
+                                        <a href="#" style="font-size:12px;color:#6b5e54">Open →</a>
+                                    </div>
+                                    <div
+                                        style="margin-top:12px;font-family:'DM Serif Display',Georgia,serif;font-size:34px;line-height:1;font-variant-numeric:tabular-nums;color:#436c54">
+                                        +$120.00</div>
+                                    <div style="margin-top:6px;font-size:13px;color:#3a322b">Thu 4 Sep · 8 players ·
+                                        reconciled</div>
+                                    <div
+                                        style="margin-top:20px;display:flex;flex-direction:column;gap:10px;font-size:13px">
+                                        <div style="display:flex;justify-content:space-between;gap:12px"><span
+                                                style="color:#6b5e54">Bought in</span><span
+                                                style="font-variant-numeric:tabular-nums;color:#1a1614">4 ×
+                                                $40.00</span></div>
+                                        <div style="display:flex;justify-content:space-between;gap:12px"><span
+                                                style="color:#6b5e54">Cashed out</span><span
+                                                style="font-variant-numeric:tabular-nums;color:#1a1614">$280.00</span>
+                                        </div>
+                                        <div
+                                            style="display:flex;justify-content:space-between;gap:12px;padding-top:10px;border-top:1px solid #ece3c8">
+                                            <span style="color:#6b5e54">Table pot</span><span
+                                                style="font-variant-numeric:tabular-nums;color:#1a1614">$1,240.00</span>
+                                        </div>
+                                    </div>
+                                    <div style="margin-top:24px;display:flex;flex-direction:column;gap:8px">
+                                        <button type="button"
+                                            style="display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:12px;padding:13px 18px;font-family:inherit;font-size:14px;font-weight:600;background:#0d3324;color:#f7f1de;cursor:pointer;box-shadow:0 2px 0 0 rgba(0,0,0,.22)">Log
+                                            tonight's session</button>
+                                        <button type="button"
+                                            style="display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:12px;padding:12px 18px;font-family:inherit;font-size:13px;font-weight:500;background:transparent;color:#3a322b;box-shadow:inset 0 0 0 1px #d9cfa8;cursor:pointer">Add
+                                            a guest player</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="border-top:1px solid #ece3c8;padding:28px 40px 32px">
+                                <div
+                                    style="display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:12px">
+                                    <div style="display:flex;align-items:baseline;gap:14px">
+                                        <h2
+                                            style="margin:0;font-family:'DM Serif Display',Georgia,serif;font-size:22px;font-weight:400;color:#1a1614">
+                                            Your trajectory</h2>
+                                        <span style="font-size:12px;color:#6b5e54">cumulative net, session by
+                                            session</span>
+                                    </div>
+                                    <div
+                                        style="display:flex;gap:2px;padding:3px;border-radius:999px;background:#ece3c8">
+                                        <span
+                                            style="border-radius:999px;padding:6px 14px;font-size:12px;font-weight:600;background:#f7f1de;color:#1a1614;box-shadow:0 1px 2px rgba(0,0,0,.08)">All
+                                            time</span>
+                                        <span
+                                            style="border-radius:999px;padding:6px 14px;font-size:12px;font-weight:500;color:#6b5e54">Season</span>
+                                        <span
+                                            style="border-radius:999px;padding:6px 14px;font-size:12px;font-weight:500;color:#6b5e54">Last
+                                            10</span>
+                                    </div>
+                                </div>
+                                <div style="margin-top:16px">{{ chart }}</div>
+                            </div>
+
+                            <div style="border-top:1px solid #ece3c8;display:grid;grid-template-columns:1fr 1px 400px">
+                                <div style="padding:28px 32px 32px 40px">
+                                    <div
+                                        style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+                                        <h2
+                                            style="margin:0;font-family:'DM Serif Display',Georgia,serif;font-size:22px;font-weight:400;color:#1a1614">
+                                            At the table</h2>
+                                        <a href="#" style="font-size:12px;color:#6b5e54">Full league →</a>
+                                    </div>
+                                    <div style="margin-top:14px;display:flex;flex-direction:column">
+
+                                        <div
+                                            style="display:flex;align-items:center;gap:16px;padding:12px 14px;border-radius:14px;background:#0d3324">
+                                            <span
+                                                style="width:18px;font-family:'DM Serif Display',Georgia,serif;font-size:18px;color:rgba(247,241,222,.6)">1</span>
+                                            <span
+                                                style="position:relative;display:flex;height:34px;width:26px;flex-shrink:0;align-items:center;justify-content:center;border-radius:5px;background:#f7f1de"><span
+                                                    style="position:absolute;left:3px;top:2px;font-family:'DM Serif Display',Georgia,serif;font-size:10px;line-height:1;color:#1a1614">A</span><svg
+                                                    viewBox="0 0 100 100" width="14" height="14">
+                                                    <path
+                                                        d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z"
+                                                        fill="#1a1614"></path>
+                                                </svg></span>
+                                            <span style="flex:1 1 0;font-size:14px;font-weight:600;color:#f7f1de">Dan
+                                                Caesar <span
+                                                    style="margin-left:6px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#c9a24a">you</span></span>
+                                            <svg width="72" height="22" viewBox="0 0 72 22" style="flex-shrink:0">
+                                                <polyline points="0,17 10,15 20,16 30,11 40,12 50,7 60,6 72,2"
+                                                    fill="none" stroke="#7caa8b" stroke-width="1.6"
+                                                    stroke-linecap="round" stroke-linejoin="round"></polyline>
+                                            </svg>
+                                            <span
+                                                style="font-family:'DM Serif Display',Georgia,serif;font-size:19px;font-variant-numeric:tabular-nums;color:#a8cbb3;width:96px;text-align:right">+$412.00</span>
+                                        </div>
+
+                                        <div style="display:flex;align-items:center;gap:16px;padding:12px 14px">
+                                            <span
+                                                style="width:18px;font-family:'DM Serif Display',Georgia,serif;font-size:18px;color:#6b5e54">2</span>
+                                            <span
+                                                style="position:relative;display:flex;height:34px;width:26px;flex-shrink:0;align-items:center;justify-content:center;border-radius:5px;background:#f7f1de;box-shadow:0 0 0 1px #d9cfa8"><span
+                                                    style="position:absolute;left:3px;top:2px;font-family:'DM Serif Display',Georgia,serif;font-size:10px;line-height:1;color:#b21e2c">Q</span><svg
+                                                    viewBox="0 0 100 100" width="14" height="14">
+                                                    <path
+                                                        d="M50 88C28 72 8 56 8 35a20 20 0 0 1 36-12 20 20 0 0 1 36 12c0 21-20 37-30 53Z"
+                                                        fill="#b21e2c"></path>
+                                                </svg></span>
+                                            <span style="flex:1 1 0;font-size:14px;color:#1a1614">Priya Raman</span>
+                                            <svg width="72" height="22" viewBox="0 0 72 22" style="flex-shrink:0">
+                                                <polyline points="0,18 10,13 20,15 30,10 40,8 50,10 60,5 72,4"
+                                                    fill="none" stroke="#2c9c8e" stroke-width="1.6"
+                                                    stroke-linecap="round" stroke-linejoin="round"></polyline>
+                                            </svg>
+                                            <span
+                                                style="font-family:'DM Serif Display',Georgia,serif;font-size:19px;font-variant-numeric:tabular-nums;color:#5b8e6e;width:96px;text-align:right">+$286.50</span>
+                                        </div>
+
+                                        <div
+                                            style="display:flex;align-items:center;gap:16px;padding:12px 14px;border-top:1px solid #ece3c8">
+                                            <span
+                                                style="width:18px;font-family:'DM Serif Display',Georgia,serif;font-size:18px;color:#6b5e54">3</span>
+                                            <span
+                                                style="position:relative;display:flex;height:34px;width:26px;flex-shrink:0;align-items:center;justify-content:center;border-radius:5px;background:#f7f1de;box-shadow:0 0 0 1px #d9cfa8"><span
+                                                    style="position:absolute;left:3px;top:2px;font-family:'DM Serif Display',Georgia,serif;font-size:10px;line-height:1;color:#1a1614">K</span><svg
+                                                    viewBox="0 0 100 100" width="14" height="14">
+                                                    <path
+                                                        d="M50 6a17 17 0 0 0-13 28 17 17 0 1 0-9 28 17 17 0 0 0 16-3c-1 7-6 14-13 19h38c-7-5-12-12-13-19a17 17 0 0 0 16 3 17 17 0 1 0-9-28A17 17 0 0 0 50 6Z"
+                                                        fill="#1a1614"></path>
+                                                </svg></span>
+                                            <span style="flex:1 1 0;font-size:14px;color:#1a1614">Marcus Webb</span>
+                                            <svg width="72" height="22" viewBox="0 0 72 22" style="flex-shrink:0">
+                                                <polyline points="0,16 10,18 20,12 30,14 40,9 50,11 60,8 72,7"
+                                                    fill="none" stroke="#2a7fb8" stroke-width="1.6"
+                                                    stroke-linecap="round" stroke-linejoin="round"></polyline>
+                                            </svg>
+                                            <span
+                                                style="font-family:'DM Serif Display',Georgia,serif;font-size:19px;font-variant-numeric:tabular-nums;color:#5b8e6e;width:96px;text-align:right">+$134.00</span>
+                                        </div>
+
+                                        <div
+                                            style="display:flex;align-items:center;gap:16px;padding:12px 14px;border-top:1px solid #ece3c8">
+                                            <span
+                                                style="width:18px;font-family:'DM Serif Display',Georgia,serif;font-size:18px;color:#6b5e54">4</span>
+                                            <span
+                                                style="position:relative;display:flex;height:34px;width:26px;flex-shrink:0;align-items:center;justify-content:center;border-radius:5px;background:#f7f1de;box-shadow:0 0 0 1px #d9cfa8"><span
+                                                    style="position:absolute;left:3px;top:2px;font-family:'DM Serif Display',Georgia,serif;font-size:10px;line-height:1;color:#b21e2c">9</span><svg
+                                                    viewBox="0 0 100 100" width="14" height="14">
+                                                    <path d="M50 6 88 50 50 94 12 50Z" fill="#b21e2c"></path>
+                                                </svg></span>
+                                            <span style="flex:1 1 0;font-size:14px;color:#1a1614">Theo Lund</span>
+                                            <svg width="72" height="22" viewBox="0 0 72 22" style="flex-shrink:0">
+                                                <polyline points="0,12 10,14 20,10 30,15 40,13 50,16 60,12 72,11"
+                                                    fill="none" stroke="#6b5e54" stroke-width="1.6"
+                                                    stroke-linecap="round" stroke-linejoin="round"></polyline>
+                                            </svg>
+                                            <span
+                                                style="font-family:'DM Serif Display',Georgia,serif;font-size:19px;font-variant-numeric:tabular-nums;color:#5b8e6e;width:96px;text-align:right">+$41.50</span>
+                                        </div>
+
+                                        <div
+                                            style="display:flex;align-items:center;gap:16px;padding:12px 14px;border-top:1px solid #ece3c8">
+                                            <span
+                                                style="width:18px;font-family:'DM Serif Display',Georgia,serif;font-size:18px;color:#6b5e54">5</span>
+                                            <span
+                                                style="position:relative;display:flex;height:34px;width:26px;flex-shrink:0;align-items:center;justify-content:center;border-radius:5px;background:#f7f1de;box-shadow:0 0 0 1px #d9cfa8"><span
+                                                    style="position:absolute;left:3px;top:2px;font-family:'DM Serif Display',Georgia,serif;font-size:10px;line-height:1;color:#1a1614">7</span><svg
+                                                    viewBox="0 0 100 100" width="14" height="14">
+                                                    <path
+                                                        d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z"
+                                                        fill="#1a1614"></path>
+                                                </svg></span>
+                                            <span style="flex:1 1 0;font-size:14px;color:#1a1614">Ash Okonkwo</span>
+                                            <svg width="72" height="22" viewBox="0 0 72 22" style="flex-shrink:0">
+                                                <polyline points="0,9 10,11 20,14 30,12 40,15 50,13 60,14 72,12"
+                                                    fill="none" stroke="#6b5e54" stroke-width="1.6"
+                                                    stroke-linecap="round" stroke-linejoin="round"></polyline>
+                                            </svg>
+                                            <span
+                                                style="font-family:'DM Serif Display',Georgia,serif;font-size:19px;font-variant-numeric:tabular-nums;color:#b21e2c;width:96px;text-align:right">-$12.00</span>
+                                        </div>
+
+                                        <div
+                                            style="display:flex;align-items:center;gap:16px;padding:12px 14px;border-top:1px solid #ece3c8">
+                                            <span
+                                                style="width:18px;font-family:'DM Serif Display',Georgia,serif;font-size:18px;color:#6b5e54">6</span>
+                                            <span
+                                                style="position:relative;display:flex;height:34px;width:26px;flex-shrink:0;align-items:center;justify-content:center;border-radius:5px;background:#f7f1de;box-shadow:0 0 0 1px #d9cfa8"><span
+                                                    style="position:absolute;left:3px;top:2px;font-family:'DM Serif Display',Georgia,serif;font-size:10px;line-height:1;color:#b21e2c">J</span><svg
+                                                    viewBox="0 0 100 100" width="14" height="14">
+                                                    <path
+                                                        d="M50 88C28 72 8 56 8 35a20 20 0 0 1 36-12 20 20 0 0 1 36 12c0 21-20 37-30 53Z"
+                                                        fill="#b21e2c"></path>
+                                                </svg></span>
+                                            <span style="flex:1 1 0;font-size:14px;color:#1a1614">Jonah Fitz</span>
+                                            <svg width="72" height="22" viewBox="0 0 72 22" style="flex-shrink:0">
+                                                <polyline points="0,8 10,12 20,11 30,15 40,14 50,17 60,15 72,16"
+                                                    fill="none" stroke="#d6a13a" stroke-width="1.6"
+                                                    stroke-linecap="round" stroke-linejoin="round"></polyline>
+                                            </svg>
+                                            <span
+                                                style="font-family:'DM Serif Display',Georgia,serif;font-size:19px;font-variant-numeric:tabular-nums;color:#b21e2c;width:96px;text-align:right">-$88.00</span>
+                                        </div>
+
+                                        <div
+                                            style="display:flex;align-items:center;gap:16px;padding:12px 14px;border-top:1px solid #ece3c8">
+                                            <span
+                                                style="width:18px;font-family:'DM Serif Display',Georgia,serif;font-size:18px;color:#6b5e54">7</span>
+                                            <span
+                                                style="position:relative;display:flex;height:34px;width:26px;flex-shrink:0;align-items:center;justify-content:center;border-radius:5px;background:#f7f1de;box-shadow:0 0 0 1px #d9cfa8"><span
+                                                    style="position:absolute;left:3px;top:2px;font-family:'DM Serif Display',Georgia,serif;font-size:10px;line-height:1;color:#1a1614">4</span><svg
+                                                    viewBox="0 0 100 100" width="14" height="14">
+                                                    <path
+                                                        d="M50 6a17 17 0 0 0-13 28 17 17 0 1 0-9 28 17 17 0 0 0 16-3c-1 7-6 14-13 19h38c-7-5-12-12-13-19a17 17 0 0 0 16 3 17 17 0 1 0-9-28A17 17 0 0 0 50 6Z"
+                                                        fill="#1a1614"></path>
+                                                </svg></span>
+                                            <span style="flex:1 1 0;font-size:14px;color:#1a1614">Lena Sorokin</span>
+                                            <svg width="72" height="22" viewBox="0 0 72 22" style="flex-shrink:0">
+                                                <polyline points="0,6 10,9 20,8 30,13 40,12 50,16 60,18 72,17"
+                                                    fill="none" stroke="#d97a3b" stroke-width="1.6"
+                                                    stroke-linecap="round" stroke-linejoin="round"></polyline>
+                                            </svg>
+                                            <span
+                                                style="font-family:'DM Serif Display',Georgia,serif;font-size:19px;font-variant-numeric:tabular-nums;color:#b21e2c;width:96px;text-align:right">-$203.50</span>
+                                        </div>
+
+                                        <div
+                                            style="display:flex;align-items:center;gap:16px;padding:12px 14px;border-top:1px solid #ece3c8">
+                                            <span
+                                                style="width:18px;font-family:'DM Serif Display',Georgia,serif;font-size:18px;color:#6b5e54">8</span>
+                                            <span
+                                                style="position:relative;display:flex;height:34px;width:26px;flex-shrink:0;align-items:center;justify-content:center;border-radius:5px;background:#f7f1de;box-shadow:0 0 0 1px #d9cfa8"><span
+                                                    style="position:absolute;left:3px;top:2px;font-family:'DM Serif Display',Georgia,serif;font-size:10px;line-height:1;color:#b21e2c">8</span><svg
+                                                    viewBox="0 0 100 100" width="14" height="14">
+                                                    <path d="M50 6 88 50 50 94 12 50Z" fill="#b21e2c"></path>
+                                                </svg></span>
+                                            <span style="flex:1 1 0;font-size:14px;color:#1a1614">Rory Adeyemi</span>
+                                            <svg width="72" height="22" viewBox="0 0 72 22" style="flex-shrink:0">
+                                                <polyline points="0,4 10,7 20,10 30,9 40,14 50,17 60,19 72,20"
+                                                    fill="none" stroke="#b21e2c" stroke-width="1.6"
+                                                    stroke-linecap="round" stroke-linejoin="round"></polyline>
+                                            </svg>
+                                            <span
+                                                style="font-family:'DM Serif Display',Georgia,serif;font-size:19px;font-variant-numeric:tabular-nums;color:#b21e2c;width:96px;text-align:right">-$570.50</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style="background:#ece3c8"></div>
+
+                                <sc-if value="{{ showSettleUp }}" hint-placeholder-val="{{ true }}">
+                                    <div style="padding:28px 40px 32px 32px">
+                                        <div
+                                            style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+                                            <h2
+                                                style="margin:0;font-family:'DM Serif Display',Georgia,serif;font-size:22px;font-weight:400;color:#1a1614">
+                                                Settle up</h2>
+                                            <span style="font-size:12px;color:#6b5e54">since 2 Aug</span>
+                                        </div>
+                                        <p style="margin:8px 0 0;font-size:13px;color:#3a322b">Seven transfers clear the
+                                            period. You collect <span
+                                                style="font-weight:600;font-variant-numeric:tabular-nums;color:#436c54">$188.00</span>.
+                                        </p>
+                                        <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px">
+                                            <div
+                                                style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:12px;background:rgba(236,227,200,.6)">
+                                                <span style="flex:1 1 0;font-size:13px;color:#1a1614">Rory <span
+                                                        style="color:#6b5e54">pays</span> you</span>
+                                                <span
+                                                    style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;color:#436c54">$150.00</span>
+                                            </div>
+                                            <div
+                                                style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:12px;background:rgba(236,227,200,.6)">
+                                                <span style="flex:1 1 0;font-size:13px;color:#1a1614">Lena <span
+                                                        style="color:#6b5e54">pays</span> you</span>
+                                                <span
+                                                    style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;color:#436c54">$38.00</span>
+                                            </div>
+                                            <div
+                                                style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:12px;background:rgba(236,227,200,.35)">
+                                                <span style="flex:1 1 0;font-size:13px;color:#3a322b">Lena <span
+                                                        style="color:#6b5e54">pays</span> Priya</span>
+                                                <span
+                                                    style="font-size:14px;font-weight:500;font-variant-numeric:tabular-nums;color:#3a322b">$40.00</span>
+                                            </div>
+                                            <div
+                                                style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:12px;background:rgba(236,227,200,.35)">
+                                                <span style="flex:1 1 0;font-size:13px;color:#3a322b">Jonah <span
+                                                        style="color:#6b5e54">pays</span> Priya</span>
+                                                <span
+                                                    style="font-size:14px;font-weight:500;font-variant-numeric:tabular-nums;color:#3a322b">$34.50</span>
+                                            </div>
+                                            <a href="#" style="padding:6px 14px;font-size:12px;color:#6b5e54">3 more
+                                                transfers →</a>
+                                        </div>
+                                        <div style="margin-top:24px;padding-top:20px;border-top:1px solid #ece3c8">
+                                            <div
+                                                style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#6b5e54">
+                                                Next game</div>
+                                            <div
+                                                style="margin-top:8px;display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+                                                <span
+                                                    style="font-family:'DM Serif Display',Georgia,serif;font-size:20px;color:#1a1614">Thu
+                                                    11 Sep</span>
+                                                <span style="font-size:13px;color:#3a322b">6 in · 2 maybe</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </sc-if>
+                            </div>
+
+                            <sc-if value="{{ showFooterStats }}" hint-placeholder-val="{{ true }}">
+                                <div
+                                    style="border-top:1px solid #ece3c8;background:rgba(236,227,200,.4);display:grid;grid-template-columns:repeat(4,1fr)">
+                                    <div style="padding:20px 40px">
+                                        <div
+                                            style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#6b5e54">
+                                            Biggest win</div>
+                                        <div
+                                            style="margin-top:4px;font-family:'DM Serif Display',Georgia,serif;font-size:22px;font-variant-numeric:tabular-nums;color:#436c54">
+                                            $286.00</div>
+                                        <div style="margin-top:2px;font-size:11px;color:#6b5e54">Priya · 15 May</div>
+                                    </div>
+                                    <div style="padding:20px 24px;border-left:1px solid #ece3c8">
+                                        <div
+                                            style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#6b5e54">
+                                            Biggest loss</div>
+                                        <div
+                                            style="margin-top:4px;font-family:'DM Serif Display',Georgia,serif;font-size:22px;font-variant-numeric:tabular-nums;color:#8a1620">
+                                            $214.50</div>
+                                        <div style="margin-top:2px;font-size:11px;color:#6b5e54">Rory · 20 Jun</div>
+                                    </div>
+                                    <div style="padding:20px 24px;border-left:1px solid #ece3c8">
+                                        <div
+                                            style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#6b5e54">
+                                            Nights played</div>
+                                        <div
+                                            style="margin-top:4px;font-family:'DM Serif Display',Georgia,serif;font-size:22px;font-variant-numeric:tabular-nums;color:#1a1614">
+                                            24</div>
+                                        <div style="margin-top:2px;font-size:11px;color:#6b5e54">since 27 Mar</div>
+                                    </div>
+                                    <div style="padding:20px 24px;border-left:1px solid #ece3c8">
+                                        <div
+                                            style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#6b5e54">
+                                            Table volume</div>
+                                        <div
+                                            style="margin-top:4px;font-family:'DM Serif Display',Georgia,serif;font-size:22px;font-variant-numeric:tabular-nums;color:#1a1614">
+                                            $26,840</div>
+                                        <div style="margin-top:2px;font-size:11px;color:#6b5e54">671 buy-ins</div>
+                                    </div>
+                                </div>
+                            </sc-if>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:14px">
+                <div style="display:flex;align-items:baseline;gap:10px">
+                    <span
+                        style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.08em;padding:5px 8px;border-radius:4px;background:#f7f1de;color:#1a1614">MOBILE</span>
+                    <span style="font-size:12px;color:rgba(247,241,222,.55)">Same sheet, one column</span>
+                </div>
+                <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}"
+                    hint-size="402px,874px">
+                    <div data-screen-label="Dashboard mobile"
+                        style="min-height:100%;background-color:#0d3324;background-image:radial-gradient(ellipse at 50% -10%,rgba(255,255,255,.05),transparent 60%);padding:64px 0 40px">
+                        <div
+                            style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 20px 18px">
+                            <span
+                                style="font-family:'DM Serif Display',Georgia,serif;font-size:20px;color:#f7f1de">royal<span
+                                    style="color:#d23548">.gg</span></span>
+                            <span style="font-size:11px;color:rgba(247,241,222,.6)">Thursday Night ▾</span>
+                        </div>
+                        <div
+                            style="margin:0 12px;border-radius:22px;background:#f7f1de;color:#1a1614;overflow:hidden;box-shadow:0 20px 44px -20px rgba(0,0,0,.6)">
+                            <div style="padding:22px 20px 24px">
+                                <div
+                                    style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:#6b5e54">
+                                    Lifetime</div>
+                                <div
+                                    style="margin-top:8px;font-family:'DM Serif Display',Georgia,serif;font-size:52px;line-height:.9;font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:#436c54">
+                                    +$412.00</div>
+                                <div style="margin-top:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                                    <span
+                                        style="padding:5px 9px;border-radius:999px;background:rgba(201,162,74,.16);font-size:10px;font-weight:600;color:#7a5d1a">3
+                                        of last 4 up</span>
+                                    <span style="font-size:12px;color:#3a322b">24 nights · 15W 9L</span>
+                                </div>
+                                <div
+                                    style="margin-top:18px;position:relative;height:12px;border-radius:999px;background:#ece3c8;overflow:hidden">
+                                    <div
+                                        style="position:absolute;left:0;top:0;bottom:0;width:51%;border-radius:999px;background:linear-gradient(90deg,#b21e2c,#d97a3b 30%,#c9a24a 55%,#436c54)">
+                                    </div>
+                                </div>
+                                <div
+                                    style="margin-top:6px;display:flex;justify-content:space-between;font-size:10px;font-variant-numeric:tabular-nums;color:#6b5e54">
+                                    <span>Season +$252.50</span><span>goal $500</span></div>
+                            </div>
+                            <div style="border-top:1px solid #ece3c8;padding:18px 20px 20px">
+                                <div style="display:flex;align-items:baseline;justify-content:space-between"><span
+                                        style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#6b5e54">Your
+                                        trajectory</span><span style="font-size:11px;color:#6b5e54">All time</span>
+                                </div>
+                                <div style="margin-top:10px">{{ chartMobile }}</div>
+                            </div>
+                            <div style="border-top:1px solid #ece3c8;padding:18px 20px 20px">
+                                <div style="display:flex;align-items:baseline;justify-content:space-between"><span
+                                        style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#6b5e54">Last
+                                        night</span><span style="font-size:11px;color:#6b5e54">Thu 4 Sep →</span></div>
+                                <div
+                                    style="margin-top:8px;display:flex;align-items:flex-end;justify-content:space-between;gap:12px">
+                                    <span
+                                        style="font-family:'DM Serif Display',Georgia,serif;font-size:30px;font-variant-numeric:tabular-nums;color:#436c54">+$120.00</span>
+                                    <span style="font-size:12px;color:#3a322b;padding-bottom:4px">8 players ·
+                                        reconciled</span>
+                                </div>
+                            </div>
+                            <div style="border-top:1px solid #ece3c8;padding:18px 20px 20px">
+                                <div style="display:flex;align-items:baseline;justify-content:space-between"><span
+                                        style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#6b5e54">At
+                                        the table</span><span style="font-size:11px;color:#6b5e54">Full league →</span>
+                                </div>
+                                <div style="margin-top:10px;display:flex;flex-direction:column;gap:2px">
+                                    <div
+                                        style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:12px;background:#0d3324">
+                                        <span
+                                            style="width:12px;font-family:'DM Serif Display',Georgia,serif;font-size:15px;color:rgba(247,241,222,.6)">1</span>
+                                        <span style="flex:1 1 0;font-size:13px;font-weight:600;color:#f7f1de">Dan <span
+                                                style="font-size:9px;font-weight:600;letter-spacing:.08em;color:#c9a24a">YOU</span></span>
+                                        <span
+                                            style="font-family:'DM Serif Display',Georgia,serif;font-size:15px;font-variant-numeric:tabular-nums;color:#a8cbb3">+$412.00</span>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:12px;padding:9px 12px">
+                                        <span
+                                            style="width:12px;font-family:'DM Serif Display',Georgia,serif;font-size:15px;color:#6b5e54">2</span>
+                                        <span style="flex:1 1 0;font-size:13px;color:#1a1614">Priya Raman</span>
+                                        <span
+                                            style="font-family:'DM Serif Display',Georgia,serif;font-size:15px;font-variant-numeric:tabular-nums;color:#5b8e6e">+$286.50</span>
+                                    </div>
+                                    <div
+                                        style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-top:1px solid #ece3c8">
+                                        <span
+                                            style="width:12px;font-family:'DM Serif Display',Georgia,serif;font-size:15px;color:#6b5e54">3</span>
+                                        <span style="flex:1 1 0;font-size:13px;color:#1a1614">Marcus Webb</span>
+                                        <span
+                                            style="font-family:'DM Serif Display',Georgia,serif;font-size:15px;font-variant-numeric:tabular-nums;color:#5b8e6e">+$134.00</span>
+                                    </div>
+                                    <div
+                                        style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-top:1px solid #ece3c8">
+                                        <span
+                                            style="width:12px;font-family:'DM Serif Display',Georgia,serif;font-size:15px;color:#6b5e54">8</span>
+                                        <span style="flex:1 1 0;font-size:13px;color:#1a1614">Rory Adeyemi</span>
+                                        <span
+                                            style="font-family:'DM Serif Display',Georgia,serif;font-size:15px;font-variant-numeric:tabular-nums;color:#b21e2c">-$570.50</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div
+                                style="border-top:1px solid #ece3c8;background:rgba(236,227,200,.45);padding:16px 20px 18px">
+                                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+                                    <div>
+                                        <div
+                                            style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#6b5e54">
+                                            You collect</div>
+                                        <div
+                                            style="margin-top:2px;font-family:'DM Serif Display',Georgia,serif;font-size:22px;font-variant-numeric:tabular-nums;color:#436c54">
+                                            $188.00</div>
+                                    </div>
+                                    <span style="font-size:12px;color:#3a322b;text-align:right;max-width:15ch">Rory $150
+                                        · Lena $38</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="padding:16px 20px 0">
+                            <button type="button"
+                                style="width:100%;border:0;border-radius:16px;padding:16px;font-family:inherit;font-size:15px;font-weight:600;background:#f7f1de;color:#1a1614;cursor:pointer;box-shadow:0 2px 0 0 rgba(0,0,0,.25)">Log
+                                tonight's session</button>
+                        </div>
+                    </div>
+                </x-import>
+            </div>
+        </div>
+    </x-dc>
+    <script type="text/x-dc" data-dc-script
+        data-props="{&quot;showGoal&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Sections&quot;},&quot;showSettleUp&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Sections&quot;},&quot;showFooterStats&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Sections&quot;}}">
+const SESSIONS = 24;
+
+function walk(seed, n, final) {
+  let h = (seed * 2654435761) >>> 0;
+  const swing = Math.max(3500, (Math.abs(final) / n) * 3.2);
+  const cum = [];
+  let acc = 0;
+  for (let i = 0; i < n; i += 1) {
+    h = (h * 1103515245 + 12345) >>> 0;
+    acc += final / n + (h / 4294967296 - 0.5) * swing;
+    cum.push(acc);
+  }
+  const drift = final - cum[n - 1];
+  return cum.map((v, i) => Math.round(v + (drift * (i + 1)) / n));
+}
+
+// Cubic-smoothed path through the points (Catmull-Rom → bezier).
+function smooth(pts) {
+  if (pts.length < 2) return "";
+  let d = "M" + pts[0][0].toFixed(1) + "," + pts[0][1].toFixed(1);
+  for (let i = 0; i < pts.length - 1; i += 1) {
+    const p0 = pts[i - 1] || pts[i];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[i + 2] || p2;
+    const c1x = p1[0] + (p2[0] - p0[0]) / 6;
+    const c1y = p1[1] + (p2[1] - p0[1]) / 6;
+    const c2x = p2[0] - (p3[0] - p1[0]) / 6;
+    const c2y = p2[1] - (p3[1] - p1[1]) / 6;
+    d += "C" + c1x.toFixed(1) + "," + c1y.toFixed(1) + " " + c2x.toFixed(1) + "," + c2y.toFixed(1) + " " + p2[0].toFixed(1) + "," + p2[1].toFixed(1);
+  }
+  return d;
+}
+
+class Component extends DCLogic {
+  buildChart(W, H, opts) {
+    const el = React.createElement;
+    const PL = opts.padLeft, PR = opts.padRight, PT = 14, PB = opts.padBottom;
+    const innerW = W - PL - PR, innerH = H - PT - PB;
+    const vals = walk(7, SESSIONS, 41200);
+    const series = [0].concat(vals);
+    let min = Math.min.apply(null, series), max = Math.max.apply(null, series);
+    const pad = (max - min) * 0.18;
+    min -= pad; max += pad;
+    const xOf = (i) => PL + (i / (series.length - 1)) * innerW;
+    const yOf = (c) => PT + (1 - (c - min) / (max - min)) * innerH;
+    const pts = series.map((c, i) => [xOf(i), yOf(c)]);
+    const line = smooth(pts);
+    const area = line + "L" + xOf(series.length - 1).toFixed(1) + "," + (H - PB).toFixed(1) + "L" + PL + "," + (H - PB).toFixed(1) + "Z";
+    const gid = "grad" + W;
+    const kids = [
+      el("defs", { key: "d" }, el("linearGradient", { id: gid, x1: "0", y1: "0", x2: "0", y2: "1" },
+        el("stop", { offset: "0%", stopColor: "#5b8e6e", stopOpacity: 0.28 }),
+        el("stop", { offset: "100%", stopColor: "#5b8e6e", stopOpacity: 0 })
+      )),
+    ];
+    if (opts.grid) {
+      for (let i = 0; i <= 3; i += 1) {
+        const t = i / 3;
+        const y = PT + t * innerH;
+        const dollars = Math.round((min + (max - min) * (1 - t)) / 100);
+        kids.push(el("line", { key: "g" + i, x1: PL, y1: y, x2: W - PR, y2: y, stroke: "#6b5e54", strokeOpacity: 0.14, strokeDasharray: "2 5" }));
+        kids.push(el("text", { key: "gl" + i, x: W - PR + 8, y: y + 3, fontSize: 10, fill: "#6b5e54", style: { fontVariantNumeric: "tabular-nums" } }, (dollars > 0 ? "+$" : dollars < 0 ? "-$" : "$") + Math.abs(dollars)));
+      }
+    }
+    kids.push(el("line", { key: "z", x1: PL, y1: yOf(0), x2: W - PR, y2: yOf(0), stroke: "#c9a24a", strokeOpacity: 0.55 }));
+    kids.push(el("path", { key: "a", d: area, fill: "url(#" + gid + ")" }));
+    kids.push(el("path", { key: "l", d: line, fill: "none", stroke: "#436c54", strokeWidth: opts.stroke, strokeLinecap: "round", strokeLinejoin: "round" }));
+    const lastPt = pts[pts.length - 1];
+    kids.push(el("circle", { key: "c0", cx: lastPt[0], cy: lastPt[1], r: opts.dot + 3, fill: "#436c54", fillOpacity: 0.15 }));
+    kids.push(el("circle", { key: "c1", cx: lastPt[0], cy: lastPt[1], r: opts.dot, fill: "#436c54", stroke: "#f7f1de", strokeWidth: 2 }));
+    if (opts.xLabels) {
+      const start = new Date(2026, 2, 27);
+      [1, 6, 12, 18, 24].forEach((i) => {
+        const d = new Date(start.getTime() + (i - 1) * 7 * 864e5);
+        const label = d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+        kids.push(el("text", { key: "x" + i, x: xOf(i), y: H - 4, textAnchor: "middle", fontSize: 10, fill: "#6b5e54" }, label));
+      });
+    }
+    return el("svg", { viewBox: "0 0 " + W + " " + H, width: "100%", style: { display: "block", overflow: "visible" } }, kids);
+  }
+
+  renderVals() {
+    return {
+      showGoal: this.props.showGoal ?? true,
+      showSettleUp: this.props.showSettleUp ?? true,
+      showFooterStats: this.props.showFooterStats ?? true,
+      chart: this.buildChart(1120, 220, { padLeft: 4, padRight: 52, padBottom: 22, grid: true, xLabels: true, stroke: 2.4, dot: 4.5 }),
+      chartMobile: this.buildChart(320, 96, { padLeft: 2, padRight: 6, padBottom: 6, grid: false, xLabels: false, stroke: 2, dot: 3.5 }),
+    };
+  }
+}
+</script>
+</body>
+
+</html>
