@@ -302,14 +302,23 @@ try {
       demote.refused ?? "it was allowed");
   });
 
-  console.log("\n  Roster rows are still 3C's second half\n");
+  console.log("\n  Roster rows, once 3C's second half delivered them\n");
 
+  // Written before 0012, when approving created no roster row and 3C still
+  // owed one. 0012 added the activation trigger, so the durable rule is now
+  // the one that trigger enforces: a roster row exists for exactly the active
+  // memberships. Stated that way it survives the next change to joining.
   const roster = await client.query(
-    "select count(*)::int as n from players where profile_id = any($1::uuid[])",
+    `select count(*)::int as n
+       from group_members gm
+      where gm.profile_id = any($1::uuid[])
+        and (gm.status = 'active') is distinct from exists (
+          select 1 from players p
+           where p.group_id = gm.group_id and p.profile_id = gm.profile_id)`,
     [[alice, bob, carol, dave]]
   );
-  check("approving still creates NO players roster row", roster.rows[0].n === 0,
-    `found ${roster.rows[0].n}`);
+  check("a roster row exists for exactly the active memberships",
+    roster.rows[0].n === 0, `${roster.rows[0].n} disagree`);
 } catch (e) {
   failed++;
   console.error(`\n  ${RED}ERROR${OFF} ${e.message}`);

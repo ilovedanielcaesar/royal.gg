@@ -238,11 +238,15 @@ try {
   check("exactly one membership row after two joins", rows.rows[0].n === 1,
     `found ${rows.rows[0].n}`);
 
+  // Written in Phase 3B, when joining created no roster row and 3C still owed
+  // one. 0012 changed that: activation fires a trigger, and this group's
+  // policy is 'code', so bob is active the moment he joins. Assert the rule
+  // that actually holds now rather than the one that held then.
   const roster = await client.query(
     "select count(*)::int as n from players where profile_id=$1", [bob]
   );
-  check("joining creates NO players roster row (3C owns that)",
-    roster.rows[0].n === 0, `found ${roster.rows[0].n}`);
+  check("an instant join gets its roster row from the 0012 trigger",
+    roster.rows[0].n === 1, `found ${roster.rows[0].n}`);
 
   await asUser(carol, async () => {
     const r = await join(approve.code);
@@ -318,12 +322,20 @@ try {
       r.err ?? "it was accepted twice");
   });
 
+  // Also pre-0012. The durable rule is the one that trigger enforces: a
+  // roster row exists for exactly the active memberships, no more and no
+  // fewer. Stated that way it cannot go stale the next time joining changes.
   const spentRoster = await client.query(
-    "select count(*)::int as n from players where profile_id = any($1::uuid[])",
+    `select count(*)::int as n
+       from group_members gm
+      where gm.profile_id = any($1::uuid[])
+        and (gm.status = 'active') is distinct from exists (
+          select 1 from players p
+           where p.group_id = gm.group_id and p.profile_id = gm.profile_id)`,
     [[bob, carol, dave]]
   );
-  check("no invite join created a roster row either", spentRoster.rows[0].n === 0,
-    `found ${spentRoster.rows[0].n}`);
+  check("a roster row exists for exactly the active memberships",
+    spentRoster.rows[0].n === 0, `${spentRoster.rows[0].n} disagree`);
 
   // An invite is a way in, not a way past the group's join policy.
   const approveInvite = await makeInvite(approve.id);

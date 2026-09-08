@@ -192,12 +192,23 @@ try {
     fn.rows[0]?.prosecdef === true && fn.rows[0]?.anon_blocked === true,
     JSON.stringify(fn.rows[0]));
 
+  // Was "exactly 2". 0015 replaced the whole policy surface and kept a single
+  // UPDATE path, group_members_update_group_admin. Counting policies was
+  // always a proxy for the claim that matters, so assert the claim itself:
+  // there is no self-update policy, which is why leaving has to be an RPC —
+  // a policy cannot stop a member writing role='admin' in the same statement.
   const pols = await client.query(
-    `select count(*)::int as n from pg_policies
-      where schemaname='public' and tablename='group_members' and cmd in ('UPDATE','ALL')`
+    `select policyname, qual from pg_policies
+      where schemaname='public' and tablename='group_members'
+        and cmd in ('UPDATE','ALL')`
   );
-  check("still exactly 2 UPDATE paths on group_members (leaving stays an RPC)",
-    pols.rows[0].n === 2, `found ${pols.rows[0].n}`);
+  check("the only UPDATE path on group_members is the group admin's",
+    pols.rowCount === 1 &&
+      pols.rows[0].policyname === "group_members_update_group_admin",
+    pols.rows.map((r) => r.policyname).join(", ") || "none");
+  check("  no policy lets a member update their own membership row",
+    !pols.rows.some((r) => /profile_id\s*=\s*auth\.uid\(\)/.test(r.qual ?? "")),
+    "a self-update policy exists — leaving must stay an RPC");
 
   // --- fixtures -------------------------------------------------------------
   const alice = await makeAccount("alice", "Alice");
