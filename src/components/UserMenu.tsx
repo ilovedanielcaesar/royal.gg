@@ -3,13 +3,21 @@ import { signOut, useCurrentUser } from "../lib/auth";
 import PlayerAvatar from "./PlayerAvatar";
 
 export default function UserMenu() {
-  const { user, profile } = useCurrentUser();
+  const { user, profile, isAppOwner } = useCurrentUser();
   if (!user) return null;
 
   const label = profile?.display_name ?? profile?.username ?? "You";
 
   return (
     <div className="flex items-center gap-2">
+      {isAppOwner && (
+        <Link
+          to="/admin"
+          className="flex min-h-9 items-center rounded-md px-2 text-xs font-medium text-card-50/70 hover:bg-card-50/10 hover:text-card-50"
+        >
+          Admin
+        </Link>
+      )}
       <Link
         to="/profile"
         className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-card-50/10"

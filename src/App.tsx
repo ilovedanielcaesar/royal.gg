@@ -8,9 +8,11 @@ import {
 import AppLayout from "./components/AppLayout";
 import GroupProvider from "./components/GroupProvider";
 import IndexRoute from "./components/IndexRoute";
+import RequireAppOwner from "./components/RequireAppOwner";
 import RequireAuth from "./components/RequireAuth";
 import RequireGroupAdmin from "./components/RequireGroupAdmin";
 import RequireGroupMember from "./components/RequireGroupMember";
+import AdminOverviewPage from "./pages/AdminOverviewPage";
 import CreateGroupPage from "./pages/CreateGroupPage";
 import DashboardPage from "./pages/DashboardPage";
 import GroupMembersPage from "./pages/GroupMembersPage";
@@ -76,6 +78,16 @@ export default function App() {
             element={
               <RequireAuth>
                 <ProfilePage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <RequireAuth>
+                <RequireAppOwner>
+                  <AdminOverviewPage />
+                </RequireAppOwner>
               </RequireAuth>
             }
           />
