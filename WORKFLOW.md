@@ -778,6 +778,27 @@ Written down because it is invisible otherwise.
 
 4. Keep the Client ID and Client secret.
 
+**⚠ `Error 400: redirect_uri_mismatch`** is the failure everyone hits here, and
+it is always step 3, never the code. The URI Google reports back in the error
+is the one Supabase sent, so if it reads
+`https://uodtupmmgdijebhrhfzy.supabase.co/auth/v1/callback` then our side is
+correct by definition and only Google Cloud is wrong. In order of likelihood:
+
+   a. **It went in the wrong box.** *Authorized JavaScript origins* and
+      *Authorized redirect URIs* sit next to each other. Origins cannot hold a
+      path, so a bare `https://…supabase.co` in the redirect box is the bug —
+      the redirect URI is the FULL path including `/auth/v1/callback`.
+   b. **Not saved.** The row has to be committed with the Save button at the
+      bottom of the page. Reload and confirm it is still there.
+   c. **Two clients.** Compare the Client ID shown in Google Cloud against the
+      one pasted into Supabase. Registering the URI on one client while
+      Supabase authenticates with another produces exactly this error. This is
+      the decisive check — do it first.
+   d. **Wrong application type.** Must be *Web application*; Desktop and mobile
+      clients have no redirect URI field at all.
+   e. **Propagation**, 5 minutes to a few hours. Real, but rarely the answer.
+      Only conclude this after a–d check out.
+
 **Supabase** — *Authentication*
 
 5. *Providers -> Google*: enable, paste ID and secret.
