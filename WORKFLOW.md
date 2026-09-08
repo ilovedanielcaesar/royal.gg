@@ -101,19 +101,17 @@ ticked. `phase-5-settings` is ready to PR into `v1.1.0`.
 Owed but not blocking: a browser pass on `/admin` and on the card-picker
 collision message. Neither touches money.
 
-### Landing v1.1.0
+### v1.1.0 landed — 2026-09-08
 
-The last step of the branching convention in `CLAUDE.md`, and the end of the
-one branch ever named after a version:
+PR #1 (`phase-5-settings` -> `v1.1.0`) green and merged, `v1.1.0`
+fast-forwarded into `main`, `main` tagged `v1.1.0`, both branches deleted
+local and remote. Six refs verified identical before anything was deleted.
+The lint ratchet came down 2 -> 1 in the same PR.
 
-1. PR `phase-5-settings` -> `v1.1.0`, let CI run, merge.
-2. Fast-forward `v1.1.0` into `main`. Vercel deploys `main`.
-3. `git tag -a v1.1.0`, push the tag.
-4. Delete both branches, local and remote. **No branch is named after a
-   version again after this.**
+`main` is now the only branch, and it carries every phase. Vercel serves it.
 
-Lower CI's `--max-warnings` from 2 to 1 in the same PR — Phase 5C's hook
-extraction cleared one, and the ratchet only works if it is tightened.
+**Ordering detail worth keeping:** delete the branch BEFORE cutting a tag of
+the same name, or `v1.1.0` is an ambiguous ref forever after.
 
 ---
 

@@ -115,11 +115,15 @@ Settled 2026-09-07. Trunk-based, sized for one person with a Vercel auto-deploy.
 - **Every phase goes through a PR**, even working alone: it is where the diff
   gets read before it lands, where CI runs, and where the reasoning is kept.
 - **Releases are tags**, `git tag -a v1.1.0`. Not branches.
-- **`v1.1.0` is the one exception**, and a temporary one. It predates this
-  convention and is currently the integration branch for the multi-group work:
-  phase branches PR into it, and when Phase 5 lands it fast-forwards into
-  `main`, gets tagged `v1.1.0`, and is deleted. No branch is named after a
-  version again after that.
+- **No branch is ever named after a version.** There was one exception,
+  `v1.1.0`, the integration branch for the multi-group work. It predated this
+  convention and it is gone: on 2026-09-08 Phase 5 landed, it fast-forwarded
+  into `main`, `main` was tagged `v1.1.0`, and both it and `phase-5-settings`
+  were deleted. Phase branches now PR straight into `main`.
+
+  One ordering detail, learned doing it: delete the branch BEFORE cutting a
+  tag of the same name. A tag and a branch both called `v1.1.0` make every
+  later `git checkout v1.1.0` ambiguous.
 
 CI (`.github/workflows/ci.yml`) runs typecheck, build and lint on every PR.
 Lint uses `--max-warnings 1`, the known baseline — a ratchet that fails on a
