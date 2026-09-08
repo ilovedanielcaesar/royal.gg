@@ -2,14 +2,15 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Button from "../components/Button";
 import Card from "../components/Card";
-import { signUp, useCurrentUser } from "../lib/auth";
+import GoogleButton from "../components/GoogleButton";
+import { signInWithGoogle, signUpWithEmail, useCurrentUser } from "../lib/auth";
 import { describeError } from "../lib/errors";
 
 export default function SignupPage() {
   const navigate = useNavigate();
   const { refresh } = useCurrentUser();
   const [displayName, setDisplayName] = useState("");
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -19,7 +20,7 @@ export default function SignupPage() {
     setBusy(true);
     setError(null);
     try {
-      await signUp({ username, displayName, password });
+      await signUpWithEmail({ email, displayName, password });
       await refresh();
       // signUp() also signs the user in. The index route sends them to their
       // group, or to /groups when they have none yet — which a brand-new
@@ -39,10 +40,28 @@ export default function SignupPage() {
           Create an account
         </h1>
         <p className="mt-1 text-sm text-ink-500">
-          Pick a username and password. Next you'll start a group or join one
-          with a code.
+          Next you'll start a group or join one with a code.
         </p>
-        <form className="mt-5 space-y-4" onSubmit={onSubmit}>
+
+        <div className="mt-5">
+          <GoogleButton
+            action={signInWithGoogle}
+            label="Sign up with Google"
+            busyLabel="Redirecting…"
+            onError={setError}
+            disabled={busy}
+          />
+        </div>
+
+        <div className="my-5 flex items-center gap-3">
+          <span className="h-px flex-1 bg-card-200" />
+          <span className="text-[11px] uppercase tracking-wide text-ink-500">
+            or
+          </span>
+          <span className="h-px flex-1 bg-card-200" />
+        </div>
+
+        <form className="space-y-4" onSubmit={onSubmit}>
           <label className="block">
             <span className="text-xs font-medium text-ink-700">
               Display name
@@ -59,16 +78,17 @@ export default function SignupPage() {
             </span>
           </label>
           <label className="block">
-            <span className="text-xs font-medium text-ink-700">Username</span>
+            <span className="text-xs font-medium text-ink-700">Email</span>
             <input
+              type="email"
               required
-              autoComplete="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="mt-1 w-full rounded-md border border-card-200 bg-card-50 px-3 py-2 text-sm focus:border-sage-600 focus:outline-none"
             />
             <span className="mt-1 block text-[11px] text-ink-500">
-              3–20 chars. Used to sign in.
+              Used to sign in. Nobody else sees it.
             </span>
           </label>
           <label className="block">

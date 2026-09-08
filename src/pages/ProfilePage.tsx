@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Button from "../components/Button";
 import Card from "../components/Card";
+import SignInMethodsCard from "../components/SignInMethodsCard";
 import { useCurrentUser } from "../lib/auth";
 import { describeError } from "../lib/errors";
 import { requireSupabase } from "../lib/supabase";
@@ -138,7 +139,8 @@ export default function ProfilePage() {
               className="mt-1 w-full rounded-md border border-card-200 bg-card-50 px-3 py-2 text-sm focus:border-sage-600 focus:outline-none"
             />
             <span className="mt-1 block text-[11px] text-ink-500">
-              Your handle. Also what you sign in with.
+              Your handle, shown as @you. Not a password — accounts made before
+              September 2026 also sign in with it.
             </span>
           </label>
           {error && (
@@ -154,6 +156,8 @@ export default function ProfilePage() {
           </Button>
         </form>
       </Card>
+
+      <SignInMethodsCard />
 
       <Card className="p-5">
         <h2 className="font-display text-xl text-ink-900">Your groups</h2>
