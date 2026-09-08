@@ -122,8 +122,8 @@ Settled 2026-09-07. Trunk-based, sized for one person with a Vercel auto-deploy.
   version again after that.
 
 CI (`.github/workflows/ci.yml`) runs typecheck, build and lint on every PR.
-Lint uses `--max-warnings 2`, the known baseline — a ratchet that fails on a
-third warning. Lower it as warnings are fixed; never raise it.
+Lint uses `--max-warnings 1`, the known baseline — a ratchet that fails on a
+second warning. Lower it as warnings are fixed; never raise it.
 
 The smoke tests are **not** in CI and should not be added: they need
 `SUPABASE_DB_URL` against the real project, and this repo is public. They are a
