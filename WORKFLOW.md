@@ -51,30 +51,23 @@ immediately before anything destructive.
 | Phase | What | State | Done |
 |:--:|---|---|:--:|
 | **0** | Provider consolidation | `[x]` **done** | 5/5 |
-| **1** | `0007`–`0016` applied | `[x]` **done** | 18/18 |
+| **1** | `0007`–`0018` applied | `[x]` **done** | 18/18 |
 | **2** | Group routing + picker | `[x]` **done** | 8/8 |
 | **3** | Joining + membership | `[x]` **done**, browser-verified | 4/4 |
 | **4** | Game log states | `[x]` **done**, browser-verified | 6/6 |
-| **5** | Settings, guest linking, admin | `[~]` 5A–5C in, `0018` awaits a push | 5/6 |
+| **5** | Settings, guest linking, admin | `[x]` **code-complete**, `0018` pushed | 6/6 |
 
-**Current focus:** Phase 5 — settings, guest linking, admin.
+**Current focus:** landing `v1.1.0` — PR, merge, tag, delete. No phase is open.
 
-> ### ⚠ START HERE — the code is ONE migration ahead of the database
+> ### ⚠ START HERE — the database is level with the code again
 >
-> `0015`, `0016` and `0017` are applied. **`0018` is not.** It is committed and
-> rehearsed 36/36, and the guest-linking UI on `/members` does nothing until it
-> lands: the picker writes `profile_id`, and the trigger that gives that write
-> its meaning is inside `0018`.
+> `0018` was pushed by Will on 2026-09-08 with a backup taken first, and the
+> guest linking it powers was exercised in the browser: a guest card was
+> linked to a real account and kept its history. `0015`–`0018` are all applied.
+> Nothing in `supabase/migrations/` is waiting.
 >
-> ```
-> node scripts/db-backup.mjs      # free tier has no managed backups
-> npx supabase db push            # Will runs this; the permission system blocks it here
-> node scripts/smoke-0018.mjs     # expect 36/36 once it is in
-> ```
->
-> After `0017` it was worth checking `sessions_state` is back to
-> `tgenabled = 'O'` by hand, because that migration disables the trigger to get
-> its backfill past `0016`'s approved-row rule. `0018` disables nothing.
+> Phase 5 is code-complete. **The next move is the merge**, not more building —
+> see "Landing v1.1.0" below.
 >
 > The whole gate, all green as of 2026-09-08, and green again with `0018`
 > rehearsed inside the transaction:
@@ -101,22 +94,26 @@ immediately before anything destructive.
 Phase 2 verified by Will in the browser: a new group shows no Royal members,
 guests or sessions.
 
-**Last updated:** 2026-09-08 · 5A, 5B and 5C in on `phase-5-settings`.
+**Last updated:** 2026-09-08 · **Phase 5 is code-complete.** `0018` pushed,
+both money-shaped exit gates verified by Will in the browser, all six boxes
+ticked. `phase-5-settings` is ready to PR into `v1.1.0`.
 
-**Will's next action: push `0018`.** Back up first, then
-`npx supabase db push`. The linking UI is inert until it lands, because the
-guard trigger is what makes the write mean anything.
+Owed but not blocking: a browser pass on `/admin` and on the card-picker
+collision message. Neither touches money.
 
-    node scripts/db-backup.mjs
-    npx supabase db push
-    node scripts/smoke-0018.mjs      # expect 36/36 after the push
+### Landing v1.1.0
 
-Two browser passes are owed, one from 5B and one from 5C:
-  * change the buy-in, log a night, confirm an OLDER night reopened
-    afterwards still prices at its own stake
-  * a guest plays a few nights, that person makes an account and requests to
-    join, link the card, approve — their history and leaderboard place should
-    be unbroken and there must be exactly one of them on the roster
+The last step of the branching convention in `CLAUDE.md`, and the end of the
+one branch ever named after a version:
+
+1. PR `phase-5-settings` -> `v1.1.0`, let CI run, merge.
+2. Fast-forward `v1.1.0` into `main`. Vercel deploys `main`.
+3. `git tag -a v1.1.0`, push the tag.
+4. Delete both branches, local and remote. **No branch is named after a
+   version again after this.**
+
+Lower CI's `--max-warnings` from 2 to 1 in the same PR — Phase 5C's hook
+extraction cleared one, and the ratchet only works if it is tightened.
 
 ---
 
@@ -678,15 +675,37 @@ then guest linking, then `/admin` last.
       `smoke-3b` did. Both replaced functions were then diffed against
       `pg_proc.prosrc` and differ from it only where intended. Do this for
       every future `create or replace`.
-- [ ] Per-group card picker (unique within the group)
+- [x] Per-group card picker (unique within the group). The mechanism was
+      already right — `players_group_card_unique` is `(group_id, chosen_suit,
+      chosen_rank)` from `0007`, `0012` dropped the global 52-cards-app-wide
+      index, and `useLeagueData` has been group-scoped since Phase 2.
+      Confirmed against live data: two groups can each hold the ace of spades,
+      one group cannot. What was missing was honesty at the edges — the greyed
+      cards are a snapshot, so a collision showed a raw `23505`, and a refusal
+      by RLS said "Saved." (`0fc5a4b`).
 - [ ] Unlink has no UI. The database permits it in one narrow window
       (profile not yet active); nothing surfaces it yet.
-- [ ] `/admin` superadmin overview — accounts + groups, **no money**
+- [x] `/admin` superadmin overview — accounts + groups, **no money**
+      (`caccded`). No migration: `0015` already grants the owner SELECT on
+      profiles / groups / group_members, and nothing else. Read-only by
+      design; promote, remove and delete are a separate decision.
+      **The promise fails OPEN in the UI** — a money query here returns zero
+      rows with no error and renders an empty column that reads like an
+      answer. The rule is written at the top of `useAdminOverviewData.ts`,
+      where the next person to add a query will see it.
 
 **Exit gate**
-- [ ] A group on different stakes computes correctly end to end
-- [ ] Linked guest keeps every game and their leaderboard position
-- [ ] Superadmin cannot reach any group's money, verified by query
+- [x] A group on different stakes computes correctly end to end — Will, in
+      the browser, 2026-09-08: changed the buy-in and an older night kept its
+      own stake.
+- [x] Linked guest keeps every game and their leaderboard position — Will, in
+      the browser, 2026-09-08: linked a guest to a real account.
+- [x] Superadmin cannot reach any group's money, verified by query —
+      `smoke-rls.mjs`, which reads zero rows from players, sessions, buy_ins,
+      cash_outs and payouts as the owner.
+
+**Still owed:** a browser pass on `/admin` and on the card-picker collision
+message. Neither touches money and neither blocks the merge.
 
 ---
 
@@ -743,6 +762,23 @@ Found in the audit, deliberately not done yet.
 ## Change log
 
 Newest first. One line per meaningful change.
+
+- **2026-09-08** — **Phase 5 code-complete.** `0018` pushed by Will, backup
+  first, and both money-shaped exit gates verified in the browser: an older
+  night kept its own stake after the buy-in changed, and a linked guest kept
+  their history. Then the last two boxes. The card picker turned out already
+  per-group in index, read and reality (checked against live data: two groups
+  can each hold the ace of spades) — what it needed was a human message for a
+  `23505` collision and a `.select()` so an RLS refusal stops reporting
+  "Saved." That is the THIRD place this app claimed success on a write RLS
+  silently dropped, after `DeleteSessionButton` in 4A and `linkGuest` in 5C;
+  worth checking every remaining write for it. `/admin` needed no migration —
+  `0015` had already granted the owner exactly profiles, groups and
+  group_members, and `smoke-rls` already proved the money promise, so the
+  third exit gate was met before the page existed. The page is read-only, and
+  the rule about which tables it may query is written at the top of its hook,
+  because a money query there fails OPEN: zero rows, no error, an empty column
+  that reads like an answer.
 
 - **2026-09-08** — Phase 5C. `0018_guest_linking.sql`, 36/36 rehearsed, NOT
   pushed. A guest card and the account behind it become one row: the admin
