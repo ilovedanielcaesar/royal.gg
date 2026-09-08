@@ -45,6 +45,20 @@ export default function PlayersPage() {
     [payouts]
   );
 
+  // Same window rule as periodNets(), so the count and the money below it
+  // always describe the same set of games. The period has no end date until
+  // someone settles it — currentPayoutPeriod() returns today as endOn because
+  // "now" is the only sensible upper bound on an open period, not because the
+  // period ends today.
+  const periodSessionCount = useMemo(
+    () =>
+      sessions.filter((s) => {
+        if (period.startAfter && s.played_at <= period.startAfter) return false;
+        return s.played_at <= period.endOn;
+      }).length,
+    [sessions, period.startAfter, period.endOn]
+  );
+
   const distributorOptions = useMemo(
     () => (players ?? []).filter((p) => !p.is_guest),
     [players]
@@ -150,7 +164,11 @@ export default function PlayersPage() {
                 {period.startAfter
                   ? `Since ${formatPlayedAt(period.startAfter)}`
                   : "All-time (no payouts yet)"}
-                {" · ending today"}
+                {periodSessionCount === 0
+                  ? " · no sessions yet"
+                  : ` · ${periodSessionCount} ${
+                      periodSessionCount === 1 ? "session" : "sessions"
+                    } · still open`}
               </p>
             </div>
             {isGroupAdmin && players && players.length > 0 && (
