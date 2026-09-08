@@ -59,6 +59,35 @@ Two more, settled 2026-09-07 once Phase 5 was scoped against the live schema:
 | 13 | Stakes vs. history | `sessions.buy_in_cents`, stamped at creation. A night keeps the stakes it was played at |
 | 14 | Linking direction | Admin links the guest row **before** the person joins; the join then adopts it |
 
+Settled 2026-09-08, building auth:
+
+| # | Decision | Choice |
+|---|---|---|
+| 15 | Account linking | An existing account connects Google **from `/profile`, while signed in**. Signing in with Google first creates a second account with no way back |
+| 16 | New signups | Real email address, no username field. Google is an alternative, not a replacement |
+
+**On 15.** The mirror image of 14, and for the same reason: a person arrives
+under a second identity and their history is attached to the first. All twelve
+original accounts carry a synthetic `<username>@royal.gg.local` address, which
+can never match a Google address, so Supabase's automatic identity linking
+never fires for them. `linkIdentity()` attaches Google to the auth user already
+signed in — one account, two ways in, every game intact.
+
+The failure mode if they get it backwards is permanent: a second `auth.users`
+row, a second profile, no groups, and no repair, because their roster row still
+belongs to the first profile and `0018`'s guard rightly refuses to move a card
+off an active member. There is no merge tool and building one would mean moving
+`buy_ins` and `cash_outs` between profiles — the trade decision 14 already
+rejected. So the warning lives on `/login`, where the mistake would be made.
+
+**On 16.** Decision from §10b, now settled: a username is a display handle, not
+a credential. Asking for one at signup implies otherwise and creates a second
+thing to forget, so the form takes email, password and display name, and the
+trigger seeds the handle from the email local part. The real address is also
+what makes a forgotten password recoverable at all — reset is not built, but it
+was previously *impossible*, because the mail went to a domain that does not
+exist.
+
 **On 13.** Decision 7 puts the buy-in on the group, which is right for a new
 session and wrong for an old one: reopening a game logged at $40 after the
 group moved to $50 would recompute its buy-ins at the new rate and silently
@@ -390,14 +419,33 @@ additive.
 
 ---
 
-## 10b. Auth: prepared for OAuth, not built
+## 10b. Auth: OAuth, built 2026-09-08
 
-Today: Supabase Auth with username + password. Supabase does the real work
-(hashing, JWTs, sessions); the only trick is `syntheticEmail()` inventing
-`<username>@royal.gg.local` so users never see an email field.
+Supabase Auth does the real work (hashing, JWTs, sessions). Three ways in:
 
-**Decision (2026-09-06):** Google (or similar) sign-in comes later. We do not
-build it now, but nothing we build may block it. Three rules:
+| Way in | Who uses it |
+|---|---|
+| Google | Anyone who has connected it, and any account created through it |
+| Email + password | Everyone who signed up from 2026-09-08 |
+| Username + password | The twelve accounts created before that, on synthetic `<username>@royal.gg.local` addresses |
+
+`signIn()` takes one field and routes on `"@"` — an email goes through as
+typed, anything else becomes `syntheticEmail(username)`. The discriminator is
+safe because the old signup only ever allowed `[a-z0-9_-]` in a username.
+Asking someone which *kind* of account they have is asking them to remember an
+implementation detail.
+
+**⚠ What the 2026-09-06 plan below got wrong.** It said enabling Google would
+be "enable the provider, add a button, the trigger handles the rest". That is
+true for a brand-new person and false for everyone already playing — see
+decision 15. The three rules were still right and still paid off: because
+profile creation was already a trigger and `username` was already nullable, the
+Google path needed **no migration and no schema change at all**. What it needed
+was the linking route the plan did not foresee.
+
+**Decision (2026-09-06), kept verbatim because it held up:** Google sign-in
+comes later. We do not build it now, but nothing we build may block it. Three
+rules:
 
 1. **Profile creation belongs in a DB trigger on `auth.users`, not in
    `signUp()`.** The standard Supabase pattern. A trigger fires for a user
@@ -411,12 +459,37 @@ build it now, but nothing we build may block it. Three rules:
    on `profiles` already replaces the old `is_admin()` email match and is
    provider-agnostic. Keep it that way.
 
-When Google is wanted: enable the provider in the Supabase dashboard, add a
-`signInWithOAuth({ provider: "google" })` button. The trigger handles the rest.
+All three held. `is_app_owner` replaced the email match in `0015`, and nothing
+outside `auth.ts` has ever referenced the synthetic domain.
 
-Onboarding for a brand-new account with no groups: send them to `/groups`,
-whose empty state offers **create a group** or **join with a code**. No
-separate welcome screen (decided 2026-09-06).
+### Onboarding: nothing to nightly game
+
+No welcome screen (decided 2026-09-06). The route is the onboarding:
+
+1. **`/signup`** — Google, or email + password + display name.
+2. **The trigger** (`0009`) writes `profiles` for either path, deriving a
+   display name from Google's `full_name` and a handle from the email.
+3. **`/groups`**, because a new account belongs to nothing. Its empty state is
+   the fork: **create a group** or **join with a code**.
+4. **Joining** lands `pending` under `code_approve`, `active` under `code`
+   (§4). An admin approving fires `ensure_group_roster_row()`, which is where
+   an already-linked guest card is adopted instead of a second row created.
+5. **`/g/:slug/profile`** — pick your card. Unique within the group, per
+   decision 10.
+
+An account existing and an account belonging to a group are separate
+questions, answered by `RequireAuth` and `RequireGroupMember` respectively.
+That separation is what lets someone hold five group memberships on one login.
+
+### Not built, deliberately
+
+- **Unlinking a provider.** Removing your only identity locks you out of your
+  own account. Needs its own guard and its own phase.
+- **Password reset.** Now *possible* for the first time, because new accounts
+  have real addresses. Needs email delivery configured, which is its own work.
+  The twelve legacy accounts can never have it — their address is not real.
+- **Merging two accounts.** See decision 15: there is no repair path, on
+  purpose. Prevention is the design.
 
 ## 11. Open items
 

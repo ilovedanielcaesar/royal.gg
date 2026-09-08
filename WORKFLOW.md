@@ -16,11 +16,19 @@ Established over Phases 3 and 4, and worth keeping.
 
 **Migrations, RLS and anything security-shaped are written by Claude, never
 delegated.** The failure mode is silent: a wrong policy leaks money while the
-app looks perfectly correct. Every migration since `0009` was rehearsed against
+app looks perfectly correct. Phase 6 confirmed **auth counts as
+security-shaped** — sign-in, signup and identity linking were all written
+in-house rather than specced out, because a plausible-looking auth flow that
+strands an account reads exactly like a working one. Every migration since `0009` was rehearsed against
 live data inside a rolled-back transaction (`scripts/smoke-*.mjs`) before Will
 pushed it, and that rehearsal caught real defects every single time — anon
 holding a default EXECUTE grant, an admin editing an approved log, a smoke test
 passing for the wrong reason.
+
+**Config that lives in a dashboard gets written into this file.** Phase 6's
+Google setup is eight steps across two consoles, none of it in version control
+and none of it recoverable by reading the code. An undocumented manual step is
+a step that gets done once and never reproduced.
 
 **UI chunks go to Codex**, one at a time, via `.claude/skills/codex/run.sh`.
 Spec length matters: 83–125 lines succeed, a 167-line spec failed twice. Each
@@ -55,19 +63,25 @@ immediately before anything destructive.
 | **2** | Group routing + picker | `[x]` **done** | 8/8 |
 | **3** | Joining + membership | `[x]` **done**, browser-verified | 4/4 |
 | **4** | Game log states | `[x]` **done**, browser-verified | 6/6 |
-| **5** | Settings, guest linking, admin | `[x]` **code-complete**, `0018` pushed | 6/6 |
+| **5** | Settings, guest linking, admin | `[x]` **done**, shipped as `v1.1.0` | 6/6 |
+| **6** | Auth: Google, real email, linking | `[~]` code in PR #2, **awaits dashboard setup** | 4/6 |
 
-**Current focus:** landing `v1.1.0` — PR, merge, tag, delete. No phase is open.
+**Current focus:** Phase 6 — auth. Code is written and on `auth-google`; it cannot be exercised until Google is configured in two dashboards. See the runbook below.
 
-> ### ⚠ START HERE — the database is level with the code again
+> ### ⚠ START HERE — nothing is waiting in the database; something IS waiting in a dashboard
 >
-> `0018` was pushed by Will on 2026-09-08 with a backup taken first, and the
-> guest linking it powers was exercised in the browser: a guest card was
-> linked to a real account and kept its history. `0015`–`0018` are all applied.
-> Nothing in `supabase/migrations/` is waiting.
+> `0007`–`0018` are all applied and `supabase/migrations/` is empty of unpushed
+> work. `v1.1.0` shipped 2026-09-08.
 >
-> Phase 5 is code-complete. **The next move is the merge**, not more building —
-> see "Landing v1.1.0" below.
+> **Phase 6 is blocked on configuration, not code.** Google sign-in is written
+> and on `auth-google` (PR #2), and needs no migration — but it cannot be
+> tested until the Google Cloud and Supabase dashboards are set up. Those steps
+> exist in no repository and cannot be inferred from the code: they are written
+> out under **Phase 6 -> Runbook**. Start there.
+>
+> Before telling anyone about the Google button, read **Phase 6 -> The trap
+> this phase exists to avoid.** An existing player who signs in with Google
+> instead of linking loses their history irreversibly.
 >
 > The whole gate, all green as of 2026-09-08, and green again with `0018`
 > rehearsed inside the transaction:
@@ -707,6 +721,102 @@ message. Neither touches money and neither blocks the merge.
 
 ---
 
+## Phase 6 — Auth: Google, real email, linking
+
+Asked for 2026-09-08: "login using Google if possible, however if not then
+just email is ok". Google is possible. Scope settled with Will the same day:
+**sign-in and linking only** — no unlink, no password reset.
+
+**No migration, and that is the headline.** `0009` made profile creation a
+trigger and `username` nullable in Phase 3A specifically so a future provider
+would need no schema change. It worked: Google needed zero SQL. Preparation
+three phases early is the reason this was a frontend job.
+
+- [x] `auth.ts` — `signInWithGoogle()`, `linkGoogle()`, `listIdentities()`,
+      `signUpWithEmail()` on a real address, and `signIn()` taking an email OR
+      a legacy username. One field, routed on `"@"`, which is safe because the
+      old signup only ever allowed `[a-z0-9_-]`.
+- [x] `/login` and `/signup` — Google button, and signup drops the username
+      field entirely (**decision 16**).
+- [x] `/profile` — sign-in methods card with **Connect Google**
+      (**decision 15**).
+- [x] `scripts/smoke-auth.mjs` — 23/23 against live data.
+- [ ] Google configured in the Google Cloud and Supabase dashboards — Will's,
+      see the runbook. Nothing below it can be tested until this is done.
+- [ ] Browser pass: the three flows in the runbook.
+
+### ⚠ The trap this phase exists to avoid
+
+All twelve original accounts carry a synthetic `<username>@royal.gg.local`
+address, which can never match a Google address, so Supabase's **automatic**
+identity linking never fires for them. A friend pressing "Continue with
+Google" instead of linking first gets a second `auth.users` row, a second
+profile, no groups and no history — **and there is no way back.** Their roster
+row still belongs to the first profile, and `0018`'s guard correctly refuses
+to move a card off an active member.
+
+This is decision 14's problem wearing a different hat, and it has no repair
+tool on purpose: merging would mean moving `buy_ins` and `cash_outs` between
+profiles, the trade decision 14 already rejected. Prevention is the whole
+design. The warning sits on `/login`, where the mistake would be made — but
+**tell people directly before announcing the Google button.**
+
+### Runbook — the dashboard setup (lives in no repo)
+
+None of this is in code, and none of it can be reconstructed from the code.
+Written down because it is invisible otherwise.
+
+**Google Cloud** — [console.cloud.google.com](https://console.cloud.google.com)
+
+1. Create a project. *APIs & Services -> OAuth consent screen*: External, app
+   name "Royal.gg", your email. Add yourself under Test users.
+2. *Credentials -> Create Credentials -> OAuth client ID -> Web application.*
+3. Authorised redirect URI, exactly one line, and it is the SUPABASE callback
+   and not the app's own URL:
+
+       https://uodtupmmgdijebhrhfzy.supabase.co/auth/v1/callback
+
+4. Keep the Client ID and Client secret.
+
+**Supabase** — *Authentication*
+
+5. *Providers -> Google*: enable, paste ID and secret.
+6. *URL Configuration -> Redirect URLs*: the Vercel production URL, plus
+   `http://localhost:5173/**` for local work. `redirectTo` in `auth.ts` is
+   built from `window.location.origin`, so each environment returns to itself
+   — but every one of them has to be listed here or the provider silently
+   bounces to the Site URL instead.
+7. **Enable Manual Linking.** Without it `linkGoogle()` fails; the error says
+   so in words rather than dying quietly, but nothing links until it is on.
+8. Leave **Confirm email** OFF. Turning it on makes new signups depend on
+   working email delivery, which is a separate piece of work.
+
+### Browser pass, in this order
+
+1. Google as a brand-new person, from a Gmail with no Royal.gg account. Should
+   land on `/groups` with the Google display name already filled in.
+2. **The one that matters:** sign in as `will` + password, `/profile` ->
+   Connect Google, sign out, Continue with Google. Must land back in the SAME
+   account with all five groups. This is the flow every existing player needs.
+3. Email + password signup on a real address.
+
+### Findings
+
+- **Four auth users have no profile row** — `roadrunner`, `dalec`, `test1`,
+  `test2`, all 2026-04-28, predating `0009`'s trigger. `RequireAuth` already
+  bounces them to `/login`, so they are harmless. Deleting them is Will's
+  call; `smoke-auth` asserts the durable rule instead, so a FIFTH one fails.
+- **A commit landed on `main` before the branch existed** and was reset;
+  `origin/main` never saw it. The convention written into `CLAUDE.md` the same
+  day says every phase goes through a PR. Branch first.
+
+**Exit gate**
+- [ ] A brand-new Google account reaches `/groups` with a sane display name
+- [ ] An existing account links Google and keeps every group and every game
+- [ ] A legacy username + password sign-in still works, unchanged
+
+---
+
 ## Open items
 
 Found while testing, not blocking any phase. All three reported by Will on
@@ -760,6 +870,19 @@ Found in the audit, deliberately not done yet.
 ## Change log
 
 Newest first. One line per meaningful change.
+
+- **2026-09-08** — Phase 6 code: Google sign-in, real-email signup, and
+  `linkIdentity` on `/profile`. NO migration — `0009` prepared this in Phase
+  3A and the preparation held exactly. `GROUPS.md` §10b predicted "add a
+  button and the trigger handles the rest", which was true for new people and
+  false for all twelve existing accounts, whose synthetic addresses can never
+  match a Google one; linking is the route it did not foresee, and getting it
+  backwards is unrepairable (decision 15). New `scripts/smoke-auth.mjs`,
+  23/23, reproduces what Supabase actually writes to `auth.users` on a Google
+  callback — the one part of OAuth a script can drive faithfully — and proves
+  the trigger's fallbacks, the handle-collision path, and that linking creates
+  no second profile. It also found four pre-trigger auth users with no
+  profile. PR #2; cannot be exercised until the dashboards are configured.
 
 - **2026-09-08** — **Phase 5 code-complete.** `0018` pushed by Will, backup
   first, and both money-shaped exit gates verified in the browser: an older
