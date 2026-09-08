@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Card from "../components/Card";
 import MemberRow from "../components/MemberRow";
@@ -11,15 +11,7 @@ import {
   type Membership,
 } from "../lib/membership";
 import { requireSupabase } from "../lib/supabase";
-
-async function fetchMembers(groupId: string): Promise<Membership[]> {
-  const { data, error } = await requireSupabase()
-    .from("group_members")
-    .select("id, role, status, created_at, profiles(id, username, display_name)")
-    .eq("group_id", groupId);
-  if (error) throw error;
-  return (data ?? []) as unknown as Membership[];
-}
+import useMembershipData from "../lib/useMembershipData";
 
 const EMPTY_MESSAGE: Record<MemberSection, string> = {
   pending: "No requests waiting.",
@@ -29,29 +21,16 @@ const EMPTY_MESSAGE: Record<MemberSection, string> = {
 
 export default function GroupMembersPage() {
   const { group, isGroupAdmin, path } = useGroup();
-  const [members, setMembers] = useState<Membership[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [busyId, setBusyId] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!group) return;
-    let cancelled = false;
-    setMembers(null);
-    setError(null);
-    void fetchMembers(group.id)
-      .then((rows) => {
-        if (!cancelled) setMembers(rows);
-      })
-      .catch((caught) => {
-        if (!cancelled) {
-          setMembers([]);
-          setError(describeError(caught));
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [group]);
+  const { members, guests, error, refresh, setError } = useMembershipData(
+    group?.id
+  );
+  // One object, not two useStates: which row is saving and what it is doing
+  // have to move together, or the Link button reads "Linking…" while the row
+  // is really being approved.
+  const [busy, setBusy] = useState<{
+    id: string;
+    action: "link" | "member";
+  } | null>(null);
 
   const sections = useMemo(() => {
     const rows = members ?? [];
@@ -85,8 +64,8 @@ export default function GroupMembersPage() {
   ).length;
 
   async function updateMember(id: string, update: MemberUpdate) {
-    if (!group || !isGroupAdmin || busyId) return;
-    setBusyId(id);
+    if (!group || !isGroupAdmin || busy) return;
+    setBusy({ id, action: "member" });
     setError(null);
     try {
       const { error } = await requireSupabase()
@@ -95,12 +74,44 @@ export default function GroupMembersPage() {
         .eq("id", id)
         .eq("group_id", group.id);
       if (error) throw error;
-      setMembers(await fetchMembers(group.id));
+      await refresh();
     } catch (caught) {
       // Includes the last-admin trigger, whose message is written to be read.
       setError(describeError(caught));
     } finally {
-      setBusyId(null);
+      setBusy(null);
+    }
+  }
+
+  async function linkGuest(member: Membership, guestId: string) {
+    const profileId = member.profiles?.id;
+    if (!group || !isGroupAdmin || busy || !profileId) return;
+    setBusy({ id: member.id, action: "link" });
+    setError(null);
+    try {
+      // profile_id is the ONLY column written. A trigger derives is_guest,
+      // user_id and username from the profile; setting them here is how the
+      // four drift apart.
+      const { data, error } = await requireSupabase()
+        .from("players")
+        .update({ profile_id: profileId })
+        .eq("id", guestId)
+        .eq("group_id", group.id)
+        .select("id");
+      if (error) throw error;
+      // An update refused by RLS comes back as zero rows and NO error, so
+      // without this the page would refresh and quietly report nothing. The
+      // trigger's own refusals do raise, and reach the user through the catch.
+      if (!data || data.length === 0) {
+        throw new Error(
+          "That card could not be linked. Only a group admin can link one."
+        );
+      }
+      await refresh();
+    } catch (caught) {
+      setError(describeError(caught));
+    } finally {
+      setBusy(null);
     }
   }
 
@@ -168,8 +179,11 @@ export default function GroupMembersPage() {
                       soleAdmin={
                         member.role === "admin" && activeAdminCount === 1
                       }
-                      busy={busyId === member.id}
-                      locked={busyId !== null}
+                      busy={busy?.id === member.id && busy.action === "member"}
+                      linking={busy?.id === member.id && busy.action === "link"}
+                      locked={busy !== null}
+                      linkableGuests={guests}
+                      onLink={(guestId) => void linkGuest(member, guestId)}
                       onUpdate={(update) => void updateMember(member.id, update)}
                     />
                   ))}

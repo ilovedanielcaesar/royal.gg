@@ -1,8 +1,10 @@
 import Button from "./Button";
+import LinkGuestControl from "./LinkGuestControl";
 import PlayerAvatar from "./PlayerAvatar";
 import {
   memberName,
   ONLY_ADMIN_REASON,
+  type LinkableGuest,
   type MemberSection,
   type MemberUpdate,
   type Membership,
@@ -13,15 +15,29 @@ type Props = {
   section: MemberSection;
   /** The group would be left with no admin if this row lost the role. */
   soleAdmin: boolean;
-  /** This row is the one currently saving. */
+  /** This row is saving a membership change. */
   busy: boolean;
+  /** This row is saving a guest link. */
+  linking: boolean;
   /** Some row is saving, so every button is held. */
   locked: boolean;
+  linkableGuests: LinkableGuest[];
+  onLink: (guestId: string) => void;
   onUpdate: (update: MemberUpdate) => void;
 };
 
 export default function MemberRow(props: Props) {
-  const { member, section, soleAdmin, busy, locked, onUpdate } = props;
+  const {
+    member,
+    section,
+    soleAdmin,
+    busy,
+    linking,
+    locked,
+    linkableGuests,
+    onLink,
+    onUpdate,
+  } = props;
   const profile = member.profiles;
   const name = memberName(member);
 
@@ -54,9 +70,15 @@ export default function MemberRow(props: Props) {
         {section === "inactive" ? member.status : ""}
       </span>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-end gap-2">
         {section === "pending" && (
           <>
+            <LinkGuestControl
+              guests={linkableGuests}
+              busy={linking}
+              locked={locked}
+              onLink={onLink}
+            />
             <Button
               size="sm"
               variant="secondary"

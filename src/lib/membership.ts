@@ -5,6 +5,12 @@ type Profile = Pick<
   "id" | "username" | "display_name"
 >;
 
+/** An unclaimed roster card that can be linked to a joining account. */
+export type LinkableGuest = Pick<
+  Database["public"]["Tables"]["players"]["Row"],
+  "id" | "name" | "display_name"
+>;
+
 /** A group_members row with the account behind it. */
 export type Membership = Pick<
   Database["public"]["Tables"]["group_members"]["Row"],
@@ -26,4 +32,8 @@ export const ONLY_ADMIN_REASON =
 
 export function memberName(member: Membership): string {
   return member.profiles?.display_name ?? "Unknown member";
+}
+
+export function guestName(guest: LinkableGuest): string {
+  return guest.display_name ?? guest.name;
 }
