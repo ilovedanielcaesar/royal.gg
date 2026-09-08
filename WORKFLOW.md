@@ -55,21 +55,35 @@ immediately before anything destructive.
 | **2** | Group routing + picker | `[x]` **done** | 8/8 |
 | **3** | Joining + membership | `[x]` **done**, browser-verified | 4/4 |
 | **4** | Game log states | `[x]` **done**, browser-verified | 6/6 |
-| **5** | Settings, guest linking, admin | `[~]` 5A + 5B in, 5C next | 3/6 |
+| **5** | Settings, guest linking, admin | `[~]` 5A–5C in, `0018` awaits a push | 5/6 |
 
 **Current focus:** Phase 5 — settings, guest linking, admin.
 
-> ### ⚠ START HERE — the database is level with the code
+> ### ⚠ START HERE — the code is ONE migration ahead of the database
 >
-> `0015`, `0016` and `0017` are all **applied**. The ledger reads
-> `0017 session_buy_in`, and `sessions_state` is back to `tgenabled = 'O'` —
-> worth checking by hand after `0017`, because that migration disables the
-> trigger to get its backfill past `0016`'s approved-row rule.
+> `0015`, `0016` and `0017` are applied. **`0018` is not.** It is committed and
+> rehearsed 36/36, and the guest-linking UI on `/members` does nothing until it
+> lands: the picker writes `profile_id`, and the trigger that gives that write
+> its meaning is inside `0018`.
 >
 > ```
-> node scripts/smoke-rls.mjs      # 42/42
-> node scripts/smoke-phase4.mjs   # 31/31
-> node scripts/smoke-0017.mjs     # 24/24
+> node scripts/db-backup.mjs      # free tier has no managed backups
+> npx supabase db push            # Will runs this; the permission system blocks it here
+> node scripts/smoke-0018.mjs     # expect 36/36 once it is in
+> ```
+>
+> After `0017` it was worth checking `sessions_state` is back to
+> `tgenabled = 'O'` by hand, because that migration disables the trigger to get
+> its backfill past `0016`'s approved-row rule. `0018` disables nothing.
+>
+> The whole gate, all green as of 2026-09-08, and green again with `0018`
+> rehearsed inside the transaction:
+>
+> ```
+> node scripts/smoke-rls.mjs      # 42/42     node scripts/smoke-3b.mjs    # 32/32
+> node scripts/smoke-phase4.mjs   # 31/31     node scripts/smoke-3c.mjs    # 18/18
+> node scripts/smoke-0017.mjs     # 24/24     node scripts/smoke-3c2.mjs   # 23/23
+> node scripts/smoke-3a.mjs       # 18/18     node scripts/smoke-leave.mjs # 22/22
 > ```
 >
 > **`src/types/database.ts` is hand-maintained, and `0017` landed without it.**
@@ -87,10 +101,22 @@ immediately before anything destructive.
 Phase 2 verified by Will in the browser: a new group shows no Royal members,
 guests or sessions.
 
-**Last updated:** 2026-09-07 · 5A and 5B in on `phase-5-settings`. A group's
-stakes now reach its games. Needs a browser pass — change the buy-in, log a
-night, confirm an OLDER night reopened afterwards still prices at its own
-stake. Then 5C.
+**Last updated:** 2026-09-08 · 5A, 5B and 5C in on `phase-5-settings`.
+
+**Will's next action: push `0018`.** Back up first, then
+`npx supabase db push`. The linking UI is inert until it lands, because the
+guard trigger is what makes the write mean anything.
+
+    node scripts/db-backup.mjs
+    npx supabase db push
+    node scripts/smoke-0018.mjs      # expect 36/36 after the push
+
+Two browser passes are owed, one from 5B and one from 5C:
+  * change the buy-in, log a night, confirm an OLDER night reopened
+    afterwards still prices at its own stake
+  * a guest plays a few nights, that person makes an account and requests to
+    join, link the card, approve — their history and leaderboard place should
+    be unbroken and there must be exactly one of them on the roster
 
 ---
 
@@ -607,7 +633,8 @@ then guest linking, then `/admin` last.
       `parseDollarsToCents` because strictness that suits a setting would blank
       a running total mid-keystroke.
 
-- [ ] **5C — split, once 5B is in.** Guest linking. Admin sets `profile_id` on
+- [x] **5C — `0018` + smoke (mine, `953cac6`), UI from Codex (`2702464`).**
+      Guest linking. Admin sets `profile_id` on
       a guest row BEFORE the person joins (**decision 14**), and
       `ensure_group_roster_row()` is already idempotent on
       `(group_id, profile_id)`, so the join adopts the row. No `buy_ins` or
@@ -619,7 +646,41 @@ then guest linking, then `/admin` last.
       row in the group (`players_group_profile_unique` would raise a raw
       constraint error at the user), refusing a profile that is not a member,
       and deciding whether `is_guest` flips on link. UI on top is Codex's.
+
+      **Built as a `BEFORE UPDATE` trigger, not an RPC**, so no write path can
+      go around it. The UI sets ONE column and the trigger derives `is_guest`,
+      `user_id` and `username` — Will's call, and the reason is that four
+      correlated columns written by a client drift apart. Unlink is allowed
+      only while the linked profile is not yet ACTIVE: that is the window a
+      mis-click lives in, and after it an active member with no roster row is
+      a state nothing repairs.
+
+      **⚠ The rehearsal found decision 14 unreachable.** `0013` made
+      `join_group()` refuse a joiner whose roster name was already taken
+      BEFORE writing any membership row. So Dale never reached the pending
+      queue, the admin never saw a request, and there was nothing for a
+      profile to attach to — the guard alone would have shipped as a feature
+      with no door. The name check now runs only for `code` groups, where the
+      join is instantly active and no admin could intervene. A `code_approve`
+      request lands, and `ensure_group_roster_row()` is still the backstop for
+      an approval nobody linked first.
+
+      **⚠ Guest linking is unavailable to a `code` group**, by construction:
+      the join is active before an admin can act. Those groups still get
+      `0013`'s "change your display name" refusal. Not worth fixing until
+      someone wants it — the alternative is a global profile lookup, which
+      cuts against `profiles_select`.
+
+      **Lesson: `create or replace` needs the LIVE body, not a migration
+      file.** The first draft reproduced `join_group()` from `0013` and
+      silently reverted `0014`'s fix for a returning leaver colliding with
+      their own roster row. Nothing in the new suite noticed; re-running
+      `smoke-3b` did. Both replaced functions were then diffed against
+      `pg_proc.prosrc` and differ from it only where intended. Do this for
+      every future `create or replace`.
 - [ ] Per-group card picker (unique within the group)
+- [ ] Unlink has no UI. The database permits it in one narrow window
+      (profile not yet active); nothing surfaces it yet.
 - [ ] `/admin` superadmin overview — accounts + groups, **no money**
 
 **Exit gate**
@@ -682,6 +743,27 @@ Found in the audit, deliberately not done yet.
 ## Change log
 
 Newest first. One line per meaningful change.
+
+- **2026-09-08** — Phase 5C. `0018_guest_linking.sql`, 36/36 rehearsed, NOT
+  pushed. A guest card and the account behind it become one row: the admin
+  links before approving, and `ensure_group_roster_row()`'s idempotency makes
+  the approval adopt the row rather than insert a second one. No money moves.
+  Rehearsal caught that decision 14 was unreachable — `0013` refused the
+  joiner before any membership row existed — so `join_group()`'s name check
+  now applies only to `code` groups. Re-running the older suites then caught a
+  second defect: the draft had reproduced `join_group()` from `0013` and
+  reverted `0014`'s fix. All eight existing suites re-run with `0018`
+  rehearsed in the transaction, 210 checks, green both with and without it.
+  UI from Codex (107-line spec), two defects fixed on review: a link refused
+  by RLS reported success, and one `busyId` made the Link button lie about
+  what it was doing. Lint 2 → 1.
+- **2026-09-08** — Four smoke assertions were testing a world we left behind:
+  `smoke-3b`/`smoke-3c` still asserted that joining creates NO roster row
+  (untrue since `0012`'s trigger), `smoke-leave` counted two UPDATE policies
+  on `group_members` (`0015` kept one), and `smoke-3c2` hardcoded the money
+  totals of 2026-09-06. The gate is what stands between a migration and live
+  data; one that fails on known-stale checks teaches you to skim it. Each now
+  asserts the durable rule rather than a snapshot.
 
 - **2026-09-06** — Phase 4A: `SessionFormPage` obeys state and role, and any
   member can keep a draft. Delivered by Codex, whose run was KILLED before it
