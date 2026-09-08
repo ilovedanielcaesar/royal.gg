@@ -149,14 +149,24 @@ try {
   check("all four global unique indexes dropped", gone.rowCount === 0,
     `still present: ${gone.rows.map((r) => r.indexname).join(", ")}`);
 
+  // players_group_card_unique was the third of these until 0019 dropped it on
+  // purpose: a card is decoration, not a seat number. The two that identify a
+  // person within a group are the ones that have to survive.
   const kept = await client.query(
     `select count(*)::int as n from pg_indexes
       where schemaname='public' and tablename='players'
-        and indexname in ('players_group_name_unique','players_group_profile_unique',
-                          'players_group_card_unique')`
+        and indexname in ('players_group_name_unique','players_group_profile_unique')`
   );
-  check("the three group-scoped replacements survive", kept.rows[0].n === 3,
+  check("the group-scoped replacements survive", kept.rows[0].n === 2,
     `found ${kept.rows[0].n}`);
+
+  const card = await client.query(
+    `select 1 from pg_indexes
+      where schemaname='public' and tablename='players'
+        and indexname = 'players_group_card_unique'`
+  );
+  check("0019 dropped the per-group card index", card.rowCount === 0,
+    "players_group_card_unique is still present");
 
   const trg = await client.query(
     `select 1 from pg_trigger where tgname='group_members_roster_row'

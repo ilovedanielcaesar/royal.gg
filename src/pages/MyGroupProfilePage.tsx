@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Button from "../components/Button";
 import Card from "../components/Card";
 import LeaveGroupCard from "../components/LeaveGroupCard";
@@ -11,22 +11,6 @@ import { useGroup } from "../lib/groupContext";
 import type { Rank, Suit } from "../lib/playerSuit";
 import { requireSupabase } from "../lib/supabase";
 import { useLeagueData } from "../lib/useLeagueData";
-
-/**
- * players_group_card_unique is (group_id, chosen_suit, chosen_rank). The
- * picker greys out taken cards, but that list is a snapshot: two people
- * setting up at the same time can both see the same card free. The index is
- * what actually decides, and its raw message is not for a human to read.
- * Mirrors isDuplicateSlug() in CreateGroupPage.
- */
-function isCardTaken(error: unknown): boolean {
-  if (!error || typeof error !== "object") return false;
-  const details = error as Record<string, unknown>;
-  if (details.code !== "23505") return false;
-  return [details.message, details.details, details.hint]
-    .filter((value): value is string => typeof value === "string")
-    .some((value) => value.includes("players_group_card_unique"));
-}
 
 export default function MyGroupProfilePage() {
   const { user } = useCurrentUser();
@@ -51,20 +35,6 @@ export default function MyGroupProfilePage() {
     selection && selection.playerId === playerRow?.id
       ? selection.rank
       : (playerRow?.chosen_rank ?? null);
-
-  const taken = useMemo(() => {
-    const cards = new Set<string>();
-    for (const player of data?.players ?? []) {
-      if (
-        player.id !== playerRow?.id &&
-        player.chosen_suit &&
-        player.chosen_rank
-      ) {
-        cards.add(`${player.chosen_suit}:${player.chosen_rank}`);
-      }
-    }
-    return cards;
-  }, [data?.players, playerRow?.id]);
 
   if (loadError && !data) {
     return (
@@ -119,16 +89,7 @@ export default function MyGroupProfilePage() {
       setSelection(null);
       setSavedAt(Date.now());
     } catch (error) {
-      if (isCardTaken(error)) {
-        // Someone claimed it between this page loading and Save. Reloading is
-        // what makes the picker grey it out, so do that rather than leave a
-        // message contradicted by the grid underneath it.
-        setSaveError("Someone in this group just took that card. Pick another.");
-        setSelection(null);
-        await reload();
-      } else {
-        setSaveError(describeError(error));
-      }
+      setSaveError(describeError(error));
     } finally {
       setSaving(false);
     }
@@ -160,7 +121,6 @@ export default function MyGroupProfilePage() {
           <SuitRankPicker
             suit={suit}
             rank={rank}
-            taken={taken}
             onChange={(nextSuit, nextRank) => {
               setSelection({
                 playerId: playerRow.id,
