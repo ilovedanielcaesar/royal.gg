@@ -352,6 +352,38 @@ function clamp01(x: number): number {
   return Math.max(0, Math.min(1, x));
 }
 
+export type ConsistencyScore = {
+  /** Standard deviation of the player's per-night nets. Null under 2 nights. */
+  stdevCents: number | null;
+  /** 0..1, higher is steadier. This is the rating's consistency component. */
+  subscore: number;
+};
+
+/**
+ * How steady a player's nights are, on its own rather than buried in a
+ * weighted sum.
+ *
+ * Extracted 2026-09-09 for the League page's sort: consistency existed only
+ * as a subscore inside `playerRating()`, and you cannot sort on a number that
+ * has no name. `playerRating()` calls this, so there is exactly one
+ * definition — the reason to extract rather than copy.
+ *
+ * Takes the nets rather than a player id because every caller already has
+ * them (`playerRating()` computes them one line earlier), and recomputing
+ * `players × sessions` nets to answer one question is the cost this avoids.
+ *
+ * A single night has no deviation to measure, so `netStats` returns null and
+ * the subscore is the neutral 0.5 — neither steady nor wild, which is the
+ * honest answer to one data point.
+ */
+export function consistencyScore(netsCents: number[]): ConsistencyScore {
+  const { stdev } = netStats(netsCents);
+  return {
+    stdevCents: stdev,
+    subscore: stdev == null ? 0.5 : clamp01(1 - stdev / 100 / STDEV_FLOOR_USD),
+  };
+}
+
 export type PlayerRating = {
   rating: number | null; // 1..10 or null when too few sessions
   rawScore: number; // 0..1
@@ -380,14 +412,13 @@ export function playerRating(
   const last6Net = nets
     .slice(-TREND_WINDOW)
     .reduce((s, n) => s + n.netCents, 0);
-  const { stdev } = netStats(nets.map((n) => n.netCents));
+  const consistency = consistencyScore(nets.map((n) => n.netCents));
 
   const wrSub =
     stats.sessionsPlayed === 0
       ? 0.5
       : clamp01(stats.wins / stats.sessionsPlayed);
-  const consSub =
-    stdev == null ? 0.5 : clamp01(1 - stdev / 100 / STDEV_FLOOR_USD);
+  const consSub = consistency.subscore;
   const trendSub = clamp01(
     0.5 + last6Net / 100 / (2 * TREND_HALF_RANGE_USD)
   );
@@ -419,7 +450,7 @@ export function playerRating(
         weight: PLAYER_RATING_WEIGHTS.winRate,
       },
       consistency: {
-        stdevCents: stdev,
+        stdevCents: consistency.stdevCents,
         subscore: consSub,
         weight: PLAYER_RATING_WEIGHTS.consistency,
       },
@@ -582,4 +613,75 @@ export function lifetimeTotals(
     biggestLossPlayerId,
     biggestLossSessionId,
   };
+}
+
+// ----- Session action score -----------------------------------------------
+
+/**
+ * Divisor turning an average per-player swing into a 0–10-ish score. $80 of
+ * average swing scores 10 on its own.
+ */
+const ACTION_SWING_DIVISOR_USD = 8;
+/** Table size above which each extra seat adds to the score. */
+const ACTION_TABLE_FREE_SEATS = 4;
+const ACTION_TABLE_BONUS_PER_SEAT = 0.3;
+const ACTION_REBUY_BONUS_PER_PLAYER = 0.4;
+
+/**
+ * How much of a night a night was, 0–10: average per-player swing, plus a
+ * bonus for a big table, plus a bonus for every player who rebought.
+ *
+ * Extracted 2026-09-09 from `SessionsListPage.tsx`, where it was computed
+ * inline. Stage 5's session detail page needs the same figure, and two copies
+ * of a formula are two formulas. The inline version carried a comment
+ * pointing at `sessionScore()` in this file — a function that never existed.
+ *
+ * **Not money**, despite being derived from it: it is a dimensionless score,
+ * so it is a float on purpose and the integer-cents rule does not apply. The
+ * cents are converted to dollars once, here, and nothing downstream treats
+ * the result as an amount.
+ *
+ * Clamped to 10 and rounded to one decimal, which means it genuinely ties —
+ * three of the 24 sample nights sit at 10.0 — so any "highest action score"
+ * ordering needs a tiebreak of its own.
+ */
+export function actionScore(
+  sessionId: string,
+  buyIns: BuyIn[],
+  cashOuts: CashOut[]
+): number {
+  const sb = buyIns.filter((b) => b.session_id === sessionId);
+  const sc = cashOuts.filter((c) => c.session_id === sessionId);
+
+  // Anyone who bought in OR cashed out was at the table. Both halves, because
+  // a player with a buy-in and no cash-out row is mid-entry, not absent.
+  const playerIds = new Set([
+    ...sb.map((b) => b.player_id),
+    ...sc.map((c) => c.player_id),
+  ]);
+
+  let totalAbsCents = 0;
+  let rebuyPlayerCount = 0;
+  playerIds.forEach((pid) => {
+    const playerBuys = sb.filter((b) => b.player_id === pid);
+    const buy = playerBuys.reduce((sum, b) => sum + b.amount_cents, 0);
+    const cashOut =
+      sc.find((c) => c.player_id === pid)?.adjusted_amount_cents ?? 0;
+    // Absolute, so a $60 loser and a $60 winner both count as action.
+    totalAbsCents += Math.abs(cashOut - buy);
+    if (playerBuys.length > 1) rebuyPlayerCount += 1;
+  });
+
+  const perPlayerDollars =
+    playerIds.size > 0 ? totalAbsCents / playerIds.size / 100 : 0;
+  const swingScore = perPlayerDollars / ACTION_SWING_DIVISOR_USD;
+  const tableBonus =
+    Math.max(0, playerIds.size - ACTION_TABLE_FREE_SEATS) *
+    ACTION_TABLE_BONUS_PER_SEAT;
+  const rebuyBonus = rebuyPlayerCount * ACTION_REBUY_BONUS_PER_PLAYER;
+
+  return Math.max(
+    0,
+    Math.min(10, Math.round((swingScore + tableBonus + rebuyBonus) * 10) / 10)
+  );
 }
