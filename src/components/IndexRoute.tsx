@@ -12,13 +12,16 @@ type ActiveMembership = {
 
 export default function IndexRoute() {
   const { loading, user, profile } = useCurrentUser();
+  // Keyed on the account id: the user object's identity changes on every
+  // token refresh, including the catch-up one a refocused tab triggers.
+  const userId = user?.id ?? null;
   const [membershipState, setMembershipState] = useState<{
     userId: string;
     memberships: ActiveMembership[];
   } | null>(null);
 
   useEffect(() => {
-    if (!user) return;
+    if (!userId) return;
 
     let cancelled = false;
     void (async () => {
@@ -27,12 +30,12 @@ export default function IndexRoute() {
         const { data, error } = await supabase
           .from("group_members")
           .select("group_id, groups(slug)")
-          .eq("profile_id", user.id)
+          .eq("profile_id", userId)
           .eq("status", "active");
         if (error) throw error;
         if (!cancelled) {
           setMembershipState({
-            userId: user.id,
+            userId,
             memberships: (data ?? []) as unknown as ActiveMembership[],
           });
         }
@@ -42,14 +45,14 @@ export default function IndexRoute() {
           "Failed to load active group memberships:",
           describeError(error)
         );
-        setMembershipState({ userId: user.id, memberships: [] });
+        setMembershipState({ userId, memberships: [] });
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [userId]);
 
   if (loading) {
     return <div className="text-sm text-card-50/60">Dealing in…</div>;

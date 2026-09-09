@@ -36,17 +36,10 @@ type Props = {
 };
 
 /**
- * Band 4 — who is at the table, and the group's records beside them.
+ * Band 4 — standings and the group's records beside them.
  *
- * Every player is listed, not just the ranked ones: this is the table, and
- * eligibility is a rule about standings. The consequence is that the band has
- * no fixed height and grows with the roster, which is correct — eliding the
- * middle of a nine-person table to save vertical space hides most of the
- * league.
- *
- * The stats panel is top-aligned rather than stretched. The list outgrows the
- * panel as players are added, and whitespace under four figures is the right
- * answer to that, not four figures spread over 700px.
+ * Standings use `isRankingEligible`; guest money still counts in every total,
+ * chart and record, but guests and members under three nights are not ranked.
  */
 export default function TableBand({
   rows,
@@ -56,10 +49,12 @@ export default function TableBand({
   sessionHref,
 }: Props) {
   return (
-    <Band title="At the table" caption="Lifetime, every player">
+    <Band title="Standings" caption="Lifetime · members with 3+ nights">
       <div className="mt-4 grid gap-8 lg:grid-cols-[1.6fr_1fr]">
         {rows.length === 0 ? (
-          <p className="text-sm text-ink-500">No players on the roster yet.</p>
+          <p className="text-sm text-ink-500">
+            No one has three nights yet.
+          </p>
         ) : (
           <ol className="divide-y divide-card-100">
             {rows.map((row, idx) => (

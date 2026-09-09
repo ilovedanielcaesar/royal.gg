@@ -33,7 +33,7 @@ export default function RecentFiveBand({
           to={allSessionsHref}
           className="text-xs font-medium text-ink-500 hover:text-ink-900 hover:underline"
         >
-          All your sessions →
+          All sessions →
         </Link>
       }
     >

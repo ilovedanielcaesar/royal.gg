@@ -4,6 +4,7 @@ import Button from "../components/Button";
 import Card from "../components/Card";
 import InviteLinksCard from "../components/InviteLinksCard";
 import StakesCard, { type StakesUpdate } from "../components/StakesCard";
+import { publicAppUrl } from "../lib/appUrl";
 import { describeError } from "../lib/errors";
 import { useGroup, type Group } from "../lib/groupContext";
 import { generateJoinCode } from "../lib/joinCode";
@@ -28,7 +29,7 @@ export default function GroupSettingsPage() {
   if (!group) return <p className="text-card-50/60">Dealing…</p>;
 
   const groupId = group.id;
-  const joinUrl = `${window.location.origin}/join/${group.join_code}`;
+  const joinUrl = publicAppUrl(`/join/${group.join_code}`);
 
   /**
    * Every save re-reads the group through reload() rather than mirroring the

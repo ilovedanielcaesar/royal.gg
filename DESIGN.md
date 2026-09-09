@@ -157,6 +157,10 @@ mini-stats.
 - **Mini-stats: wins, losses, lifetime net**, all from `playerStats()`. Wins
   and losses are shown rather than win rate — 15 and 9 carry the sample size
   that 62.5% hides, and nights played is their sum, so it needs no tile.
+  They render at `MiniStat`'s **`lg`** size (28px figure, 11px label), added
+  2026-09-09 after a browser pass: at the default `md` the trio read too quiet
+  beside the 52px score. `lg` exists for this band only — every other
+  `MiniStat` on the page keeps `md`.
 - **Null score.** `playerRating()` returns null below `RATING_MIN_SESSIONS`
   (3). Then the headline is `—` with `Need 3+ sessions for a rating.` beneath;
   the three mini-stats still render.
@@ -170,7 +174,7 @@ mini-stats.
 ### 2. Recent five
 
 Five compact chips across the sheet — date, net, `Win`/`Loss` — and
-`All your sessions →`. Scannable; no per-session detail.
+`All sessions →`. Scannable; no per-session detail.
 
 The redesign proposed a single "last night" card instead (buy-ins, cash-out,
 table pot, reconciled flag). Rejected: five outcomes at a glance beats one
@@ -204,16 +208,52 @@ One chart, larger than the artifact's, with a two-tab segmented control.
   is real and accepted: a single player's line uses only part of the height,
   since the domain has to hold the biggest winner and the biggest loser at
   once.
+- **The `You` line is `ink-900`, always.** It is one line about one player,
+  and it carries no money tone: the chart's default is suit-derived, which drew
+  a red line for anyone holding a red card and read as "you are losing" — the
+  suit means nothing here. Sage was rejected for the mirror-image reason, since
+  a green line trending down says the opposite of what it means. The zero line
+  and the axis already say which side of even you are on. The League view keeps
+  its six ramp colours, and `CumulativeChart`'s suit fallback is untouched for
+  the pages that want it.
+- **Hovering a legend name emphasises that line** (League view only). The
+  hovered series goes to `strokeWidth` 3 and every other drops to 22% opacity —
+  line, end label and hover dot together, since six lines crossing one column
+  cannot otherwise be told apart. The legend entries are buttons, not labels,
+  so focus does the same thing as hover and the band is usable from the
+  keyboard. Hover and focus only: **no click-to-pin**, which would need a
+  visible selected state and an obvious way out of it. Dimming is suppressed
+  when the emphasised player has no plotted line, so a legend entry that
+  outlives its series cannot fade the whole chart.
 - The redesign's `All time / Season / Last 10` control is **not** used. It
   switches time window, which requires a "season" concept the app does not have.
 
-### 4. At the table + stats panel
+### 4. Standings + stats panel
 
 Two columns: standings on the left, a stats panel on the right.
 
-- **Every player is listed**, each row with an 8-point sparkline. This is the
-  one place the redesign beat the artifact, which elided the middle of the
-  table. Consequence: the band has no fixed height and grows with the roster.
+- **Ranking-eligible members are listed**, each row with an 8-point sparkline,
+  and none of them elided — the redesign beat the artifact here, which cut the
+  middle out of the table. Consequence: the band has no fixed height and grows
+  with the roster.
+
+  Eligibility is `isRankingEligible()`: active, not a guest, three or more
+  lifetime nights. **Revised 2026-09-09** — the band listed everyone who had
+  played, on the argument that it was "who was at the table" rather than a
+  ranking. It is numbered and sorted by lifetime net, so it read as a ranking
+  whatever the caption said, and a guest who turned up once outranking a
+  regular is the thing that makes standings meaningless. It is now titled
+  `Standings`, captioned `Lifetime · members with 3+ nights`, and obeys the
+  same rule as band 5 and the chart's League view — one filter, three
+  consumers.
+
+  **Guest money is untouched by this.** Guests stay in session totals, in
+  reconciliation, in `lifetimeTotals`, in the records panel beside this list
+  and in every chart. They are excluded from the *ranking*, not from the
+  record; the League page's guest band (`_FEEDBACK_V2.md` → League item 4) is
+  where an excluded player stays visible. The empty state says
+  `No one has three nights yet.` rather than anything about the roster, because
+  a filtered list going empty says nothing about who is on it.
 - **Your own row gets a faint `card-100` tint and no label.** Your card avatar
   already identifies you; the redesign's inverted felt row and gold `YOU` tag
   were both louder than the sheet wants.

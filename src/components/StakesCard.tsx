@@ -20,7 +20,62 @@ function centsToInput(cents: number): string {
   return (cents / 100).toFixed(2);
 }
 
-export default function StakesCard({ group, isGroupAdmin, save }: Props) {
+export default function StakesCard(props: Props) {
+  if (!props.isGroupAdmin) {
+    return <ReadOnlyStakesCard group={props.group} />;
+  }
+
+  return <EditableStakesCard group={props.group} save={props.save} />;
+}
+
+function ReadOnlyStakesCard({ group }: { group: Group }) {
+  return (
+    <Card accent="gold">
+      <div className="space-y-4 p-5">
+        <h2 className="font-display text-2xl text-ink-900">Stakes</h2>
+
+        <div>
+          <p className="text-xs font-medium text-ink-700">Stakes</p>
+          <p
+            className={`mt-1 text-sm ${
+              group.stakes_label === null ? "text-ink-500" : "text-ink-900"
+            }`}
+          >
+            {group.stakes_label ?? "—"}
+          </p>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <p className="text-xs font-medium text-ink-700">Buy-in</p>
+            <p className="tabular mt-1 text-sm text-ink-900">
+              {formatCents(group.default_buy_in_cents)}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-xs font-medium text-ink-700">
+              Reconcile threshold
+            </p>
+            <p className="tabular mt-1 text-sm text-ink-900">
+              {formatCents(group.reconcile_threshold_cents)}
+            </p>
+            <p className="mt-1.5 text-xs text-ink-500">
+              A discrepancy up to {formatCents(group.reconcile_threshold_cents)}
+              {" "}is split among the winners automatically; anything over it
+              flags the night for review.
+            </p>
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function EditableStakesCard({
+  group,
+  save,
+}: Pick<Props, "group" | "save">) {
   const [stakesLabel, setStakesLabel] = useState(group.stakes_label ?? "");
   const [defaultBuyIn, setDefaultBuyIn] = useState(() =>
     centsToInput(group.default_buy_in_cents)
@@ -47,7 +102,7 @@ export default function StakesCard({ group, isGroupAdmin, save }: Props) {
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!isGroupAdmin || saving || !hasChanges) return;
+    if (saving || !hasChanges) return;
 
     setValidationError(null);
     if (defaultBuyInCents === null || defaultBuyInCents <= 0) {

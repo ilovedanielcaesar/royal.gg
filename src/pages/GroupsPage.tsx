@@ -20,6 +20,9 @@ type ActiveMembership = {
 export default function GroupsPage() {
   const navigate = useNavigate();
   const { user } = useCurrentUser();
+  // Keyed on the account id: the user object's identity changes on every
+  // token refresh, including the catch-up one a refocused tab triggers.
+  const userId = user?.id ?? null;
   const [joinCode, setJoinCode] = useState("");
   const [state, setState] = useState<{
     userId: string;
@@ -28,7 +31,7 @@ export default function GroupsPage() {
   } | null>(null);
 
   useEffect(() => {
-    if (!user) return;
+    if (!userId) return;
 
     let cancelled = false;
     void (async () => {
@@ -37,7 +40,7 @@ export default function GroupsPage() {
         const { data, error } = await supabase
           .from("group_members")
           .select("group_id, groups(name, slug, stakes_label)")
-          .eq("profile_id", user.id)
+          .eq("profile_id", userId)
           .eq("status", "active");
         if (error) throw error;
 
@@ -48,12 +51,12 @@ export default function GroupsPage() {
           )
           .sort((a, b) => a.name.localeCompare(b.name));
         if (!cancelled) {
-          setState({ userId: user.id, groups, error: null });
+          setState({ userId, groups, error: null });
         }
       } catch (error) {
         if (!cancelled) {
           setState({
-            userId: user.id,
+            userId,
             groups: [],
             error: describeError(error),
           });
@@ -64,7 +67,7 @@ export default function GroupsPage() {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [userId]);
 
   const loading = !user || !state || state.userId !== user.id;
 

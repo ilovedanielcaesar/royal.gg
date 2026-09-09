@@ -47,11 +47,14 @@ restyled early, which is what turned the mockless-pages note into **Stage A**
 below — a real stage with a real inventory, because "restyle the leftovers"
 was never going to be checked.
 
-**Owed by Will, and accumulating:** the browser passes. Stage 0's four tabs
-and Stage 1's admin-and-member walkthrough. Every machine gate is green for
-both — `tsc`, build, lint at baseline — but no machine can say the chrome
-looks right, and Stage 1's exit gate specifically wants a member's-eye view of
-the settings page.
+**Owed by Will:** Stage 0's four tabs, and a **re-check** of Stage 1 as a
+member. Stage 1's admin pass is **done** — 2026-09-09, and it found eight
+things, all of them now fixed on `dashboard-feedback` (the round below). The
+member half is still owed and now matters more than it did, because the fix
+list changed what a member sees on the settings page: the stakes card is
+read-only for them for the first time, and nobody has looked at it in a
+browser. Every machine gate is green — `tsc`, build, lint at baseline — but no
+machine can say the chrome looks right.
 
 > ### ⚠ START HERE
 >
@@ -426,8 +429,74 @@ which is what band 4 needs.
 **5. Never-played roster rows are excluded from band 4.** "Every player is
 listed" is about not eliding the middle of the table, not about listing people
 with no record; a row reading `0 nights · $0.00` with an empty sparkline is
-noise, not inclusion. Guests **are** listed — this band is who was at the
-table, and eligibility is a rule about standings.
+noise, not inclusion. Guests **were** listed too, on the argument that this
+band is who was at the table and that eligibility is a rule about standings.
+
+~~Guests **are** listed.~~ **Reversed 2026-09-09 by the browser pass** — see
+the feedback round below. The band is numbered and sorted by lifetime net, so
+it read as a ranking no matter what the caption claimed, and the argument above
+lost to that. It is now `Standings` and obeys `isRankingEligible()`.
+
+### Stage 1 feedback round — branch `dashboard-feedback`, 2026-09-09
+
+Will's admin browser pass. Eight items; the specs went to Codex except the
+bug, which was auth-shaped and stayed here. Reviewed by a second agent against
+the spec, which found two real defects in the delegated work — both fixed
+before the PR, and both listed below rather than quietly patched.
+
+- [x] **Hero mini-stats too small.** `MiniStat` gains `size="lg"` (28px/11px),
+      used by the hero band alone. Spec'd as a variant rather than a global
+      bump because `TableBand` uses the same component and had to stay put.
+- [x] **The `You` trajectory line was crimson.** It was suit-derived, so a
+      red-card player got a red line that read as "you are losing". Now
+      `ink-900`, always. **Sage was considered and rejected by Will** — a green
+      line trending down says the opposite of what it means. Recorded in
+      `DESIGN.md` → band 3, since it is a deliberate exception to the
+      money-tone rule rather than an oversight.
+- [x] **Legend hover emphasises a line.** League view; buttons not labels, so
+      focus works like hover. No click-to-pin.
+- [x] **Standings exclude guests and anyone under three nights.** The reversal
+      above. Retires `DESIGN.md`'s backlog guess at the same time.
+- [x] **"All your sessions" → "All sessions."** It was never a personal list.
+- [x] **Members can no longer edit the stakes.** They saw live inputs and an
+      enabled Save button that `handleSubmit` silently discarded — a control
+      that looks live and does nothing, which is worse than one that looks
+      dead. Read-only text for a member now, admin path unchanged.
+- [x] **Join links use the public origin.** `publicAppUrl()` reads
+      `VITE_PUBLIC_APP_URL` and falls back to `window.location.origin`, so the
+      settings page stopped handing out `http://localhost:5173/join/…`.
+      `src/lib/auth.ts` deliberately keeps using the live origin — an auth
+      redirect has to come back to where you actually are, or sign-in breaks on
+      localhost and on preview deploys. **Will owes the Vercel env var**; until
+      it is set the links fall back to the origin, i.e. exactly today's
+      behaviour, so this ships safely unset.
+- [x] **"The page reloads when I leave the tab."** Nothing reloaded. Returning
+      to a hidden tab makes supabase-js run a catch-up refresh that emits
+      `SIGNED_IN` carrying the session it already had; `AuthProvider` stored
+      that fresh object, and every effect keyed on the `user` **object** —
+      six of them — refired, blanked its page to `Dealing…` and refetched the
+      league. Fixed at both ends: `sameSession()` keeps the old object when the
+      account and access token are unchanged, and the six consumers now key on
+      `user?.id`, so a genuine hourly refresh cannot blank a page either. Worth
+      internalising: in this app a Supabase `user` object is a new object on
+      every refresh, so it is never a dependency — its `id` is.
+
+**What the review caught in the delegated work**, both fixed:
+
+1. **A false empty state.** Filtering the standings made
+   `No players on the roster yet.` a lie — five members with two nights each
+   render an empty list beside a records panel showing real money. Now
+   `No one has three nights yet.` A filter changes what an empty list *means*,
+   and the copy has to move with it; the spec did not think of it either.
+2. **Emphasis could fade the whole chart.** `isDimmed` tested only that an
+   emphasised id was set, not that it was drawn — and `leagueSeries` drops a
+   player with no points while the legend does not, so a legend entry can
+   outlive its line. Latent behind the 3-night rule rather than live, guarded
+   in one line.
+
+Everything else the review raised was style, taken or declined on the spot.
+`CumulativeChart` is 313 lines, over the ~200 convention and over the 301 it
+started at — pre-existing, and Stage 4 already owns splitting it.
 
 ---
 

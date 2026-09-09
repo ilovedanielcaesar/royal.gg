@@ -59,12 +59,13 @@ export default function HeroBand({
         </div>
 
         <div className="flex items-start gap-8">
-          <MiniStat label="Wins" value={stats.wins} />
-          <MiniStat label="Losses" value={stats.losses} />
+          <MiniStat label="Wins" value={stats.wins} size="lg" />
+          <MiniStat label="Losses" value={stats.losses} size="lg" />
           <MiniStat
             label="Lifetime net"
             value={formatSignedCents(stats.totalNetCents)}
             toneClass={moneyToneClass(stats.totalNetCents)}
+            size="lg"
           />
         </div>
       </div>

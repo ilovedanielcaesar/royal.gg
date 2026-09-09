@@ -24,7 +24,7 @@ type Loaded = {
 /** The group behind a slug, plus this account's membership of it. */
 async function fetchGroup(
   slug: string,
-  userId: string | undefined
+  userId: string | null
 ): Promise<Loaded> {
   const supabase = requireSupabase();
   const { data: group, error: groupError } = await supabase
@@ -49,6 +49,12 @@ async function fetchGroup(
 export default function GroupProvider({ children }: { children: ReactNode }) {
   const { slug } = useParams<{ slug: string }>();
   const { user, loading: authLoading } = useCurrentUser();
+  // The ACCOUNT id, not the user object. A token refresh — which is what
+  // returning to a hidden tab triggers — hands us a new user object with the
+  // same id in it, and keying this effect on the object refetched the whole
+  // group and blanked the page to "Dealing…" every time the tab regained
+  // focus.
+  const userId = user?.id ?? null;
   const [state, setState] = useState<
     Loaded & { slug: string | undefined; loading: boolean }
   >({
@@ -73,7 +79,7 @@ export default function GroupProvider({ children }: { children: ReactNode }) {
         loading: true,
       });
       try {
-        const loaded = await fetchGroup(slug, user?.id);
+        const loaded = await fetchGroup(slug, userId);
         if (!cancelled) setState({ slug, ...loaded, loading: false });
       } catch (error) {
         if (cancelled) return;
@@ -91,7 +97,7 @@ export default function GroupProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [authLoading, slug, user]);
+  }, [authLoading, slug, userId]);
 
   /**
    * Re-read the group after changing it — the settings page rotating the join
@@ -105,7 +111,7 @@ export default function GroupProvider({ children }: { children: ReactNode }) {
   const reload = useCallback(async () => {
     if (!slug) return;
     try {
-      const loaded = await fetchGroup(slug, user?.id);
+      const loaded = await fetchGroup(slug, userId);
       // The slug may have changed while this was in flight.
       setState((prev) =>
         prev.slug === slug ? { ...prev, ...loaded, loading: false } : prev
@@ -113,7 +119,7 @@ export default function GroupProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error("Failed to reload group:", describeError(error));
     }
-  }, [slug, user]);
+  }, [slug, userId]);
 
   const value = useMemo(() => {
     const activeMembership =

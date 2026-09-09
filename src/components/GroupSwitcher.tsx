@@ -29,6 +29,9 @@ const PILL = [
 
 export default function GroupSwitcher() {
   const { user } = useCurrentUser();
+  // Keyed on the account id: the user object's identity changes on every
+  // token refresh, including the catch-up one a refocused tab triggers.
+  const userId = user?.id ?? null;
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
   const [membershipState, setMembershipState] = useState<{
@@ -37,7 +40,7 @@ export default function GroupSwitcher() {
   } | null>(null);
 
   useEffect(() => {
-    if (!user) return;
+    if (!userId) return;
 
     let cancelled = false;
     void (async () => {
@@ -46,7 +49,7 @@ export default function GroupSwitcher() {
         const { data, error } = await supabase
           .from("group_members")
           .select("group_id, groups(slug, name)")
-          .eq("profile_id", user.id)
+          .eq("profile_id", userId)
           .eq("status", "active");
         if (error) throw error;
 
@@ -56,11 +59,11 @@ export default function GroupSwitcher() {
             membership.groups ? [membership.groups] : []
           )
           .sort((a, b) => a.name.localeCompare(b.name));
-        if (!cancelled) setMembershipState({ userId: user.id, groups });
+        if (!cancelled) setMembershipState({ userId, groups });
       } catch (error) {
         if (cancelled) return;
         console.error("Failed to load group switcher:", describeError(error));
-        setMembershipState({ userId: user.id, groups: [] });
+        setMembershipState({ userId, groups: [] });
       }
     })();
 
@@ -68,11 +71,11 @@ export default function GroupSwitcher() {
       cancelled = true;
     };
     // Deliberately re-reads on navigation. This component is rendered by
-    // AppLayout, so it never unmounts — with [user] alone it kept showing a
+    // AppLayout, so it never unmounts — with [userId] alone it kept showing a
     // group after the user left it, and would equally miss one they had just
     // joined. The query is one small row set, and this makes the header
     // self-heal on any membership change made anywhere in the app.
-  }, [pathname, user]);
+  }, [pathname, userId]);
 
   if (!user) return null;
 

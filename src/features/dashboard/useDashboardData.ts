@@ -44,7 +44,7 @@ export type DashboardData = {
     sessionNets: Array<{ session: Session; netCents: number }>;
   } | null;
   totals: ReturnType<typeof lifetimeTotals>;
-  /** Every player, lifetime, best first — with their per-night nets attached. */
+  /** Ranking-eligible players, lifetime, best first, with per-night nets. */
   tableRows: Array<
     PlayerStats & { player: Player; netsOldestFirst: number[] }
   >;
@@ -140,18 +140,13 @@ export function useDashboardData(): {
           }
         : null,
       totals: lifetimeTotals(sessions, buyIns, cashOuts),
-      // Every player who has actually played, guests included — this band is
-      // the table, and ranking eligibility is a rule about standings, not
-      // about who was there. Only never-played roster rows are dropped: a
-      // row with no nights has no lifetime record to show, and rendering it
-      // as `0 nights · $0.00` with an empty sparkline is noise, not
-      // inclusion.
-      tableRows: lb
-        .filter((row) => row.sessionsPlayed > 0)
-        .map((row) => ({
-          ...row,
-          netsOldestFirst: netsByPlayer.get(row.playerId) ?? [],
-        })),
+      // Standings, so the same `eligible` set the chart and band 5 rank from —
+      // one filter, not three copies of the rule. Guest money still counts in
+      // every total, chart and record; only the ranking excludes it.
+      tableRows: eligible.map((row) => ({
+        ...row,
+        netsOldestFirst: netsByPlayer.get(row.playerId) ?? [],
+      })),
       yourSeries: me ? seriesFor([me.id]) : [],
       leagueSeries: seriesFor([
         ...winners.map((r) => r.playerId),
@@ -171,7 +166,7 @@ export function useDashboardData(): {
       seasonWindow: recentSessions(sessions, SEASON_WINDOW_GAMES),
       eligiblePlayers: eligible.map((row) => row.player),
     };
-  }, [league, user]);
+  }, [league, user?.id]);
 
   return { data: value, error };
 }
