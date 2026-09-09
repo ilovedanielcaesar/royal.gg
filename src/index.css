@@ -24,6 +24,9 @@
   /* Accents */
   --color-gold-500: #c9a24a;
   --color-gold-400: #ddbb6b;
+  /* Gold dark enough to read as text on cream. The three above are for fills
+     and rules on felt; none of them passes contrast on card-50. */
+  --color-gold-ink: #7a5d1a;
 
   --color-sage-700: #436c54;
   --color-sage-600: #5b8e6e;
@@ -37,11 +40,14 @@
   --color-orange-500: #d97a3b;
   --color-amber-500: #d6a13a;
 
-  --font-display: "DM Serif Display", "Iowan Old Style", "Georgia", serif;
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "DM Serif Display", Georgia, "Times New Roman", serif;
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
 
   --animate-deal-in: deal-in 480ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   --animate-fade-in: fade-in 220ms ease-out both;
+  /* The sheet does not deal in like a card off the top of the deck — it is
+     already on the table and settles onto it. Smaller lift, slighter rotation. */
+  --animate-settle: settle 460ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 @keyframes deal-in {
@@ -53,6 +59,17 @@
     opacity: 1;
   }
   100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes settle {
+  from {
+    opacity: 0;
+    transform: translateY(14px) rotate(-0.35deg);
+  }
+  to {
     opacity: 1;
     transform: none;
   }
@@ -73,14 +90,24 @@ body,
   height: 100%;
 }
 
+/* Overscroll and the area behind a short page paint from html, not body, so
+   the felt colour has to be on both or a rubber-band scroll flashes white. */
+html {
+  background-color: var(--color-felt-900);
+}
+
 body {
+  min-width: 320px;
   font-family: var(--font-sans);
-  /* Subtle felt weave: layered radial highlight + repeating diagonal stitch */
+  /* Subtle felt weave: layered radial highlight + repeating diagonal stitch.
+     The numbers are the style contract's, not eyeballed — the highlight sits
+     higher and brighter than the first pass had it (-12% / .055 / 58%), which
+     is what makes the sheet read as lying under a light rather than floating. */
   background-color: var(--color-felt-900);
   background-image: radial-gradient(
-      ellipse at 50% -10%,
-      rgba(255, 255, 255, 0.04),
-      transparent 60%
+      ellipse at 50% -12%,
+      rgba(255, 255, 255, 0.055),
+      transparent 58%
     ),
     repeating-linear-gradient(
       45deg,
@@ -90,8 +117,49 @@ body {
   background-attachment: fixed;
 }
 
+/* Tailwind v4's preflight dropped the button cursor, so every button in the
+   app points at nothing without this. */
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+}
+
+/* One visible focus ring, gold, everywhere. Rule 9 of the contract. */
+:focus-visible {
+  outline: 2px solid var(--color-gold-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ...except that gold-500 on card-50 is roughly 1.9:1, so on cream the
+   contract's own ring is a ring you cannot see. gold-ink is the token that
+   exists precisely for gold that has to read on cream, so cream surfaces
+   swap to it. Every cream surface carries `data-cream` for this reason and
+   no other. */
+[data-cream] :focus-visible {
+  outline-color: var(--color-gold-ink);
+}
+
 /* Tabular figures everywhere money is shown */
 .tabular {
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
+}
+
+/* The card language is built out of motion, so honouring this is not optional.
+   Animations that carry meaning are suppressed per-component with Tailwind's
+   `motion-reduce:` variant; this is the blanket for everything else. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
 }

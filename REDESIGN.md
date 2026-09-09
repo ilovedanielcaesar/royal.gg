@@ -32,17 +32,18 @@ the checkbox — a tick with no log entry is how this file rots.
 
 | Stage | What | Backend? | State | Done |
 |:--:|---|:--:|---|:--:|
-| **P** | Pre-flight: land `qol-small-items`, commit the mocks | no | `[~]` | 2/3 |
-| **0** | Foundation: tokens, felt, chrome, sheet primitives | no | `[ ]` | 0/6 |
+| **P** | Pre-flight: land `qol-small-items`, commit the mocks | no | `[x]` | 3/3 |
+| **0** | Foundation: tokens, felt, chrome, sheet primitives | no | `[~]` | 5/6 |
 | **1** | Dashboard | one route change | `[ ]` | 0/7 |
 | **2** | League | lib + roster read | `[ ]` | 0/8 |
 | **3** | Sessions list | lib only | `[ ]` | 0/6 |
 | **4** | Profile (merged) | routing | `[ ]` | 0/6 |
 | **5** | Session detail | **migration `0020`** | `[ ]` | 0/9 |
 
-**Current focus:** Stage P, one item left — the `qol-small-items` merge, which
-waits on Will pushing `0019`. See Stage P for why that order and not the
-other one. Nothing in Stages 0–5 has been built yet.
+**Current focus:** Stage 0, built and green on `ui_redesign_0`. The one thing
+between it and `[x]` is Will's browser pass on the four tabs — a machine can
+say `tsc`, build and lint are clean, and did, but not that the chrome looks
+right.
 
 > ### ⚠ START HERE
 >
@@ -149,10 +150,11 @@ mock does not have — see Stage 4.
       the three iteration-1 redesign files, and `.claude/skills/agy/`. Landed
       as `3abdbff` on `qol-small-items`, so they arrive in `main` with the PR
       below rather than as a separate commit on top of it.
-- [ ] PR `qol-small-items` into `main` and merge it. It carries `0019`, the
+- [x] PR `qol-small-items` into `main` and merge it. It carried `0019`, the
       shrunken `SuitRankPicker`, the `MyGroupProfilePage`/`PlayersPage` edits
-      and the Dashboard spec in `DESIGN.md`. Building the redesign on top of an
-      unmerged branch buries all of it in one enormous diff. **PR #3, open.**
+      and the Dashboard spec in `DESIGN.md`. **PR #3, merged 2026-09-09** as
+      `7ccb608`, after `0019` was pushed — that order, for the reason above.
+      `migration list` now pairs `0019` remote-side.
 - [x] Confirm `0019` is applied in the live schema (`npx supabase migration
       list`). Record the answer here.
 
@@ -195,28 +197,122 @@ except the chrome, so this stage is where the "`main` stays deployable" rule
 gets tested: the old pages must keep rendering, on the new felt, inside the new
 topbar, without a redesign half-finished on screen.
 
-- [ ] `--gold-ink: #7a5d1a` added to `@theme`. Audit the rest of the contract's
+- [x] `--gold-ink: #7a5d1a` added to `@theme`. Audit the rest of the contract's
       tokens against `src/index.css` and reconcile any other gap here, once.
-- [ ] The felt on `body`: the radial highlight plus the 45° repeating weave,
-      `background-attachment: fixed`, and the `.tabular` numeric utility.
-- [ ] Chrome to match the contract exactly — `AppLayout`, `GroupNav`,
+
+      The audit found **eight** gaps, not the one this file predicted. All
+      eight are closed: `--gold-ink`; the radial highlight (was `-10%` /
+      `.04` / `60%`, the contract's is `-12%` / `.055` / `58%`, and the
+      brighter highlight is what makes the sheet read as lying under a light);
+      `html` background, which is what overscroll actually paints; `body
+      min-width: 320px`; `button { cursor: pointer }`, which Tailwind v4's
+      preflight dropped and which no page had noticed; the `:focus-visible`
+      gold ring; and both font fallback stacks.
+
+      Two tokens exist **beyond** the contract — `--color-felt-600` and
+      `--color-sage-500` — and both are in use (`Button`, `PlayerStatsCard`,
+      `SessionPlayerPicker`). Kept. They are consistent with their ramps and
+      deleting them is three unrelated restyles.
+- [x] The felt on `body`: the radial highlight plus the 45° repeating weave,
+      `background-attachment: fixed`, and the `.tabular` numeric utility. The
+      weave, `fixed` and `.tabular` were already correct and untouched.
+- [x] Chrome to match the contract exactly — `AppLayout`, `GroupNav`,
       `GroupSwitcher`. Four tabs, `Dashboard / Sessions / League / You`, only
       `aria-current` moving between pages.
-- [ ] `Sheet` and `Band` primitives: one cream playing-card sheet per page,
+
+      `NavLink` already sets `aria-current="page"`, so rule 9 comes free. The
+      active tab changed from a **solid cream pill to a translucent wash**:
+      solid cream in the topbar reads as a small playing card, which is the
+      language the sheet and the avatars own, and the chrome has to stay quiet.
+      `GroupSwitcher`'s two branches (one group → link, several → menu) now
+      share one `PILL` constant; they had drifted into two hand-written class
+      strings for a control that is one control to the eye.
+- [x] `Sheet` and `Band` primitives: one cream playing-card sheet per page,
       divided into bands. This is the container every later stage fills.
-- [ ] `PageHeading`: the heading and its actions live on the felt, **outside**
+
+      `Band` takes `title` / `caption` / `kicker` / `action` — the exact shape
+      every `band-head` in the v2 mocks uses — and generates its own
+      `aria-labelledby` via `useId`. The divider is `border-t` with
+      `first:border-t-0`, not `border-b` on all but the last: a sheet whose
+      last band is conditional would otherwise end on a rule with nothing
+      under it.
+- [x] `PageHeading`: the heading and its actions live on the felt, **outside**
       the sheet. The sheet is a record of results and holds no controls except
       its own tabs.
-- [ ] Small shared pieces the mocks all use: a display-scale stat figure, a
+- [~] Small shared pieces the mocks all use: a display-scale stat figure, a
       mini-stat, a gold pill, a sort dropdown, a `Sparkline`, and a two-step
       destructive confirm. Build them when the first stage needs them, not
       speculatively — but they live in `src/components/`, not in a page.
 
+      **One built: `FeltButton`.** `PageHeading` is inert without it — the
+      contract's `.btn` / `.btn-primary` / `.btn-ghost` is cream-on-felt and
+      40px tall, and the existing `Button` is ink-on-cream and 34px, styled
+      for the inside of a card. They are two different controls and merging
+      them would have restyled every existing page, which Stage 0 must not do.
+      `FeltButton` renders a `Link` when given `to`, since both of Stage 1's
+      heading actions are navigations. The other six wait for a stage that
+      needs them.
+
 **Exit gate:** every existing route renders, `tsc` clean, build clean, lint at
 or below the recorded baseline, and a browser pass on all four tabs.
 
+Machine half, 2026-09-09: `tsc -b --noEmit` clean · `vite build` clean · lint
+**1 warning**, still only `SessionsListPage:98`, so the baseline held and
+`--max-warnings 1` passes. Dev server boots clean and serves `/` 200. **Human
+half outstanding:** the browser pass. An SPA's routes cannot be proved to
+render by `curl` — it returns the same `index.html` for every path.
+
 **Out of scope:** the hand-rolled calendar (Stage 5 owns it — it is only ever
 used there).
+
+### Five things the build turned up
+
+**1. A focus ring you could not see, and the token that fixes it.** Rule 9
+asks for "a visible `:focus-visible` gold ring" and the contract implements it
+as `outline: 2px solid var(--gold-500)`. On felt that is right. On `card-50`
+it is about **1.9:1** — a ring that satisfies the letter of the rule and not
+the point of it, and cream is the surface every result in the app sits on.
+`--gold-ink` is the contract's own answer for gold that has to read on cream,
+so cream surfaces swap the outline colour to it: `[data-cream]
+:focus-visible`. `Sheet` and `Card` both carry `data-cream`, `Card` because
+the un-migrated pages are still built from it and their focus rings should not
+stay invisible until Stage 4 reaches them. No new colour, no new token.
+
+**2. Tailwind v4 tree-shakes `@theme`, so a token can be "added" and absent.**
+`--color-gold-ink` was in `@theme` and *not in the built CSS* until something
+referenced it — v4 emits only the variables it can see used. It is emitted now
+(the focus rule above uses it), but the trap generalises: **grepping the built
+CSS is not how you check a token exists.** Prefer the generated utilities
+(`text-gold-ink`, `bg-gold-ink`) over `var(--color-gold-ink)` in an arbitrary
+value, because the utility cannot silently resolve to nothing.
+
+**3. The mocks leave a phone with no navigation.** `@media (max-width: 720px)`
+sets `.nav { display: none }` and puts nothing in its place — checked all four
+v2 mocks and the contract; there is no hamburger, no bottom bar, nothing.
+Taken literally that ships an app you cannot navigate on the one device
+`CLAUDE.md` says it gets used on ("we'll be using this on phones at the
+table"), and it is a regression from today, where the nav is always visible.
+The responsive section says "copy verbatim, **extend as needed**", so the nav
+wraps to its own full-width centred row below 720px instead of vanishing.
+Desktop is byte-identical to the contract. **This is a placeholder, not a
+design** — if Phase 3 wants a real mobile pattern, `GroupNav` is the seam.
+
+**4. The brand spade was invisible.** `SuitBadge` fills black suits with
+`ink-900`, which is right on cream and is `#1a1614` on `#0d3324` felt — the
+topbar's spade has been a dark smudge on dark green the whole time. The
+contract's brand mark is explicit about it: cream spade, `crimson-500` heart.
+`SuitBadge` gained an optional `fill` override (defaulting to exactly what it
+did before, so its ten other call sites are untouched) and the brand passes
+cream and `crimson-500`. Not a redesign, a legibility fix that the "copy the
+chrome verbatim" instruction happened to surface.
+
+**5. `PlayerAvatar` is not the contract's `.pcard`, and was left alone.** The
+contract specifies 26×34, radius 5, a 10px rank and a 13px suit; `PlayerAvatar`
+at `sm` is 28×36, radius 6, 11px rank, 16px suit. Two pixels, but it is a real
+divergence. It is **not** on Stage 0's checklist, and it renders on nearly
+every existing page, so aligning it here would have been exactly the
+half-finished redesign this stage exists to avoid. Whichever stage first needs
+a contract-exact card takes it.
 
 ---
 
@@ -495,6 +591,19 @@ Not blocking any stage. Recorded so they are not rediscovered.
 
 Newest first. One line per meaningful change.
 
+- **2026-09-09** — **Stage 0 built** on `ui_redesign_0` (branch named by Will;
+  this file had proposed `redesign-0-foundation`). Eight token/felt gaps
+  closed, not one. Chrome to the contract, active tab now a translucent wash
+  rather than a cream pill. New `Sheet`, `Band`, `PageHeading`, `FeltButton`.
+  `tsc`/build clean, lint still 1. Five findings recorded under Stage 0: the
+  gold focus ring is invisible on cream and now uses `gold-ink`; v4
+  tree-shakes `@theme` so a token can be added and absent; the mocks leave a
+  phone with no nav and the nav wraps instead of hiding; the topbar's brand
+  spade was ink-on-felt and invisible; `PlayerAvatar` is not `.pcard` and was
+  deliberately not touched. Browser pass outstanding.
+- **2026-09-09** — Stage P **complete**. `0019` pushed, then PR #3 merged
+  (`7ccb608`) — that order, because the branch had already deleted the 23505
+  handler the live index could still raise.
 - **2026-09-09** — Stage P, two of three. Mocks committed (`3abdbff`).
   `migration list` says `0019` is **unpushed** — Will pushes it before the
   `qol-small-items` merge, because the branch already deleted the 23505

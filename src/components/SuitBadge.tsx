@@ -4,6 +4,13 @@ type Props = {
   suit: Suit;
   size?: number;
   className?: string;
+  /**
+   * Override the fill. The default is the card colour — ink for black suits,
+   * crimson for red — which is correct on cream and invisible on felt. The
+   * brand mark in the topbar is the one place that needs cream, so it passes
+   * its own.
+   */
+  fill?: string;
 };
 
 const PATHS: Record<Suit, string> = {
@@ -16,7 +23,12 @@ const PATHS: Record<Suit, string> = {
     "M50 6a17 17 0 0 0-13 28 17 17 0 1 0-9 28 17 17 0 0 0 16-3c-1 7-6 14-13 19h38c-7-5-12-12-13-19a17 17 0 0 0 16 3 17 17 0 1 0-9-28A17 17 0 0 0 50 6Z",
 };
 
-export default function SuitBadge({ suit, size = 16, className }: Props) {
+export default function SuitBadge({
+  suit,
+  size = 16,
+  className,
+  fill,
+}: Props) {
   const isRed = suit === "heart" || suit === "diamond";
   return (
     <svg
@@ -29,7 +41,9 @@ export default function SuitBadge({ suit, size = 16, className }: Props) {
     >
       <path
         d={PATHS[suit]}
-        fill={isRed ? "var(--color-crimson-600)" : "var(--color-ink-900)"}
+        fill={
+          fill ?? (isRed ? "var(--color-crimson-600)" : "var(--color-ink-900)")
+        }
       />
     </svg>
   );
