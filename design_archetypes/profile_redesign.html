@@ -1,0 +1,1085 @@
+<title>Player Card</title>
+<link
+  href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&display=swap"
+  rel="stylesheet" />
+<style>
+:root {
+  --felt-900: #0d3324;
+  --felt-800: #11402c;
+  --felt-700: #1a5238;
+  --card-50: #f7f1de;
+  --card-100: #ece3c8;
+  --card-200: #d9cfa8;
+  --ink-900: #1a1614;
+  --ink-700: #3a322b;
+  --ink-500: #6b5e54;
+  --crimson-700: #8a1620;
+  --crimson-600: #b21e2c;
+  --crimson-500: #d23548;
+  --gold-500: #c9a24a;
+  --gold-ink: #7a5d1a;
+  --sage-700: #436c54;
+  --sage-600: #5b8e6e;
+  --teal-500: #2c9c8e;
+  --sky-500: #2a7fb8;
+  --orange-500: #d97a3b;
+  --amber-500: #d6a13a;
+
+  --display: "DM Serif Display", Georgia, "Times New Roman", serif;
+  --sans: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html { background: var(--felt-900); }
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background-color: var(--felt-900);
+  background-image:
+    radial-gradient(ellipse at 50% -12%, rgba(255, 255, 255, 0.055), transparent 58%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.012) 0 2px, transparent 2px 6px);
+  background-attachment: fixed;
+  color: var(--card-50);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; text-decoration: none; }
+button { font: inherit; cursor: pointer; }
+
+:focus-visible {
+  outline: 2px solid var(--gold-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.tabular { font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+
+.topbar {
+  border-bottom: 1px solid rgba(247, 241, 222, 0.1);
+  background: rgba(13, 51, 36, 0.76);
+  backdrop-filter: blur(14px);
+}
+
+.wrap { width: min(1152px, calc(100% - 32px)); margin-inline: auto; }
+
+.topbar-inner { display: flex; align-items: center; gap: 20px; min-height: 66px; }
+
+.brand { display: flex; align-items: center; gap: 9px; }
+.brand-suits { display: flex; gap: 2px; }
+.brand-name { font-family: var(--display); font-size: 24px; letter-spacing: -0.02em; }
+.brand-name em { font-style: normal; color: var(--crimson-500); }
+
+.nav { display: flex; gap: 4px; margin-left: auto; }
+.nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 13px;
+  border-radius: 10px;
+  color: rgba(247, 241, 222, 0.62);
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 160ms ease, color 160ms ease;
+}
+.nav a:hover { background: rgba(247, 241, 222, 0.08); color: var(--card-50); }
+.nav a[aria-current="page"] { background: rgba(247, 241, 222, 0.1); color: var(--card-50); }
+
+.group-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(247, 241, 222, 0.07);
+  box-shadow: inset 0 0 0 1px rgba(247, 241, 222, 0.12);
+  color: var(--card-50);
+  font-size: 12px;
+  font-weight: 500;
+}
+.group-switch:hover { background: rgba(247, 241, 222, 0.12); }
+
+.profile { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500; }
+
+.pcard {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 34px;
+  border-radius: 5px;
+  background: var(--card-50);
+  box-shadow: 0 0 0 1px var(--card-200), 0 1px 2px rgba(0, 0, 0, 0.1);
+  color: var(--ink-900);
+}
+.pcard.red { color: var(--crimson-600); }
+.pcard .rank { position: absolute; top: 2px; left: 3.5px; font: 10px/1 var(--display); }
+.pcard svg { width: 13px; height: 13px; fill: currentColor; }
+
+main { padding: 30px 0 56px; }
+
+.page-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.page-heading h1 { margin: 0; font: 40px/1 var(--display); letter-spacing: -0.015em; }
+.page-heading p { margin: 7px 0 0; color: rgba(247, 241, 222, 0.6); font-size: 13px; }
+
+.actions { display: flex; gap: 8px; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 11px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: transform 150ms ease, background 150ms ease;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn-primary {
+  background: var(--card-50);
+  color: var(--ink-900);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.22);
+}
+.btn-ghost {
+  background: rgba(247, 241, 222, 0.08);
+  color: var(--card-50);
+  box-shadow: inset 0 0 0 1px rgba(247, 241, 222, 0.14);
+}
+
+.sheet {
+  overflow: hidden;
+  border-radius: 22px;
+  background: var(--card-50);
+  box-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.14),
+    0 30px 70px -28px rgba(0, 0, 0, 0.65),
+    0 0 0 1px var(--card-100);
+  color: var(--ink-900);
+  animation: settle 460ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes settle {
+  from { opacity: 0; transform: translateY(14px) rotate(-0.35deg); }
+  to { opacity: 1; transform: none; }
+}
+
+.band { padding: 26px 36px; }
+.band + .band { border-top: 1px solid var(--card-100); }
+
+.kicker {
+  color: var(--ink-500);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.band-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.band-head h2 { margin: 0; font: 400 23px/1.1 var(--display); }
+.subtle { color: var(--ink-500); font-size: 12px; }
+.link { color: var(--ink-500); font-size: 12px; font-weight: 500; }
+.link:hover { color: var(--ink-900); text-decoration: underline; }
+
+.pos { color: var(--sage-700); }
+.neg { color: var(--crimson-700); }
+.flat { color: var(--ink-500); }
+
+/* a row in a list of players */
+.row {
+  display: grid;
+  align-items: center;
+  gap: 14px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  transition: background 150ms ease;
+}
+.row + .row { border-top: 1px solid var(--card-100); }
+.row:hover { background: rgba(236, 227, 200, 0.42); }
+.row.you { background: rgba(236, 227, 200, 0.62); }
+.row.you:hover { background: var(--card-100); }
+.row-rank { font: 17px/1 var(--display); color: var(--ink-500); text-align: right; }
+.row-name { min-width: 0; font-size: 13.5px; font-weight: 500; }
+.row-sub { color: var(--ink-500); font-size: 10.5px; font-weight: 400; }
+.row-net { font: 18px/1 var(--display); text-align: right; }
+
+/* a compact result chip */
+.chip {
+  min-width: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(236, 227, 200, 0.5);
+  transition: background 150ms ease, transform 150ms ease;
+}
+.chip:hover { background: var(--card-100); transform: translateY(-1px); }
+.chip time {
+  display: block;
+  color: var(--ink-500);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.chip-net { display: block; margin-top: 6px; font: 20px/1 var(--display); }
+.chip-outcome { display: block; margin-top: 5px; color: var(--ink-500); font-size: 10px; }
+
+/* tab strip inside a band */
+.segmented { display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--card-100); }
+.segmented button {
+  min-height: 32px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-500);
+  font-size: 12px;
+  font-weight: 500;
+  transition: background 150ms ease, color 150ms ease;
+}
+.segmented button[aria-selected="true"] {
+  background: var(--card-50);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  color: var(--ink-900);
+  font-weight: 600;
+}
+
+/* a labelled figure */
+.stat-value { margin-top: 5px; font: 30px/1 var(--display); }
+.stat-note { margin-top: 4px; color: var(--ink-500); font-size: 11.5px; }
+
+/* a status pill on cream */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.pill-gold { background: rgba(201, 162, 74, 0.2); color: var(--gold-ink); }
+.pill-sage { background: rgba(91, 142, 110, 0.18); color: var(--sage-700); }
+.pill-crimson { background: rgba(178, 30, 44, 0.1); color: var(--crimson-700); }
+.pill-quiet { background: rgba(217, 207, 168, 0.5); color: var(--ink-500); }
+
+#tip {
+  position: fixed;
+  z-index: 40;
+  transform: translate(12px, -50%);
+  padding: 7px 10px;
+  border-radius: 9px;
+  background: var(--ink-900);
+  color: var(--card-50);
+  font-size: 11px;
+  line-height: 1.45;
+  pointer-events: none;
+  box-shadow: 0 8px 22px -8px rgba(0, 0, 0, 0.7);
+}
+#tip[hidden] { display: none !important; }
+.tip-head {
+  color: rgba(247, 241, 222, 0.62);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.tip-big { margin-top: 3px; font-size: 15px; font-weight: 600; }
+.tip-sub { color: rgba(247, 241, 222, 0.6); }
+
+.cutlist { margin-top: 34px; }
+.cutlist > .kicker { color: rgba(247, 241, 222, 0.5); }
+.cutlist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(268px, 1fr));
+  gap: 1px;
+  margin-top: 14px;
+  background: rgba(247, 241, 222, 0.11);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.cut { padding: 15px 17px; background: var(--felt-900); }
+.cut h3 { margin: 0; color: rgba(247, 241, 222, 0.9); font-size: 12.5px; font-weight: 600; }
+.cut p { margin: 5px 0 0; color: rgba(247, 241, 222, 0.52); font-size: 11.5px; line-height: 1.5; }
+
+.footnote {
+  margin: 22px 0 0;
+  color: rgba(247, 241, 222, 0.42);
+  font-size: 11.5px;
+  line-height: 1.6;
+  max-width: 74ch;
+}
+.footnote code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.94em;
+  color: rgba(247, 241, 222, 0.62);
+}
+
+/* Profile hero */
+body { overflow-x: hidden; }
+.group-switch { min-height: 36px; }
+
+.profile-hero {
+  display: grid;
+  grid-template-columns: minmax(210px, 0.72fr) minmax(0, 1.8fr);
+  gap: 54px;
+  align-items: center;
+  min-height: 312px;
+}
+.large-card-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+.large-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 172px;
+  height: 244px;
+  border-radius: 14px;
+  background: var(--card-50);
+  box-shadow: 0 0 0 1px var(--card-200), 0 26px 50px -22px rgba(0, 0, 0, 0.5);
+  color: var(--ink-900);
+  transform: rotate(-1.2deg);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+.large-card:hover {
+  transform: rotate(0deg) translateY(-2px);
+  box-shadow: 0 0 0 1px var(--card-200), 0 29px 54px -22px rgba(0, 0, 0, 0.56);
+}
+.large-card.red { color: var(--crimson-600); }
+.large-card .corner {
+  position: absolute;
+  top: 9px;
+  left: 12px;
+  font: 24px/1 var(--display);
+}
+.large-card .corner.bottom { inset: auto 12px 9px auto; transform: rotate(180deg); }
+.large-card .pip { width: 60px; height: 60px; fill: currentColor; }
+.card-caption { color: var(--ink-500); font-size: 11px; font-weight: 500; }
+.hero-record { min-width: 0; }
+.hero-label { color: var(--ink-500); font-size: 10px; font-weight: 600; letter-spacing: .13em; text-transform: uppercase; }
+.hero-rating-line, .hero-net-line { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.hero-rating { margin-top: 8px; font: 70px/.86 var(--display); color: var(--ink-900); }
+.hero-rating small { font-size: 28px; color: var(--ink-500); }
+.hero-net-block { margin-top: 27px; }
+.hero-net { margin-top: 7px; font: 43px/1 var(--display); }
+.streak { margin-top: 23px; }
+.rating-link { display: inline-flex; min-height: 36px; align-items: center; }
+.null-state {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
+  max-width: 420px;
+  margin-top: 23px;
+  padding-top: 16px;
+  border-top: 1px solid var(--card-100);
+}
+.null-mark { font: 34px/1 var(--display); color: var(--ink-900); }
+.null-state p { margin: 3px 0 0; color: var(--ink-500); font-size: 11px; line-height: 1.45; }
+
+/* Track record */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px 22px;
+  margin-top: 24px;
+}
+.stat { min-width: 0; }
+.stat-label { color: var(--ink-500); font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+
+/* Nights chart + rows */
+.chart-shell { position: relative; margin-top: 23px; }
+.chart-shell svg { display: block; width: 100%; height: auto; min-height: 230px; overflow: visible; touch-action: pan-y; }
+.chart-shell text { font-family: var(--sans); fill: var(--ink-500); font-size: 10px; }
+.night-list { margin-top: 18px; }
+.night-list-head, .night-row {
+  display: grid;
+  grid-template-columns: minmax(124px, 1.45fr) 1fr 1fr .9fr 1.15fr;
+  gap: 14px;
+  align-items: center;
+}
+.night-list-head {
+  padding: 0 12px 8px;
+  color: var(--ink-500);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+.night-list-head span:not(:first-child) { text-align: right; }
+.night-row {
+  min-height: 48px;
+  padding: 7px 12px;
+  border-top: 1px solid var(--card-100);
+  border-radius: 8px;
+  font-size: 12px;
+  transition: background 150ms ease;
+}
+.night-row:hover { background: rgba(236, 227, 200, .5); }
+.night-date { font-weight: 600; }
+.night-date span { display: block; margin-top: 2px; color: var(--ink-500); font-size: 9.5px; font-weight: 400; }
+.night-cell { text-align: right; color: var(--ink-700); }
+.night-net { text-align: right; font: 17px/1 var(--display); }
+.night-running { text-align: right; font-weight: 600; color: var(--ink-900); }
+
+/* Picker */
+.picker-layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 36px; margin-top: 22px; align-items: start; }
+.control-label { display: block; margin-bottom: 8px; color: var(--ink-500); font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
+.pick-row { display: flex; flex-wrap: wrap; gap: 7px; }
+.pick-row + .control-label { margin-top: 18px; }
+.pick {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  min-height: 36px;
+  border: 0;
+  border-radius: 7px;
+  background: var(--card-50);
+  box-shadow: 0 0 0 1px var(--card-200);
+  color: var(--ink-900);
+  transition: background 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+.pick:hover { background: var(--card-100); transform: translateY(-1px); }
+.pick-suit { gap: 7px; padding: 0 12px; color: var(--ink-700); font-size: 11px; font-weight: 500; }
+.pick-suit svg { width: 14px; height: 14px; fill: var(--ink-900); }
+.pick-suit[data-suit="heart"] svg, .pick-suit[data-suit="diamond"] svg { fill: var(--crimson-600); }
+.pick-suit[aria-pressed="true"] {
+  background: var(--card-50);
+  box-shadow: 0 0 0 2px var(--sage-600);
+  color: var(--ink-900);
+}
+.pick-rank { padding: 0 10px; font: 14px/1 var(--display); }
+.pick-rank[aria-pressed="true"] { background: var(--sage-600); box-shadow: 0 0 0 1px var(--sage-700); color: var(--card-50); }
+.picker-note { margin: 13px 0 0; max-width: 62ch; color: var(--ink-500); font-size: 11px; line-height: 1.5; }
+.save-line { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+.save-line .btn { background: var(--felt-900); color: var(--card-50); }
+.save-status { min-height: 18px; color: var(--sage-700); font-size: 12px; font-weight: 600; }
+.state-examples { padding: 14px 16px; border-left: 1px solid var(--card-200); }
+.state-examples p { margin: 7px 0 0; font-size: 11px; line-height: 1.5; }
+.state-examples .error { color: var(--crimson-700); }
+
+/* Felt sections */
+.felt-section { margin-top: 54px; }
+.felt-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 25px;
+  border-bottom: 1px solid rgba(247, 241, 222, .12);
+}
+.felt-title { display: flex; align-items: baseline; gap: 14px; }
+.section-num { font: 15px/1 var(--display); color: var(--gold-500); }
+.felt-title h2 { margin: 0; font: 400 clamp(29px, 3.6vw, 43px)/1.05 var(--display); letter-spacing: -.01em; }
+.felt-section-head > p { margin: 0; max-width: 38ch; color: rgba(247, 241, 222, .65); font-size: 13px; line-height: 1.6; }
+.leave-action { margin-top: 22px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.btn-danger { background: var(--crimson-600); color: var(--card-50); box-shadow: 0 2px 0 rgba(0,0,0,.25); }
+.btn-danger:hover { background: var(--crimson-700); }
+.confirm-panel { display: none; align-items: center; gap: 10px; flex-wrap: wrap; color: rgba(247,241,222,.72); font-size: 12px; }
+.confirm-panel.open { display: flex; }
+.confirm-panel .btn-ghost { border: 0; }
+.leave-result { color: var(--gold-500); font-size: 12px; }
+.eyebrow { color: var(--gold-500); font-size: 11px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; }
+
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity .7s cubic-bezier(.2,.8,.2,1), transform .7s cubic-bezier(.2,.8,.2,1);
+}
+[data-reveal].in { opacity: 1; transform: none; }
+
+@media (max-width: 820px) {
+  .profile-hero { grid-template-columns: 190px 1fr; gap: 28px; }
+  .picker-layout { grid-template-columns: 1fr; }
+  .state-examples { border-left: 0; border-top: 1px solid var(--card-200); padding-inline: 0; }
+}
+
+@media (max-width: 720px) {
+  .nav { display: none; }
+  .band { padding-inline: 20px; }
+  .page-heading h1 { font-size: 32px; }
+}
+
+@media (max-width: 620px) {
+  .topbar-inner { gap: 10px; }
+  .brand-name { font-size: 21px; }
+  .group-switch { margin-left: auto; max-width: 126px; overflow: hidden; white-space: nowrap; }
+  .profile > span:last-child { display: none; }
+  .profile-hero { grid-template-columns: 1fr; text-align: center; }
+  .hero-rating-line, .hero-net-line { justify-content: center; }
+  .null-state { margin-inline: auto; text-align: left; }
+  .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .night-list-head { display: none; }
+  .night-row { grid-template-columns: 1fr auto; gap: 4px 12px; padding-block: 10px; }
+  .night-date { grid-row: 1 / 3; }
+  .night-cell { text-align: right; font-size: 10px; }
+  .night-cell.buyins::before { content: "Buy-ins · "; color: var(--ink-500); }
+  .night-cell.cashout::before { content: "Out · "; color: var(--ink-500); }
+  .night-net, .night-running { margin-top: 5px; }
+  .night-net::before { content: "Night · "; color: var(--ink-500); font: 10px/1 var(--sans); }
+  .night-running::before { content: "Lifetime · "; color: var(--ink-500); font-size: 10px; font-weight: 400; }
+  .felt-section-head { align-items: flex-start; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet { animation: none; }
+  .btn:hover, .chip:hover { transform: none; }
+  * { transition-duration: 1ms !important; }
+  [data-reveal] { opacity: 1; transform: none; }
+  .large-card, .large-card:hover { transform: none; }
+  .pick:hover { transform: none; }
+}
+</style>
+
+<div class="topbar">
+  <div class="wrap topbar-inner">
+    <div class="brand">
+      <span class="brand-suits">
+        <svg viewBox="0 0 100 100" width="15" height="15" aria-hidden="true">
+          <path d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z" fill="#f7f1de" />
+        </svg>
+        <svg viewBox="0 0 100 100" width="15" height="15" aria-hidden="true">
+          <path d="M50 88C28 72 8 56 8 35a20 20 0 0 1 36-12 20 20 0 0 1 36 12c0 21-20 37-30 53Z" fill="#d23548" />
+        </svg>
+      </span>
+      <span class="brand-name">royal<em>.gg</em></span>
+    </div>
+
+    <nav class="nav" aria-label="Main">
+      <a href="#">Dashboard</a>
+      <a href="#">Sessions</a>
+      <a href="#">League</a>
+      <a href="#" aria-current="page">You</a>
+    </nav>
+
+    <button type="button" class="group-switch">Thursday Night <span aria-hidden="true">▾</span></button>
+
+    <div class="profile">
+      <span class="pcard" aria-hidden="true">
+        <span class="rank">A</span>
+        <svg viewBox="0 0 100 100"><path d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z" /></svg>
+      </span>
+      <span>Dan</span>
+    </div>
+  </div>
+</div>
+
+<main>
+  <div class="wrap">
+    <header class="page-heading">
+      <div>
+        <h1>Dan Caesar</h1>
+        <p>Your record in Thursday Night · 24 nights since 27 March.</p>
+      </div>
+      <div class="actions">
+        <a class="btn btn-ghost" href="/profile">Account settings</a>
+      </div>
+    </header>
+
+    <article class="sheet" aria-label="Dan Caesar's Thursday Night record">
+      <section class="band profile-hero" aria-labelledby="record-heading">
+        <figure class="large-card-wrap">
+          <div class="large-card" id="heroCard" aria-label="Dan Caesar, ace of spades">
+            <span class="corner" id="cardRankTop">A</span>
+            <svg class="pip" viewBox="0 0 100 100" role="img">
+              <title id="cardSuitTitle">Spade</title>
+              <path id="cardSuitPath" d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z" />
+            </svg>
+            <span class="corner bottom" id="cardRankBottom">A</span>
+          </div>
+          <figcaption class="card-caption" id="cardCaption">Dan Caesar · A of spades</figcaption>
+        </figure>
+
+        <div class="hero-record">
+          <div class="hero-label" id="record-heading">Player rating</div>
+          <div class="hero-rating-line">
+            <div class="hero-rating tabular">8.1<small>/10</small></div>
+            <span class="pill pill-quiet">#1 of 8</span>
+          </div>
+          <a class="link rating-link" href="/g/thursday-night/players/dan-caesar/rating">How is this calculated? →</a>
+
+          <div class="hero-net-block">
+            <div class="hero-label">Lifetime net</div>
+            <div class="hero-net-line">
+              <div class="hero-net pos tabular" data-money="41200">+$412.00</div>
+              <span class="pill pill-quiet">#1 all-time</span>
+            </div>
+          </div>
+
+          <!-- Streak copy rules: render no pill below four nights played. At zero of the last four up,
+               flip the framing to “3 of your last 4 nights down” instead of “0 of your last 4 up”. -->
+          <div class="streak"><span class="pill pill-gold">3 of your last 4 nights up</span></div>
+
+          <aside class="null-state" aria-label="Example of the rating state before three sessions">
+            <div class="null-mark">—</div>
+            <div>
+              <div class="kicker">Null-rating example</div>
+              <p>Need at least 3 sessions for a rating. The card and lifetime record still render.</p>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="band" aria-labelledby="track-heading">
+        <div class="band-head">
+          <h2 id="track-heading">Track record</h2>
+          <span class="subtle">all 24 nights in Thursday Night</span>
+        </div>
+        <div class="stats-grid">
+          <div class="stat">
+            <div class="stat-label">Nights played</div>
+            <div class="stat-value tabular">24</div>
+            <div class="stat-note">your full sample</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Wins</div>
+            <div class="stat-value tabular">15</div>
+            <div class="stat-note">positive nights</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Losses</div>
+            <div class="stat-value tabular">9</div>
+            <div class="stat-note">negative nights</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Win rate</div>
+            <div class="stat-value tabular">62.5%</div>
+            <div class="stat-note">15 wins from 24 nights</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">E(X) per night</div>
+            <div class="stat-value pos tabular" data-money="1717">+$17.17</div>
+            <div class="stat-note">what an average night is worth to you</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Std dev</div>
+            <div class="stat-value tabular">$48.53</div>
+            <div class="stat-note">how much a night swings</div>
+          </div>
+          <!-- playerStats() returns best and worst amounts, but not the session ids. These figures
+               are deliberately not links; linking them requires carrying the ids through stats.ts. -->
+          <div class="stat">
+            <div class="stat-label">Biggest win</div>
+            <div class="stat-value pos tabular" data-money="12000">+$120.00</div>
+            <div class="stat-note">one night, all time</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Biggest loss</div>
+            <div class="stat-value neg tabular" data-money="-6250">−$62.50</div>
+            <div class="stat-note">one night, all time</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Total bought in</div>
+            <div class="stat-value neg tabular" data-money="324000">$3,240.00</div>
+            <div class="stat-note">81 buy-ins at $40</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="band" aria-labelledby="nights-heading">
+        <div class="band-head">
+          <h2 id="nights-heading">Your nights</h2>
+          <span class="subtle">24 nights · newest first</span>
+        </div>
+
+        <div class="chart-shell" id="chartShell">
+          <svg id="cumulativeChart" viewBox="0 0 1000 280" role="img" aria-labelledby="chartTitle chartDesc">
+            <title id="chartTitle">Dan Caesar’s cumulative net across 24 nights</title>
+            <desc id="chartDesc">An interactive line chart. Hover or focus the chart to inspect each night’s cumulative total and result.</desc>
+          </svg>
+        </div>
+
+        <div class="night-list" aria-label="All nights, newest first">
+          <div class="night-list-head" aria-hidden="true">
+            <span>Night</span><span>Buy-ins</span><span>Cash-out</span><span>Net</span><span>Lifetime</span>
+          </div>
+          <div id="nightRows"></div>
+        </div>
+      </section>
+
+      <section class="band" aria-labelledby="card-heading">
+        <div class="band-head">
+          <h2 id="card-heading">Your card</h2>
+          <span class="subtle">how you see yourself at this table</span>
+        </div>
+
+        <div class="picker-layout">
+          <form id="cardForm">
+            <span class="control-label">Suit</span>
+            <div class="pick-row" id="suitPicker" role="group" aria-label="Suit"></div>
+
+            <span class="control-label">Rank</span>
+            <div class="pick-row" id="rankPicker" role="group" aria-label="Rank"></div>
+
+            <p class="picker-note">Pick the suit and rank that represent you. Two people in a group can hold the same card.</p>
+            <div class="save-line">
+              <button class="btn" type="submit">Save</button>
+              <span class="save-status" id="saveStatus" role="status" aria-live="polite"></span>
+            </div>
+          </form>
+
+          <aside class="state-examples" aria-label="Save-state examples">
+            <div class="kicker">Save-state examples</div>
+            <p class="pos">Saved.</p>
+            <p class="error">That card could not be saved. Try reloading the page.</p>
+            <!-- A row-level-security refusal can return zero updated rows and no error. An empty
+                 update result must be treated as failure, never as “Saved.” -->
+          </aside>
+        </div>
+      </section>
+    </article>
+
+    <section class="felt-section" data-reveal aria-labelledby="leave-heading">
+      <div class="felt-section-head">
+        <div class="felt-title">
+          <span class="section-num">01</span>
+          <h2 id="leave-heading">Leave this group</h2>
+        </div>
+        <p>Your roster row and every result stay with Thursday Night, so the ledger never forks. You can rejoin later with the group code.</p>
+      </div>
+      <div class="leave-action">
+        <button class="btn btn-danger" id="leaveStart" type="button">Leave group</button>
+        <div class="confirm-panel" id="leaveConfirm">
+          <span>Leave Thursday Night?</span>
+          <button class="btn btn-danger" id="leaveFinal" type="button">Yes, leave group</button>
+          <button class="btn btn-ghost" id="leaveCancel" type="button">Cancel</button>
+        </div>
+        <span class="leave-result" id="leaveResult" role="status"></span>
+      </div>
+    </section>
+
+    <section class="cutlist" data-reveal aria-labelledby="cut-heading">
+      <div class="eyebrow">Design review</div>
+      <div class="kicker" id="cut-heading">Cut from the redesign — not shipping</div>
+      <div class="cutlist-grid">
+        <article class="cut">
+          <h3>Merging this page with account-level /profile</h3>
+          <p>QoL item 6: two pages, 197 and 188 lines, read as one. Blocked on GROUPS §11: stats are per-group, and different stakes do not sum honestly for someone in two groups. That is why this page names Thursday Night.</p>
+        </article>
+        <article class="cut">
+          <h3>Head-to-head records</h3>
+          <p>The schema stores night totals, not hands or positions. “You beat Priya 12–8” could only mean out-netting her on shared nights—a weaker claim than the phrase promises.</p>
+        </article>
+        <article class="cut">
+          <h3>Achievements or badges</h3>
+          <p>Nothing defines an achievement, and the player rating already compresses the record into a single figure.</p>
+        </article>
+        <article class="cut">
+          <h3>Linking biggest win and loss</h3>
+          <p><code>playerStats()</code> returns the amounts but not session ids. The dashboard had to carry the id alongside too. Cheap, but it belongs in <code>stats.ts</code>, not a page mock.</p>
+        </article>
+        <article class="cut">
+          <h3>A goal or target for the season</h3>
+          <p>There is no season concept and no per-player target. The dashboard cut the same thing for the same reason.</p>
+        </article>
+        <article class="cut">
+          <h3>Uploading a photo</h3>
+          <p>The card is the avatar. That is the whole visual identity system of royal.gg.</p>
+        </article>
+      </div>
+    </section>
+
+    <p class="footnote" data-reveal>
+      Arithmetic check: the 24 nightly nets sum to exactly <code>+$412.00</code>. The record is 15W–9L, and 15 ÷ 24 is <code>62.5%</code>. Dividing 41,200 cents by 24 gives 1,716⅔ cents, which rounds up once to <code>+$17.17</code>; <code>+$17.17 × 24 = +$412.08</code>, the eight-cent difference is the visible consequence of rounding the mean. The sample standard deviation is <code>$48.53</code>. The <code>8.1</code> rating is <code>playerRating()</code> on this same data: 62.5% win rate, $48.53 session standard deviation, <code>+$98.00</code> over the last six, and <code>+$412.00</code> lifetime, weighted <code>0.25 / 0.20 / 0.20 / 0.35</code>. Dan’s own extrema are <code>+$120.00 / −$62.50</code>. These are internally consistent sample figures, not the real league.
+    </p>
+  </div>
+</main>
+
+<div id="tip" hidden>
+  <div class="tip-head" id="tipHead"></div>
+  <div class="tip-big tabular" id="tipBig"></div>
+  <div class="tip-sub tabular" id="tipSub"></div>
+</div>
+
+<script>
+const SUITS = {
+  spade: "M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z",
+  heart: "M50 88C28 72 8 56 8 35a20 20 0 0 1 36-12 20 20 0 0 1 36 12c0 21-20 37-30 53Z",
+  club: "M50 6a17 17 0 0 0-13 28 17 17 0 1 0-9 28 17 17 0 0 0 16-3c-1 7-6 14-13 19h38c-7-5-12-12-13-19a17 17 0 0 0 16 3 17 17 0 1 0-9-28A17 17 0 0 0 50 6Z",
+  diamond: "M50 6 88 50 50 94 12 50Z",
+};
+const isRed = (s) => s === "heart" || s === "diamond";
+
+const RANKS = ["A", "K", "Q", "J", "10", "9", "8", "7", "6", "5", "4", "3", "2"];
+const SUIT_ORDER = ["spade", "heart", "diamond", "club"];
+const SUIT_NAMES = { spade: "Spades", heart: "Hearts", diamond: "Diamonds", club: "Clubs" };
+const DATES = [
+  "27 Mar", "3 Apr", "10 Apr", "17 Apr", "24 Apr", "1 May", "8 May", "15 May",
+  "22 May", "29 May", "5 Jun", "12 Jun", "19 Jun", "26 Jun", "3 Jul", "10 Jul",
+  "17 Jul", "24 Jul", "31 Jul", "7 Aug", "14 Aug", "21 Aug", "28 Aug", "4 Sep"
+];
+const NETS_CENTS = [
+  -3500, 2200, 4800, -1800, 1500, 6400, -5200, 3100, 5700, -2600, 2600, 7300,
+  -4400, 1900, 4200, -1200, 6800, 3600, -3000, -6250, 2400, 8650, -4000, 12000
+];
+const BUY_IN_COUNTS = [4, 4, 4, 3, 4, 3, 3, 3, 3, 3, 4, 3, 3, 3, 4, 3, 3, 3, 3, 4, 3, 4, 3, 4];
+
+const NIGHTS = DATES.map((date, index) => ({
+  id: `sample-session-${index + 1}`,
+  date,
+  netCents: NETS_CENTS[index],
+  buyInCount: BUY_IN_COUNTS[index],
+  buyInCents: BUY_IN_COUNTS[index] * 4000,
+  cashOutCents: BUY_IN_COUNTS[index] * 4000 + NETS_CENTS[index],
+}));
+
+let runningCents = 0;
+NIGHTS.forEach((night) => {
+  runningCents += night.netCents;
+  night.runningCents = runningCents;
+});
+
+function dollars(cents) {
+  const absolute = Math.abs(cents);
+  return `$${Math.floor(absolute / 100).toLocaleString("en-US")}.${String(absolute % 100).padStart(2, "0")}`;
+}
+
+function signedCents(cents) {
+  if (cents === 0) return "$0.00";
+  return `${cents > 0 ? "+" : "−"}${dollars(cents)}`;
+}
+
+function moneyClass(cents) {
+  return cents > 0 ? "pos" : cents < 0 ? "neg" : "flat";
+}
+
+document.querySelectorAll("[data-money]").forEach((node) => {
+  const cents = Number(node.dataset.money);
+  node.textContent = node.dataset.money === "324000" ? dollars(cents) : signedCents(cents);
+});
+
+const rows = document.getElementById("nightRows");
+[...NIGHTS].reverse().forEach((night) => {
+  const row = document.createElement("a");
+  row.className = "night-row";
+  row.href = `/g/thursday-night/sessions/${night.id}`;
+  row.setAttribute("aria-label", `${night.date} 2026, ${night.buyInCount} buy-ins, net ${signedCents(night.netCents)}, running lifetime ${signedCents(night.runningCents)}`);
+  row.innerHTML = `
+    <span class="night-date">${night.date}<span>2026 · open night →</span></span>
+    <span class="night-cell buyins tabular">${night.buyInCount} × $40</span>
+    <span class="night-cell cashout tabular">${dollars(night.cashOutCents)}</span>
+    <span class="night-net tabular ${moneyClass(night.netCents)}">${signedCents(night.netCents)}</span>
+    <span class="night-running tabular">${signedCents(night.runningCents)}</span>`;
+  rows.appendChild(row);
+});
+
+const chart = document.getElementById("cumulativeChart");
+const NS = "http://www.w3.org/2000/svg";
+const W = 1000;
+const H = 280;
+const PAD = { left: 58, right: 22, top: 19, bottom: 32 };
+const innerW = W - PAD.left - PAD.right;
+const innerH = H - PAD.top - PAD.bottom;
+const cumulative = NIGHTS.map((night) => night.runningCents);
+const yMin = Math.min(-12000, ...cumulative);
+const yMax = Math.max(48000, ...cumulative);
+const xOf = (index) => PAD.left + (index / (NIGHTS.length - 1)) * innerW;
+const yOf = (cents) => PAD.top + ((yMax - cents) / (yMax - yMin)) * innerH;
+const zeroY = yOf(0);
+const points = cumulative.map((value, index) => `${xOf(index).toFixed(2)},${yOf(value).toFixed(2)}`).join(" ");
+const areaPath = `M ${xOf(0)} ${zeroY} L ${points.replaceAll(" ", " L ")} L ${xOf(NIGHTS.length - 1)} ${zeroY} Z`;
+const linePath = `M ${points.replaceAll(" ", " L ")}`;
+
+function svgEl(name, attrs = {}) {
+  const node = document.createElementNS(NS, name);
+  Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, String(value)));
+  return node;
+}
+
+const defs = svgEl("defs");
+const sageGradient = svgEl("linearGradient", { id: "sageArea", x1: "0", y1: "0", x2: "0", y2: "1" });
+sageGradient.append(svgEl("stop", { offset: "0", "stop-color": "#5b8e6e", "stop-opacity": ".32" }), svgEl("stop", { offset: "1", "stop-color": "#5b8e6e", "stop-opacity": ".02" }));
+const crimsonGradient = svgEl("linearGradient", { id: "crimsonArea", x1: "0", y1: "0", x2: "0", y2: "1" });
+crimsonGradient.append(svgEl("stop", { offset: "0", "stop-color": "#b21e2c", "stop-opacity": ".03" }), svgEl("stop", { offset: "1", "stop-color": "#b21e2c", "stop-opacity": ".3" }));
+const aboveClip = svgEl("clipPath", { id: "aboveZero" });
+aboveClip.append(svgEl("rect", { x: PAD.left, y: PAD.top, width: innerW, height: zeroY - PAD.top }));
+const belowClip = svgEl("clipPath", { id: "belowZero" });
+belowClip.append(svgEl("rect", { x: PAD.left, y: zeroY, width: innerW, height: H - PAD.bottom - zeroY }));
+defs.append(sageGradient, crimsonGradient, aboveClip, belowClip);
+chart.appendChild(defs);
+
+[-10000, 0, 20000, 40000].forEach((tick) => {
+  const y = yOf(tick);
+  chart.appendChild(svgEl("line", { x1: PAD.left, y1: y, x2: W - PAD.right, y2: y, stroke: tick === 0 ? "#c9a24a" : "#d9cfa8", "stroke-opacity": tick === 0 ? ".72" : ".5", "stroke-width": tick === 0 ? "1.2" : "1" }));
+  const label = svgEl("text", { x: PAD.left - 10, y: y + 3, "text-anchor": "end" });
+  label.textContent = tick === 0 ? "$0" : signedCents(tick).replace(".00", "");
+  chart.appendChild(label);
+});
+
+chart.append(
+  svgEl("path", { d: areaPath, fill: "url(#sageArea)", "clip-path": "url(#aboveZero)" }),
+  svgEl("path", { d: areaPath, fill: "url(#crimsonArea)", "clip-path": "url(#belowZero)" }),
+  svgEl("path", { d: linePath, fill: "none", stroke: "#5b8e6e", "stroke-width": "2.6", "stroke-linecap": "round", "stroke-linejoin": "round", "clip-path": "url(#aboveZero)" }),
+  svgEl("path", { d: linePath, fill: "none", stroke: "#b21e2c", "stroke-width": "2.6", "stroke-linecap": "round", "stroke-linejoin": "round", "clip-path": "url(#belowZero)" })
+);
+
+const startLabel = svgEl("text", { x: PAD.left, y: H - 9 });
+startLabel.textContent = "27 MAR";
+const endLabel = svgEl("text", { x: W - PAD.right, y: H - 9, "text-anchor": "end" });
+endLabel.textContent = "4 SEP";
+chart.append(startLabel, endLabel);
+
+const lastHalo = svgEl("circle", { cx: xOf(23), cy: yOf(cumulative[23]), r: "7", fill: "#5b8e6e", "fill-opacity": ".18" });
+const lastPoint = svgEl("circle", { cx: xOf(23), cy: yOf(cumulative[23]), r: "4", fill: "#5b8e6e", stroke: "#f7f1de", "stroke-width": "2" });
+chart.append(lastHalo, lastPoint);
+
+const hoverGroup = svgEl("g", { visibility: "hidden" });
+const hoverRule = svgEl("line", { y1: PAD.top, y2: H - PAD.bottom, stroke: "#6b5e54", "stroke-opacity": ".28", "stroke-width": "1" });
+const hoverHalo = svgEl("circle", { r: "6.5", fill: "#5b8e6e", "fill-opacity": ".18" });
+const hoverDot = svgEl("circle", { r: "3.4", fill: "#5b8e6e", stroke: "#f7f1de", "stroke-width": "1.7" });
+hoverGroup.append(hoverRule, hoverHalo, hoverDot);
+chart.appendChild(hoverGroup);
+
+const chartHit = svgEl("rect", { x: PAD.left, y: PAD.top, width: innerW, height: innerH, fill: "transparent", tabindex: "0", role: "button", "aria-label": "Inspect cumulative results by night" });
+chart.appendChild(chartHit);
+
+const tip = document.getElementById("tip");
+function showChartPoint(index, clientX, clientY) {
+  const night = NIGHTS[index];
+  const x = xOf(index);
+  const y = yOf(night.runningCents);
+  hoverRule.setAttribute("x1", x);
+  hoverRule.setAttribute("x2", x);
+  hoverHalo.setAttribute("cx", x);
+  hoverHalo.setAttribute("cy", y);
+  hoverDot.setAttribute("cx", x);
+  hoverDot.setAttribute("cy", y);
+  hoverGroup.setAttribute("visibility", "visible");
+  document.getElementById("tipHead").textContent = `${night.date} 2026 · night ${index + 1}`;
+  document.getElementById("tipBig").textContent = signedCents(night.runningCents);
+  document.getElementById("tipSub").textContent = `That night ${signedCents(night.netCents)}`;
+  tip.hidden = false;
+  tip.style.left = `${Math.min(clientX, window.innerWidth - 190)}px`;
+  tip.style.top = `${Math.max(54, Math.min(clientY, window.innerHeight - 54))}px`;
+}
+
+chartHit.addEventListener("pointermove", (event) => {
+  const rect = chart.getBoundingClientRect();
+  const viewX = ((event.clientX - rect.left) / rect.width) * W;
+  const index = Math.max(0, Math.min(NIGHTS.length - 1, Math.round(((viewX - PAD.left) / innerW) * (NIGHTS.length - 1))));
+  showChartPoint(index, event.clientX, event.clientY);
+});
+chartHit.addEventListener("pointerleave", () => { hoverGroup.setAttribute("visibility", "hidden"); tip.hidden = true; });
+chartHit.addEventListener("focus", () => {
+  const rect = chart.getBoundingClientRect();
+  showChartPoint(23, rect.right - 30, rect.top + (yOf(cumulative[23]) / H) * rect.height);
+});
+chartHit.addEventListener("blur", () => { hoverGroup.setAttribute("visibility", "hidden"); tip.hidden = true; });
+
+let selectedSuit = "spade";
+let selectedRank = "A";
+const suitPicker = document.getElementById("suitPicker");
+const rankPicker = document.getElementById("rankPicker");
+
+function suitIcon(suit) {
+  return `<svg viewBox="0 0 100 100" aria-hidden="true"><path d="${SUITS[suit]}"></path></svg>`;
+}
+
+function renderPicker() {
+  suitPicker.innerHTML = "";
+  SUIT_ORDER.forEach((suit) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "pick pick-suit";
+    button.dataset.suit = suit;
+    button.setAttribute("aria-pressed", String(selectedSuit === suit));
+    button.innerHTML = `${suitIcon(suit)}<span>${SUIT_NAMES[suit]}</span>`;
+    button.addEventListener("click", () => {
+      selectedSuit = suit;
+      document.getElementById("saveStatus").textContent = "";
+      renderPicker();
+      updateLargeCard();
+    });
+    suitPicker.appendChild(button);
+  });
+
+  rankPicker.innerHTML = "";
+  RANKS.forEach((rank) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "pick pick-rank";
+    button.setAttribute("aria-pressed", String(selectedRank === rank));
+    button.textContent = rank;
+    button.addEventListener("click", () => {
+      selectedRank = rank;
+      document.getElementById("saveStatus").textContent = "";
+      renderPicker();
+      updateLargeCard();
+    });
+    rankPicker.appendChild(button);
+  });
+}
+
+function updateLargeCard() {
+  const card = document.getElementById("heroCard");
+  card.classList.toggle("red", isRed(selectedSuit));
+  card.setAttribute("aria-label", `Dan Caesar, ${selectedRank} of ${SUIT_NAMES[selectedSuit].toLowerCase()}`);
+  document.getElementById("cardRankTop").textContent = selectedRank;
+  document.getElementById("cardRankBottom").textContent = selectedRank;
+  document.getElementById("cardSuitPath").setAttribute("d", SUITS[selectedSuit]);
+  document.getElementById("cardSuitTitle").textContent = SUIT_NAMES[selectedSuit].slice(0, -1);
+  document.getElementById("cardCaption").textContent = `Dan Caesar · ${selectedRank} of ${SUIT_NAMES[selectedSuit].toLowerCase()}`;
+}
+
+document.getElementById("cardForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  document.getElementById("saveStatus").textContent = "Saved.";
+});
+renderPicker();
+
+const leaveStart = document.getElementById("leaveStart");
+const leaveConfirm = document.getElementById("leaveConfirm");
+leaveStart.addEventListener("click", () => {
+  leaveStart.style.display = "none";
+  leaveConfirm.classList.add("open");
+  document.getElementById("leaveFinal").focus();
+});
+document.getElementById("leaveCancel").addEventListener("click", () => {
+  leaveConfirm.classList.remove("open");
+  leaveStart.style.display = "inline-flex";
+  leaveStart.focus();
+});
+document.getElementById("leaveFinal").addEventListener("click", () => {
+  leaveConfirm.classList.remove("open");
+  document.getElementById("leaveResult").textContent = "Static mock only — no group was left.";
+  leaveStart.style.display = "inline-flex";
+});
+
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+if (reduceMotion) {
+  document.querySelectorAll("[data-reveal]").forEach((node) => node.classList.add("in"));
+} else if ("IntersectionObserver" in window) {
+  const observer = new IntersectionObserver(
+    (entries) => entries.forEach((entry) => { if (entry.isIntersecting) entry.target.classList.add("in"); }),
+    { rootMargin: "0px 0px -12% 0px", threshold: 0.08 }
+  );
+  document.querySelectorAll("[data-reveal]").forEach((node) => observer.observe(node));
+} else {
+  document.querySelectorAll("[data-reveal]").forEach((node) => node.classList.add("in"));
+}
+</script>

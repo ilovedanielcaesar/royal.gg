@@ -4,6 +4,10 @@ Live progress for the v1.1 group work. **`GROUPS.md` is the design** (what and
 why). **This file is the state** (where we are). If they ever disagree,
 `GROUPS.md` wins and this file is stale.
 
+**The v1.2 UI overhaul has its own tracker: `REDESIGN.md`.** This file stays
+the state of the group work. Anything about the page redesign — the six stages,
+the `0020` migration that drops `submitted` — belongs there, not here.
+
 **Convention:** `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked ·
 `[-]` dropped. Update the status table and the change log in the same edit as
 the checkbox — a tick with no log entry is how this file rots.
