@@ -18,70 +18,89 @@ const RANKS: Rank[] = [
   "2",
 ];
 
+const SUIT_NAMES: Record<Suit, string> = {
+  spade: "Spades",
+  heart: "Hearts",
+  diamond: "Diamonds",
+  club: "Clubs",
+};
+
 type Props = {
   suit: Suit | null;
   rank: Rank | null;
-  taken: Set<string>; // "suit:rank"
   onChange: (suit: Suit | null, rank: Rank | null) => void;
 };
 
-function key(s: Suit, r: Rank) {
-  return `${s}:${r}`;
-}
-
-export default function SuitRankPicker({
-  suit,
-  rank,
-  taken,
-  onChange,
-}: Props) {
+/**
+ * Two rows — four suits, thirteen ranks — rather than the 4x13 grid of all 52
+ * cards this used to be. The grid only existed to show which cards were
+ * already claimed; 0019 dropped players_group_card_unique, so nothing is
+ * claimed and nothing needs greying out. Picking a suit and a rank
+ * independently is 17 targets instead of 52.
+ */
+export default function SuitRankPicker({ suit, rank, onChange }: Props) {
   return (
-    <div className="space-y-2">
-      <div className="grid grid-cols-[auto_repeat(13,minmax(0,1fr))] gap-1">
-        <div />
-        {RANKS.map((r) => (
-          <div
-            key={r}
-            className="text-center text-[10px] font-medium text-ink-500"
-          >
-            {r}
-          </div>
-        ))}
-        {SUITS.map((s) => (
-          <div className="contents" key={s}>
-            <div className="flex items-center justify-center pr-1">
+    <div className="space-y-3">
+      <div
+        className="flex flex-wrap gap-1.5"
+        role="group"
+        aria-label="Suit"
+      >
+        {SUITS.map((s) => {
+          const isSelected = suit === s;
+          return (
+            <button
+              type="button"
+              key={s}
+              aria-pressed={isSelected}
+              onClick={() => onChange(isSelected ? null : s, rank)}
+              className={[
+                "inline-flex min-h-9 items-center gap-2 rounded-md px-3 text-xs font-medium transition",
+                // The pip keeps its own suit color in both states, so the
+                // selected chip stays light and marks itself with a ring
+                // instead of a fill. A sage fill would put an ink-900 spade
+                // on green.
+                isSelected
+                  ? "bg-card-50 text-ink-900 ring-2 ring-sage-600"
+                  : "bg-card-100/60 text-ink-700 ring-1 ring-card-200 hover:bg-card-100",
+              ].join(" ")}
+            >
               <SuitBadge suit={s} size={14} />
-            </div>
-            {RANKS.map((r) => {
-              const isSelected = suit === s && rank === r;
-              const isTaken = taken.has(key(s, r)) && !isSelected;
-              return (
-                <button
-                  type="button"
-                  key={r}
-                  disabled={isTaken}
-                  onClick={() =>
-                    onChange(isSelected ? null : s, isSelected ? null : r)
-                  }
-                  className={[
-                    "aspect-[2/3] rounded-sm font-display text-[10px] leading-none ring-1 transition",
-                    isSelected
-                      ? "bg-sage-600 text-card-50 ring-sage-700"
-                      : isTaken
-                        ? "bg-card-100 text-ink-500/40 ring-card-200 line-through"
-                        : "bg-card-50 text-ink-900 ring-card-200 hover:bg-card-100",
-                  ].join(" ")}
-                  aria-label={`${r} of ${s}${isTaken ? " (taken)" : ""}`}
-                >
-                  {r}
-                </button>
-              );
-            })}
-          </div>
-        ))}
+              {SUIT_NAMES[s]}
+            </button>
+          );
+        })}
       </div>
+
+      <div
+        className="flex flex-wrap gap-1.5"
+        role="group"
+        aria-label="Rank"
+      >
+        {RANKS.map((r) => {
+          const isSelected = rank === r;
+          return (
+            <button
+              type="button"
+              key={r}
+              aria-pressed={isSelected}
+              onClick={() => onChange(suit, isSelected ? null : r)}
+              className={[
+                "min-h-9 min-w-9 rounded-md px-2 font-display text-sm leading-none ring-1 transition",
+                isSelected
+                  ? "bg-sage-600 text-card-50 ring-sage-700"
+                  : "bg-card-50 text-ink-900 ring-card-200 hover:bg-card-100",
+              ].join(" ")}
+            >
+              {r}
+            </button>
+          );
+        })}
+      </div>
+
       <p className="text-[11px] text-ink-500">
-        Pick the card that represents you. Greyed cards are taken.
+        Pick the suit and rank that represent you. Two people in a group can
+        hold the same card.
       </p>
     </div>
   );

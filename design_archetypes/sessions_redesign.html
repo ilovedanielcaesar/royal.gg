@@ -1,0 +1,1054 @@
+<title>Session Ledger</title>
+<link
+  href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&display=swap"
+  rel="stylesheet" />
+<style>
+:root {
+  --felt-900: #0d3324;
+  --felt-800: #11402c;
+  --felt-700: #1a5238;
+  --card-50: #f7f1de;
+  --card-100: #ece3c8;
+  --card-200: #d9cfa8;
+  --ink-900: #1a1614;
+  --ink-700: #3a322b;
+  --ink-500: #6b5e54;
+  --crimson-700: #8a1620;
+  --crimson-600: #b21e2c;
+  --crimson-500: #d23548;
+  --gold-500: #c9a24a;
+  --gold-ink: #7a5d1a;
+  --sage-700: #436c54;
+  --sage-600: #5b8e6e;
+  --teal-500: #2c9c8e;
+  --sky-500: #2a7fb8;
+  --orange-500: #d97a3b;
+  --amber-500: #d6a13a;
+
+  --display: "DM Serif Display", Georgia, "Times New Roman", serif;
+  --sans: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html { background: var(--felt-900); }
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background-color: var(--felt-900);
+  background-image:
+    radial-gradient(ellipse at 50% -12%, rgba(255, 255, 255, 0.055), transparent 58%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.012) 0 2px, transparent 2px 6px);
+  background-attachment: fixed;
+  color: var(--card-50);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; text-decoration: none; }
+button { font: inherit; cursor: pointer; }
+
+:focus-visible {
+  outline: 2px solid var(--gold-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.tabular { font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+
+.topbar {
+  border-bottom: 1px solid rgba(247, 241, 222, 0.1);
+  background: rgba(13, 51, 36, 0.76);
+  backdrop-filter: blur(14px);
+}
+
+.wrap { width: min(1152px, calc(100% - 32px)); margin-inline: auto; }
+
+.topbar-inner { display: flex; align-items: center; gap: 20px; min-height: 66px; }
+
+.brand { display: flex; align-items: center; gap: 9px; }
+.brand-suits { display: flex; gap: 2px; }
+.brand-name { font-family: var(--display); font-size: 24px; letter-spacing: -0.02em; }
+.brand-name em { font-style: normal; color: var(--crimson-500); }
+
+.nav { display: flex; gap: 4px; margin-left: auto; }
+.nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 13px;
+  border-radius: 10px;
+  color: rgba(247, 241, 222, 0.62);
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 160ms ease, color 160ms ease;
+}
+.nav a:hover { background: rgba(247, 241, 222, 0.08); color: var(--card-50); }
+.nav a[aria-current="page"] { background: rgba(247, 241, 222, 0.1); color: var(--card-50); }
+
+.group-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(247, 241, 222, 0.07);
+  box-shadow: inset 0 0 0 1px rgba(247, 241, 222, 0.12);
+  color: var(--card-50);
+  font-size: 12px;
+  font-weight: 500;
+}
+.group-switch:hover { background: rgba(247, 241, 222, 0.12); }
+
+.profile { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500; }
+
+.pcard {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 34px;
+  border-radius: 5px;
+  background: var(--card-50);
+  box-shadow: 0 0 0 1px var(--card-200), 0 1px 2px rgba(0, 0, 0, 0.1);
+  color: var(--ink-900);
+}
+.pcard.red { color: var(--crimson-600); }
+.pcard .rank { position: absolute; top: 2px; left: 3.5px; font: 10px/1 var(--display); }
+.pcard svg { width: 13px; height: 13px; fill: currentColor; }
+
+main { padding: 30px 0 56px; }
+
+.page-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.page-heading h1 { margin: 0; font: 40px/1 var(--display); letter-spacing: -0.015em; }
+.page-heading p { margin: 7px 0 0; color: rgba(247, 241, 222, 0.6); font-size: 13px; }
+
+.actions { display: flex; gap: 8px; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 11px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: transform 150ms ease, background 150ms ease;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn-primary {
+  background: var(--card-50);
+  color: var(--ink-900);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.22);
+}
+.btn-ghost {
+  background: rgba(247, 241, 222, 0.08);
+  color: var(--card-50);
+  box-shadow: inset 0 0 0 1px rgba(247, 241, 222, 0.14);
+}
+
+.sheet {
+  overflow: hidden;
+  border-radius: 22px;
+  background: var(--card-50);
+  box-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.14),
+    0 30px 70px -28px rgba(0, 0, 0, 0.65),
+    0 0 0 1px var(--card-100);
+  color: var(--ink-900);
+  animation: settle 460ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes settle {
+  from { opacity: 0; transform: translateY(14px) rotate(-0.35deg); }
+  to { opacity: 1; transform: none; }
+}
+
+.band { padding: 26px 36px; }
+.band + .band { border-top: 1px solid var(--card-100); }
+
+.kicker {
+  color: var(--ink-500);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.band-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.band-head h2 { margin: 0; font: 400 23px/1.1 var(--display); }
+.subtle { color: var(--ink-500); font-size: 12px; }
+.link { color: var(--ink-500); font-size: 12px; font-weight: 500; }
+.link:hover { color: var(--ink-900); text-decoration: underline; }
+
+.pos { color: var(--sage-700); }
+.neg { color: var(--crimson-700); }
+.flat { color: var(--ink-500); }
+
+/* a row in a list of players */
+.row {
+  display: grid;
+  align-items: center;
+  gap: 14px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  transition: background 150ms ease;
+}
+.row + .row { border-top: 1px solid var(--card-100); }
+.row:hover { background: rgba(236, 227, 200, 0.42); }
+.row.you { background: rgba(236, 227, 200, 0.62); }
+.row.you:hover { background: var(--card-100); }
+.row-rank { font: 17px/1 var(--display); color: var(--ink-500); text-align: right; }
+.row-name { min-width: 0; font-size: 13.5px; font-weight: 500; }
+.row-sub { color: var(--ink-500); font-size: 10.5px; font-weight: 400; }
+.row-net { font: 18px/1 var(--display); text-align: right; }
+
+/* tab strip inside a band */
+.segmented { display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--card-100); }
+.segmented button {
+  min-height: 32px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-500);
+  font-size: 12px;
+  font-weight: 500;
+  transition: background 150ms ease, color 150ms ease;
+}
+.segmented button[aria-selected="true"] {
+  background: var(--card-50);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  color: var(--ink-900);
+  font-weight: 600;
+}
+
+/* a labelled figure */
+.stat-value { margin-top: 5px; font: 30px/1 var(--display); }
+.stat-note { margin-top: 4px; color: var(--ink-500); font-size: 11.5px; }
+
+/* a status pill on cream */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.pill-gold { background: rgba(201, 162, 74, 0.2); color: var(--gold-ink); }
+.pill-sage { background: rgba(91, 142, 110, 0.18); color: var(--sage-700); }
+.pill-crimson { background: rgba(178, 30, 44, 0.1); color: var(--crimson-700); }
+.pill-quiet { background: rgba(217, 207, 168, 0.5); color: var(--ink-500); }
+
+#tip {
+  position: fixed;
+  z-index: 40;
+  transform: translate(12px, -50%);
+  padding: 7px 10px;
+  border-radius: 9px;
+  background: var(--ink-900);
+  color: var(--card-50);
+  font-size: 11px;
+  line-height: 1.45;
+  pointer-events: none;
+  box-shadow: 0 8px 22px -8px rgba(0, 0, 0, 0.7);
+}
+#tip[hidden] { display: none !important; }
+.tip-head {
+  color: rgba(247, 241, 222, 0.62);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.tip-big { margin-top: 3px; font-size: 15px; font-weight: 600; }
+.tip-sub { color: rgba(247, 241, 222, 0.6); }
+
+.cutlist { margin-top: 34px; }
+.cutlist > .kicker { color: rgba(247, 241, 222, 0.5); }
+.cutlist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(268px, 1fr));
+  gap: 1px;
+  margin-top: 14px;
+  background: rgba(247, 241, 222, 0.11);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.cut { padding: 15px 17px; background: var(--felt-900); }
+.cut h3 { margin: 0; color: rgba(247, 241, 222, 0.9); font-size: 12.5px; font-weight: 600; }
+.cut p { margin: 5px 0 0; color: rgba(247, 241, 222, 0.52); font-size: 11.5px; line-height: 1.5; }
+
+.footnote {
+  margin: 22px 0 0;
+  color: rgba(247, 241, 222, 0.42);
+  font-size: 11.5px;
+  line-height: 1.6;
+  max-width: 74ch;
+}
+.footnote code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.94em;
+  color: rgba(247, 241, 222, 0.62);
+}
+
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity .7s cubic-bezier(.2,.8,.2,1), transform .7s cubic-bezier(.2,.8,.2,1);
+}
+[data-reveal].in { opacity: 1; transform: none; }
+
+/* Sessions ledger extensions */
+body { overflow-x: hidden; }
+.group-switch, .segmented button { min-height: 36px; }
+.pcard.guest { background: var(--felt-900); color: rgba(247, 241, 222, .55); }
+#tip .tip-big.pos { color: var(--sage-600); }
+#tip .tip-big.neg { color: var(--crimson-500); }
+
+.summary-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+}
+.summary-stat { min-width: 0; padding: 2px 24px 5px 0; }
+.summary-stat + .summary-stat { padding-left: 24px; border-left: 1px solid var(--card-100); }
+.summary-link { display: block; border-radius: 8px; }
+.summary-link:hover .stat-value { color: var(--crimson-600); }
+.summary-context { margin-top: 22px; padding-top: 15px; border-top: 1px solid var(--card-100); }
+
+.ledger-head { align-items: center; }
+.title-with-sub { display: flex; align-items: baseline; gap: 10px; }
+.ledger { margin-top: 20px; }
+.ledger-columns,
+.session-row {
+  display: grid;
+  grid-template-columns: 58px minmax(180px, 2fr) minmax(130px, 1.2fr) 104px 94px 58px minmax(120px, auto);
+  align-items: center;
+  column-gap: 14px;
+}
+.ledger-columns {
+  padding: 0 10px 9px;
+  color: var(--ink-500);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+.ledger-columns span:nth-last-child(-n+4) { text-align: right; }
+.month-group + .month-group { margin-top: 10px; }
+.month-head {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 34px;
+  padding: 8px 10px;
+  border-block: 1px solid var(--card-100);
+  background: rgba(247, 241, 222, .96);
+  backdrop-filter: blur(8px);
+}
+.session-row {
+  position: relative;
+  min-height: 65px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  transition: background 150ms ease, transform 150ms ease;
+}
+.session-row + .session-row { border-top: 1px solid var(--card-100); }
+.session-row:hover { background: rgba(236, 227, 200, 0.42); transform: translateX(2px); }
+.date-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 45px;
+  overflow: hidden;
+  border-radius: 7px;
+  background: var(--card-50);
+  box-shadow: 0 0 0 1px var(--card-200), 0 2px 4px rgba(0,0,0,.09);
+}
+.date-card .date-label { position: relative; z-index: 1; font: 15px/1 var(--display); white-space: nowrap; }
+.date-card svg {
+  position: absolute;
+  right: -8px;
+  bottom: -10px;
+  width: 45px;
+  height: 45px;
+  fill: currentColor;
+  opacity: .07;
+}
+.date-card.red { color: var(--crimson-600); }
+.session-main { min-width: 0; }
+.session-day { overflow: hidden; font-size: 13.5px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+.session-main .row-sub { display: -webkit-box; margin-top: 4px; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 1; }
+.players-cell { min-width: 0; }
+.players-count { margin-bottom: 4px; color: var(--ink-700); font-size: 11px; }
+.avatar-stack { display: flex; padding-left: 1px; }
+.avatar-stack .pcard { transform: scale(.74); transform-origin: left center; margin-right: -12px; }
+.avatar-overflow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 29px;
+  height: 25px;
+  margin: 5px 0 0 2px;
+  border-radius: 999px;
+  background: var(--card-100);
+  color: var(--ink-500);
+  font-size: 10px;
+  font-weight: 600;
+}
+.pot, .action, .state { text-align: right; }
+.pot { color: var(--ink-900); font-size: 12.5px; font-weight: 500; }
+.action { color: var(--ink-900); font-size: 12.5px; }
+.action span { color: var(--ink-500); }
+.state { white-space: nowrap; }
+.mobile-meta { display: none; }
+.empty-filter { padding: 28px 10px 8px; text-align: center; }
+
+.review-list { margin-top: 18px; }
+.review-item {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) 106px minmax(230px, 1.6fr) minmax(250px, 2fr) 48px;
+  align-items: center;
+  gap: 18px;
+  min-height: 72px;
+  padding: 12px 10px;
+}
+.review-item + .review-item { border-top: 1px solid var(--card-100); }
+.review-date { font-size: 13.5px; font-weight: 500; }
+.review-discrepancy { font: 20px/1 var(--display); text-align: right; }
+.review-copy { color: var(--ink-500); font-size: 11.5px; line-height: 1.45; }
+.review-link { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; }
+.integrity-note {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border-left: 2px solid var(--crimson-600);
+  background: rgba(178,30,44,.055);
+  color: var(--ink-700);
+  font-size: 11.5px;
+  line-height: 1.55;
+}
+
+.chart-copy { margin: 8px 0 0; }
+.chart-scroll { margin-top: 16px; overflow-x: auto; overscroll-behavior-inline: contain; }
+.season-chart { display: block; width: 100%; min-width: 680px; height: 286px; }
+.chart-foot { margin: 9px 0 0; }
+
+.eyebrow {
+  color: var(--gold-500);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+}
+.felt-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(247,241,222,.12);
+}
+.felt-section-title { display: flex; align-items: baseline; gap: 14px; }
+.section-num { color: var(--gold-500); font: 15px/1 var(--display); }
+.felt-section-title h2 { margin: 0; font: 26px/1.12 var(--display); font-weight: 400; }
+.felt-section-head p { max-width: 38ch; margin: 0; color: rgba(247,241,222,.58); font-size: 12px; line-height: 1.55; }
+
+[hidden] { display: none !important; }
+
+@media (max-width: 900px) {
+  .ledger-columns,
+  .session-row { grid-template-columns: 58px minmax(175px, 2fr) minmax(116px, 1fr) 98px 82px 50px; }
+  .ledger-columns span:last-child, .state { display: none; }
+  .review-item { grid-template-columns: minmax(150px,1fr) 100px minmax(230px,1.5fr) 48px; }
+  .review-copy { grid-column: 1 / 4; padding-left: 0; }
+}
+
+@media (max-width: 720px) {
+  .nav { display: none; }
+  .band { padding-inline: 20px; }
+  .page-heading h1 { font-size: 32px; }
+}
+
+@media (max-width: 720px) {
+  .topbar-inner { gap: 12px; }
+  .group-switch { margin-left: auto; }
+  .profile > span:last-child { display: none; }
+  .summary-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 1px; }
+  .summary-stat:nth-child(3) { padding-left: 0; border-left: 0; }
+  .summary-stat .stat-value { font-size: 26px; }
+  .ledger-head { align-items: flex-start; }
+  .title-with-sub { width: 100%; }
+  .segmented { width: 100%; overflow-x: auto; }
+  .segmented button { flex: 1 0 auto; min-height: 36px; padding-inline: 13px; }
+  .ledger-columns { display: none; }
+  .ledger { margin-top: 16px; }
+  .month-group + .month-group { margin-top: 8px; }
+  .session-row {
+    grid-template-columns: 54px minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    gap: 6px 10px;
+    min-height: 82px;
+    padding-block: 9px;
+  }
+  .session-row:hover { transform: none; }
+  .session-date { grid-column: 1; grid-row: 1 / 3; }
+  .session-main { grid-column: 2; grid-row: 1; }
+  .session-row > .row-net { grid-column: 3; grid-row: 1; font-size: 17px; }
+  .players-cell, .pot, .action, .state { display: none; }
+  .mobile-meta {
+    display: flex;
+    grid-column: 2 / 4;
+    grid-row: 2;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .mobile-meta .pill { flex: 0 0 auto; padding: 3px 7px; font-size: 9.5px; }
+  .review-item { grid-template-columns: 1fr auto; gap: 7px 14px; padding-block: 15px; }
+  .review-discrepancy { grid-column: 2; grid-row: 1; }
+  .review-totals, .review-copy { grid-column: 1 / 3; }
+  .review-copy { padding: 0; }
+  .review-link { grid-column: 2; justify-self: end; }
+}
+
+@media (max-width: 460px) {
+  .topbar-inner { gap: 9px; }
+  .group-switch { max-width: 126px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .band { padding: 22px 16px; }
+  .summary-stat { padding-right: 12px; }
+  .summary-stat + .summary-stat { padding-left: 12px; }
+  .summary-stat:nth-child(3) { padding-left: 0; }
+  .stat-value { font-size: 24px; }
+  .month-head { margin-inline: -6px; }
+  .session-row { padding-inline: 4px; }
+  .date-card { width: 48px; }
+  .session-day { font-size: 12.5px; }
+  .row-net { font-size: 16px; }
+  .mobile-meta { gap: 4px; font-size: 9.5px; }
+  .felt-section-head { align-items: flex-start; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet { animation: none; }
+  .btn:hover, .chip:hover { transform: none; }
+  * { transition-duration: 1ms !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] { opacity: 1; transform: none; }
+  .session-row:hover { transform: none; }
+}
+</style>
+
+<div class="topbar">
+  <div class="wrap topbar-inner">
+    <div class="brand">
+      <span class="brand-suits">
+        <svg viewBox="0 0 100 100" width="15" height="15" aria-hidden="true">
+          <path d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z" fill="#f7f1de" />
+        </svg>
+        <svg viewBox="0 0 100 100" width="15" height="15" aria-hidden="true">
+          <path d="M50 88C28 72 8 56 8 35a20 20 0 0 1 36-12 20 20 0 0 1 36 12c0 21-20 37-30 53Z" fill="#d23548" />
+        </svg>
+      </span>
+      <span class="brand-name">royal<em>.gg</em></span>
+    </div>
+
+    <nav class="nav" aria-label="Main">
+      <a href="#">Dashboard</a>
+      <a href="#" aria-current="page">Sessions</a>
+      <a href="#">League</a>
+      <a href="#">You</a>
+    </nav>
+
+    <button type="button" class="group-switch">Thursday Night <span aria-hidden="true">▾</span></button>
+
+    <div class="profile">
+      <span class="pcard" aria-hidden="true">
+        <span class="rank">A</span>
+        <svg viewBox="0 0 100 100"><path d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z" /></svg>
+      </span>
+      <span>Dan</span>
+    </div>
+  </div>
+</div>
+
+<main>
+  <div class="wrap">
+    <div class="page-heading">
+      <div>
+        <h1>Sessions</h1>
+        <p>24 nights logged since 27 March.</p>
+      </div>
+      <div class="actions">
+        <a class="btn btn-primary" href="/sessions/new">+ New session</a>
+      </div>
+    </div>
+
+    <div class="sheet">
+      <section class="band" aria-label="Season at a glance">
+        <div class="summary-stats">
+          <div class="summary-stat">
+            <div class="kicker">Nights logged</div>
+            <div class="stat-value tabular" id="nights-stat"></div>
+          </div>
+          <div class="summary-stat">
+            <div class="kicker">Table volume</div>
+            <div class="stat-value tabular" id="volume-stat"></div>
+          </div>
+          <div class="summary-stat">
+            <div class="kicker">Reconciled</div>
+            <div class="stat-value tabular" id="reconciled-stat"></div>
+          </div>
+          <div class="summary-stat">
+            <a class="summary-link neg" id="review-summary-link" href="#review">
+              <div class="kicker">Needs review</div>
+              <div class="stat-value tabular" id="review-stat"></div>
+            </a>
+          </div>
+        </div>
+        <div class="summary-context subtle" id="group-context"></div>
+      </section>
+
+      <section class="band" aria-labelledby="ledger-title">
+        <div class="band-head ledger-head">
+          <div class="title-with-sub">
+            <h2 id="ledger-title">The ledger</h2>
+            <span class="subtle">newest first</span>
+          </div>
+          <div class="segmented" role="tablist" aria-label="Filter sessions">
+            <button type="button" role="tab" aria-selected="true" data-filter="all">All 24</button>
+            <button type="button" role="tab" aria-selected="false" data-filter="review">Needs review 2</button>
+            <button type="button" role="tab" aria-selected="false" data-filter="draft">Drafts 1</button>
+          </div>
+        </div>
+        <div class="ledger" id="ledger">
+          <div class="ledger-columns" aria-hidden="true">
+            <span>Date</span><span>Night</span><span>Players</span><span>Pot</span><span>Your net</span><span>Action</span><span>State</span>
+          </div>
+          <div id="ledger-groups"></div>
+          <p class="empty-filter subtle" id="empty-filter" hidden>No sessions match this view.</p>
+        </div>
+      </section>
+
+      <section class="band" id="review" aria-labelledby="review-title">
+        <div class="band-head">
+          <div>
+            <div class="kicker">Needs review</div>
+            <h2 id="review-title">Two nights need a human</h2>
+          </div>
+          <span class="subtle">over the group threshold</span>
+        </div>
+        <div class="review-list" id="review-list"></div>
+        <p class="integrity-note">Nothing has been overwritten. Original reported cash-outs are kept alongside any later adjusted values, so every reconciliation remains reversible and auditable.</p>
+      </section>
+
+      <section class="band" aria-labelledby="shape-title">
+        <div class="band-head">
+          <div>
+            <div class="kicker">Your results</div>
+            <h2 id="shape-title">The shape of the season</h2>
+          </div>
+          <span class="subtle">one bar per night</span>
+        </div>
+        <p class="subtle chart-copy">Sage rises above the zero-line; crimson falls below it.</p>
+        <div class="chart-scroll">
+          <svg class="season-chart" id="season-chart" viewBox="0 0 960 286" role="img" aria-labelledby="chart-title chart-desc">
+            <title id="chart-title">Dan Caesar's per-night net across 24 sessions</title>
+            <desc id="chart-desc">A bar chart with positive nights in sage above a gold zero-line and negative nights in crimson below it.</desc>
+          </svg>
+        </div>
+        <p class="subtle chart-foot">This is the result from each individual night; the dashboard charts the cumulative running total.</p>
+      </section>
+    </div>
+
+    <section class="cutlist" data-reveal aria-labelledby="cut-title">
+      <div class="eyebrow">Design notes</div>
+      <div class="felt-section-head">
+        <div class="felt-section-title">
+          <span class="section-num">01</span>
+          <h2 id="cut-title">Cut from the redesign — not shipping</h2>
+        </div>
+        <p>The ledger stays deliberately narrow: it shows what the current schema and permissions can support honestly.</p>
+      </div>
+      <div class="cutlist-grid">
+        <article class="cut">
+          <h3>A calendar / heatmap view</h3>
+          <p>The group plays weekly on one weekday; a calendar would turn 24 useful rows into one column of dots surrounded by empty cells.</p>
+        </article>
+        <article class="cut">
+          <h3>Filtering by player</h3>
+          <p>That view already exists, with better context, on each player’s profile page.</p>
+        </article>
+        <article class="cut">
+          <h3>A search box</h3>
+          <p>There are 24 rows. Come back at 200, when search would reduce work instead of adding it.</p>
+        </article>
+        <article class="cut">
+          <h3>Editing inline from the ledger</h3>
+          <p>Submitted logs are locked to members. Widening that window needs migrations to the sessions, buy_ins and cash_outs write policies—and answers on who may edit and whether an edit returns the log to draft.</p>
+        </article>
+        <article class="cut">
+          <h3>A “next game” row</h3>
+          <p>There is no scheduling or RSVP concept in the schema, and the dashboard already cut the same idea for that reason.</p>
+        </article>
+      </div>
+    </section>
+
+    <p class="footnote" id="arithmetic-note" data-reveal></p>
+  </div>
+</main>
+
+<div id="tip" hidden>
+  <div class="tip-head" id="tip-head"></div>
+  <div class="tip-big tabular" id="tip-big"></div>
+  <div class="tip-sub" id="tip-sub"></div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  const SUITS = {
+    spade: "M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z",
+    heart: "M50 88C28 72 8 56 8 35a20 20 0 0 1 36-12 20 20 0 0 1 36 12c0 21-20 37-30 53Z",
+    club: "M50 6a17 17 0 0 0-13 28 17 17 0 1 0-9 28 17 17 0 0 0 16-3c-1 7-6 14-13 19h38c-7-5-12-12-13-19a17 17 0 0 0 16 3 17 17 0 1 0-9-28A17 17 0 0 0 50 6Z",
+    diamond: "M50 6 88 50 50 94 12 50Z",
+  };
+  const isRed = (s) => s === "heart" || s === "diamond";
+
+  const PLAYERS = [
+    { name: "Dan Caesar", rank: "A", suit: "spade" },
+    { name: "Priya Raman", rank: "Q", suit: "heart" },
+    { name: "Marcus Webb", rank: "K", suit: "club" },
+    { name: "Theo Lund", rank: "9", suit: "spade" },
+    { name: "Ash Okonkwo", rank: "7", suit: "diamond" },
+    { name: "Lena Sorokin", rank: "5", suit: "heart" },
+    { name: "Jonah Fitz", rank: "J", suit: "club" },
+    { name: "Rory Adeyemi", rank: "8", suit: "spade" },
+    { name: "Mo", rank: null, suit: null, guest: true },
+  ];
+
+  const SETTINGS = {
+    smallBlindCents: 25,
+    bigBlindCents: 50,
+    buyInCents: 4000,
+    thresholdCents: 500,
+  };
+
+  // All monetary values below are integer cents. Scores are stored in tenths.
+  const SESSIONS = [
+    { id: "s01", date: "2026-03-27", buyIns: 25, netCents: -3500, players: 7, actionTenths: 61, note: "Opening night at Priya’s" },
+    { id: "s02", date: "2026-04-03", buyIns: 24, netCents: 2200, players: 6, actionTenths: 54, note: "Short table, six-handed" },
+    { id: "s03", date: "2026-04-10", buyIns: 28, netCents: 4800, players: 8, actionTenths: 68, note: "" },
+    { id: "s04", date: "2026-04-17", buyIns: 29, netCents: -1800, players: 8, actionTenths: 79, note: "Marcus’s place, long night" },
+    { id: "s05", date: "2026-04-24", buyIns: 26, netCents: 1500, players: 7, actionTenths: 72, note: "Chip rack came up heavy", needsReview: true, discrepancyCents: -1800 },
+    { id: "s06", date: "2026-05-01", buyIns: 30, netCents: 6400, players: 8, actionTenths: 66, note: "" },
+    { id: "s07", date: "2026-05-08", buyIns: 31, netCents: -5200, players: 8, actionTenths: 84, note: "Jonah brought the good cards" },
+    { id: "s08", date: "2026-05-15", buyIns: 30, netCents: 3100, players: 9, actionTenths: 96, note: "Priya’s heater, Mo sat in" },
+    { id: "s09", date: "2026-05-22", buyIns: 27, netCents: 5700, players: 7, actionTenths: 63, note: "" },
+    { id: "s10", date: "2026-05-29", buyIns: 26, netCents: -2600, players: 7, actionTenths: 71, note: "Last hand went three ways" },
+    { id: "s11", date: "2026-06-05", buyIns: 28, netCents: 2600, players: 8, actionTenths: 83, note: "" },
+    { id: "s12", date: "2026-06-12", buyIns: 25, netCents: 7300, players: 6, actionTenths: 58, note: "Short table, four-handed late" },
+    { id: "s13", date: "2026-06-19", buyIns: 32, netCents: -4400, players: 8, actionTenths: 97, note: "Cash count needs another look", needsReview: true, discrepancyCents: 2250 },
+    { id: "s14", date: "2026-06-26", buyIns: 29, netCents: 1900, players: 8, actionTenths: 88, note: "Big pots after midnight" },
+    { id: "s15", date: "2026-07-03", buyIns: 27, netCents: 4200, players: 7, actionTenths: 64, note: "Holiday-week table" },
+    { id: "s16", date: "2026-07-10", buyIns: 26, netCents: -1200, players: 7, actionTenths: 69, note: "" },
+    { id: "s17", date: "2026-07-17", buyIns: 30, netCents: 6800, players: 8, actionTenths: 77, note: "Lena hosted on the balcony" },
+    { id: "s18", date: "2026-07-24", buyIns: 33, netCents: 3600, players: 9, actionTenths: 92, note: "Mo back for the late table" },
+    { id: "s19", date: "2026-07-31", buyIns: 24, netCents: -3000, players: 6, actionTenths: 73, note: "Quick game before the payout", state: "submitted" },
+    { id: "s20", date: "2026-08-07", buyIns: 28, netCents: -6250, players: 8, actionTenths: 81, note: "Rory called the last orbit" },
+    { id: "s21", date: "2026-08-14", buyIns: 29, netCents: 2400, players: 8, actionTenths: 67, note: "" },
+    { id: "s22", date: "2026-08-21", buyIns: 27, netCents: 8650, players: 7, actionTenths: 86, note: "Three rebuys before ten" },
+    { id: "s23", date: "2026-08-28", buyIns: 26, netCents: -4000, players: 7, actionTenths: 62, note: "Numbers entered, not submitted", state: "draft" },
+    { id: "s24", date: "2026-09-04", buyIns: 31, netCents: 12000, players: 9, actionTenths: 94, note: "Marcus’s place, long night" },
+  ].map((session, index) => ({
+    ...session,
+    index,
+    potCents: session.buyIns * SETTINGS.buyInCents,
+    reconciled: !session.needsReview,
+    participantList: Array.from({ length: session.players }, (_, offset) => PLAYERS[(index + offset) % PLAYERS.length]),
+  }));
+
+  const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const DATE_SUIT_ORDER = ["spade", "heart", "diamond", "club"];
+
+  function dateParts(iso) {
+    const [year, month, day] = iso.split("-").map(Number);
+    return { year, month, day };
+  }
+
+  function formatCents(cents) {
+    const sign = cents < 0 ? "−" : "";
+    const absolute = Math.abs(cents);
+    const dollars = Math.floor(absolute / 100).toLocaleString("en-US");
+    return `${sign}$${dollars}.${String(absolute % 100).padStart(2, "0")}`;
+  }
+
+  function formatSignedCents(cents) {
+    if (cents > 0) return `+${formatCents(cents)}`;
+    return formatCents(cents);
+  }
+
+  function formatWholeDollars(cents) {
+    const dollars = Math.floor(Math.abs(cents) / 100).toLocaleString("en-US");
+    return `${cents < 0 ? "−" : ""}$${dollars}`;
+  }
+
+  function fullDate(iso) {
+    const { year, month, day } = dateParts(iso);
+    const dayIndex = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+    return `${DAY_NAMES[dayIndex]} ${day} ${MONTHS[month - 1]}`;
+  }
+
+  function shortDate(iso) {
+    const { month, day } = dateParts(iso);
+    return `${day} ${MONTHS_SHORT[month - 1]}`;
+  }
+
+  function moneyClass(cents) {
+    return cents > 0 ? "pos" : cents < 0 ? "neg" : "flat";
+  }
+
+  function decorativeSuitSvg(suit) {
+    return `<svg viewBox="0 0 100 100" aria-hidden="true"><path d="${SUITS[suit]}"></path></svg>`;
+  }
+
+  function avatar(player) {
+    if (player.guest) {
+      return `<span class="pcard guest"><svg viewBox="0 0 100 100" aria-hidden="true"><path d="${SUITS.diamond}"></path></svg></span>`;
+    }
+    return `<span class="pcard${isRed(player.suit) ? " red" : ""}"><span class="rank">${player.rank}</span><svg viewBox="0 0 100 100" aria-hidden="true"><path d="${SUITS[player.suit]}"></path></svg></span>`;
+  }
+
+  function statusFor(session) {
+    if (session.needsReview) return { label: `Needs review · ${formatSignedCents(session.discrepancyCents)}`, className: "pill-crimson" };
+    if (session.state === "draft") return { label: "Draft", className: "pill-gold" };
+    if (session.state === "submitted") return { label: "Submitted", className: "pill-quiet" };
+    return { label: "Reconciled", className: "pill-sage" };
+  }
+
+  function actionLabel(tenths) {
+    return `${Math.floor(tenths / 10)}.${tenths % 10}`;
+  }
+
+  function renderSummary() {
+    const totalBuyIns = SESSIONS.reduce((sum, session) => sum + session.buyIns, 0);
+    const totalVolumeCents = SESSIONS.reduce((sum, session) => sum + session.potCents, 0);
+    const reconciledCount = SESSIONS.filter((session) => session.reconciled).length;
+    const reviewCount = SESSIONS.filter((session) => session.needsReview).length;
+    document.getElementById("nights-stat").textContent = String(SESSIONS.length);
+    document.getElementById("volume-stat").textContent = formatWholeDollars(totalVolumeCents);
+    document.getElementById("reconciled-stat").textContent = `${reconciledCount} of ${SESSIONS.length}`;
+    document.getElementById("review-stat").textContent = String(reviewCount);
+    document.getElementById("group-context").textContent = `Weekly · ${formatCents(SETTINGS.smallBlindCents)}/${formatCents(SETTINGS.bigBlindCents)} · ${formatWholeDollars(SETTINGS.buyInCents)} buy-in · reconcile threshold ${formatCents(SETTINGS.thresholdCents)}`;
+    document.getElementById("arithmetic-note").textContent = `Arithmetic check: 24 nights run 27 Mar – 4 Sep; your 24 nightly nets sum to exactly ${formatSignedCents(SESSIONS.reduce((sum, session) => sum + session.netCents, 0))}, matching the dashboard lifetime figure. ${totalBuyIns} buy-ins × ${formatWholeDollars(SETTINGS.buyInCents)} = ${formatWholeDollars(totalVolumeCents)} table volume. ${reconciledCount} reconciled + ${reviewCount} flagged = ${SESSIONS.length}. The 22 reconciled nights balance adjusted cash-outs to buy-ins and are zero-sum across players; the two flagged nights remain unresolved and are not treated as final. This chart is per-night; the dashboard chart is cumulative. All figures are sample data, not the real league.`;
+  }
+
+  function sessionRow(session) {
+    const { month, day } = dateParts(session.date);
+    const dateSuit = DATE_SUIT_ORDER[day % 4];
+    const state = statusFor(session);
+    const visiblePlayers = session.participantList.slice(0, 5);
+    const overflow = session.participantList.length - visiblePlayers.length;
+    const playerNames = session.participantList.map((player) => player.guest ? `${player.name}, guest` : player.name).join(", ");
+    const mobileState = state.label.startsWith("Needs review") ? "Review" : state.label;
+    return `
+      <a class="session-row" href="/sessions/${session.id}" data-review="${session.needsReview ? "true" : "false"}" data-draft="${session.state === "draft" ? "true" : "false"}" aria-label="${fullDate(session.date)}. ${session.players} players: ${playerNames}. Pot ${formatCents(session.potCents)}. Your net ${formatSignedCents(session.netCents)}. Action ${actionLabel(session.actionTenths)} out of 10. ${state.label}.">
+        <span class="session-date">
+          <span class="date-card${isRed(dateSuit) ? " red" : ""}">
+            <span class="date-label">${day} ${MONTHS_SHORT[month - 1]}</span>
+            ${decorativeSuitSvg(dateSuit)}
+          </span>
+        </span>
+        <span class="session-main">
+          <span class="session-day">${fullDate(session.date)}</span>
+          ${session.note ? `<span class="row-sub">${session.note}</span>` : ""}
+        </span>
+        <span class="players-cell" aria-label="${session.players} players: ${playerNames}">
+          <span class="players-count">${session.players} players</span>
+          <span class="avatar-stack" aria-hidden="true">${visiblePlayers.map(avatar).join("")}${overflow ? `<span class="avatar-overflow">+${overflow}</span>` : ""}</span>
+        </span>
+        <span class="pot tabular">${formatCents(session.potCents)}</span>
+        <span class="row-net tabular ${moneyClass(session.netCents)}">${formatSignedCents(session.netCents)}</span>
+        <span class="action tabular">${actionLabel(session.actionTenths)}<span>/10</span></span>
+        <span class="state"><span class="pill ${state.className}">${state.label}</span></span>
+        <span class="mobile-meta subtle"><span>${session.players} players</span><span aria-hidden="true">·</span><span class="tabular">pot ${formatCents(session.potCents)}</span><span aria-hidden="true">·</span><span class="tabular">${actionLabel(session.actionTenths)}/10</span><span class="pill ${state.className}">${mobileState}</span></span>
+      </a>`;
+  }
+
+  function renderLedger() {
+    const grouped = new Map();
+    [...SESSIONS].reverse().forEach((session) => {
+      const { year, month } = dateParts(session.date);
+      const key = `${year}-${String(month).padStart(2, "0")}`;
+      if (!grouped.has(key)) grouped.set(key, { year, month, sessions: [] });
+      grouped.get(key).sessions.push(session);
+    });
+    document.getElementById("ledger-groups").innerHTML = [...grouped.values()].map((group) => {
+      const monthNetCents = group.sessions.reduce((sum, session) => sum + session.netCents, 0);
+      const count = group.sessions.length;
+      return `<section class="month-group" data-month="${group.year}-${group.month}">
+        <div class="month-head">
+          <span class="kicker">${MONTHS[group.month - 1]} ${group.year}</span>
+          <span class="subtle tabular">${count} ${count === 1 ? "night" : "nights"} · you <span class="${moneyClass(monthNetCents)}">${formatSignedCents(monthNetCents)}</span></span>
+        </div>
+        <div class="month-rows">${group.sessions.map(sessionRow).join("")}</div>
+      </section>`;
+    }).join("");
+  }
+
+  function renderReview() {
+    const flagged = SESSIONS.filter((session) => session.needsReview).reverse();
+    document.getElementById("review-list").innerHTML = flagged.map((session) => {
+      const reportedCents = session.potCents - session.discrepancyCents;
+      return `<article class="review-item">
+        <div class="review-date">${fullDate(session.date)}<div class="row-sub">Session ${session.id.slice(1)}</div></div>
+        <div class="review-discrepancy neg tabular">${formatSignedCents(session.discrepancyCents)}</div>
+        <div class="review-totals subtle tabular">Reported ${formatCents(reportedCents)} against ${formatCents(session.potCents)} in buy-ins</div>
+        <div class="review-copy">Over the ${formatCents(SETTINGS.thresholdCents)} threshold, so it was not auto-adjusted and is waiting on a human.</div>
+        <a class="link review-link" href="/sessions/${session.id}">Open</a>
+      </article>`;
+    }).join("");
+  }
+
+  function setFilter(filter) {
+    const rows = [...document.querySelectorAll(".session-row")];
+    let visibleCount = 0;
+    rows.forEach((row) => {
+      const show = filter === "all" || (filter === "review" && row.dataset.review === "true") || (filter === "draft" && row.dataset.draft === "true");
+      row.hidden = !show;
+      if (show) visibleCount += 1;
+    });
+    document.querySelectorAll(".month-group").forEach((group) => {
+      group.hidden = !group.querySelector(".session-row:not([hidden])");
+    });
+    document.querySelectorAll("[role=tab]").forEach((tab) => {
+      tab.setAttribute("aria-selected", String(tab.dataset.filter === filter));
+    });
+    document.getElementById("empty-filter").hidden = visibleCount !== 0;
+  }
+
+  function renderChart() {
+    const svg = document.getElementById("season-chart");
+    const width = 960;
+    const height = 286;
+    const left = 34;
+    const right = 18;
+    const top = 24;
+    const bottom = 35;
+    const zeroY = 139;
+    const plotWidth = width - left - right;
+    const halfHeight = Math.min(zeroY - top, height - bottom - zeroY);
+    const maxAbsoluteCents = SESSIONS.reduce((max, session) => Math.max(max, Math.abs(session.netCents)), 0);
+    const step = plotWidth / SESSIONS.length;
+    const barWidth = Math.min(20, step * .58);
+    const labels = new Set([0, 7, 15, 23]);
+    let content = `<title id="chart-title">Dan Caesar's per-night net across 24 sessions</title><desc id="chart-desc">A bar chart with positive nights in sage above a gold zero-line and negative nights in crimson below it.</desc>`;
+    content += `<line x1="${left}" y1="${top}" x2="${width - right}" y2="${top}" stroke="var(--card-100)" />`;
+    content += `<line x1="${left}" y1="${height - bottom}" x2="${width - right}" y2="${height - bottom}" stroke="var(--card-100)" />`;
+    content += `<line x1="${left}" y1="${zeroY}" x2="${width - right}" y2="${zeroY}" stroke="var(--gold-500)" stroke-width="1.4" />`;
+    SESSIONS.forEach((session, index) => {
+      const x = left + index * step + (step - barWidth) / 2;
+      const barHeight = Math.max(2, Math.abs(session.netCents) / maxAbsoluteCents * halfHeight);
+      const y = session.netCents >= 0 ? zeroY - barHeight : zeroY;
+      const color = session.netCents >= 0 ? "var(--sage-600)" : "var(--crimson-600)";
+      content += `<rect x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${barWidth.toFixed(2)}" height="${barHeight.toFixed(2)}" rx="3" fill="${color}" opacity=".92"><title>Night ${index + 1}, ${shortDate(session.date)}: ${formatSignedCents(session.netCents)}</title></rect>`;
+      if (labels.has(index)) {
+        content += `<text x="${(left + (index + .5) * step).toFixed(2)}" y="${height - 10}" text-anchor="middle" fill="var(--ink-500)" font-family="Inter, sans-serif" font-size="10">${shortDate(session.date)}</text>`;
+      }
+    });
+    content += `<line id="hover-rule" x1="0" y1="${top}" x2="0" y2="${height - bottom}" stroke="var(--ink-500)" stroke-opacity=".28" hidden />`;
+    content += `<rect id="chart-hit" x="${left}" y="${top}" width="${plotWidth}" height="${height - top - bottom}" fill="transparent" />`;
+    svg.innerHTML = content;
+
+    const hit = document.getElementById("chart-hit");
+    const rule = document.getElementById("hover-rule");
+    const tip = document.getElementById("tip");
+    const update = (event) => {
+      const bounds = svg.getBoundingClientRect();
+      const svgX = (event.clientX - bounds.left) / bounds.width * width;
+      const index = Math.max(0, Math.min(SESSIONS.length - 1, Math.floor((svgX - left) / step)));
+      const session = SESSIONS[index];
+      const ruleX = left + (index + .5) * step;
+      rule.setAttribute("x1", ruleX);
+      rule.setAttribute("x2", ruleX);
+      rule.hidden = false;
+      document.getElementById("tip-head").textContent = `Night ${index + 1} · ${shortDate(session.date)}`;
+      const tipBig = document.getElementById("tip-big");
+      tipBig.textContent = formatSignedCents(session.netCents);
+      tipBig.className = `tip-big tabular ${moneyClass(session.netCents)}`;
+      document.getElementById("tip-sub").textContent = `${formatCents(session.potCents)} pot · ${session.players} players`;
+      tip.hidden = false;
+      const leftPx = Math.min(event.clientX, window.innerWidth - 190);
+      const topPx = Math.max(52, Math.min(event.clientY, window.innerHeight - 52));
+      tip.style.left = `${leftPx}px`;
+      tip.style.top = `${topPx}px`;
+    };
+    hit.addEventListener("pointerenter", update);
+    hit.addEventListener("pointermove", update);
+    hit.addEventListener("pointerleave", () => {
+      rule.hidden = true;
+      tip.hidden = true;
+    });
+  }
+
+  renderSummary();
+  renderLedger();
+  renderReview();
+  renderChart();
+
+  document.querySelectorAll("[role=tab]").forEach((tab) => {
+    tab.addEventListener("click", () => setFilter(tab.dataset.filter));
+  });
+  document.getElementById("review-summary-link").addEventListener("click", () => setFilter("review"));
+
+  const revealNodes = document.querySelectorAll("[data-reveal]");
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) {
+    revealNodes.forEach((node) => node.classList.add("in"));
+  } else {
+    const observer = new IntersectionObserver(
+      (entries) => entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("in");
+          observer.unobserve(entry.target);
+        }
+      }),
+      { rootMargin: "0px 0px -12% 0px", threshold: .08 }
+    );
+    revealNodes.forEach((node) => observer.observe(node));
+  }
+})();
+</script>

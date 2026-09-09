@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="./support.js"></script>
+</head>
+
+<body>
+    <x-dc>
+        <helmet data-dc-atomics>
+            <meta name="design_doc_mode" content="canvas">
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link
+                href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700&display=swap"
+                rel="stylesheet">
+            <style>
+                html,
+                body {
+                    margin: 0
+                }
+
+                body {
+                    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+                    -webkit-font-smoothing: antialiased;
+                    background: #080e0b;
+                    color: #f7f1de
+                }
+
+                a {
+                    color: inherit;
+                    text-decoration: none
+                }
+
+                a:hover {
+                    color: inherit
+                }
+
+                @keyframes pulse {
+
+                    0%,
+                    100% {
+                        opacity: .55
+                    }
+
+                    50% {
+                        opacity: .25
+                    }
+                }
+            </style>
+        </helmet>
+        <div style="width:1440px;margin:0 auto">
+
+            <section data-screen-label="Suits on felt"
+                style="padding:56px 64px 48px;background-color:#0d3324;background-image:radial-gradient(ellipse at 50% -20%,rgba(255,255,255,.05),transparent 62%),repeating-linear-gradient(45deg,rgba(255,255,255,.012) 0 2px,transparent 2px 6px)">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px">
+                    <div>
+                        <div style="font-size:20px;font-weight:600;letter-spacing:.24em;color:#f7f1de">ROYAL.GG ASSETS
+                        </div>
+                        <div
+                            style="margin-top:6px;font-size:11px;font-weight:500;letter-spacing:.24em;color:rgba(247,241,222,.55)">
+                            FLAT · ON FELT</div>
+                        <div style="margin-top:14px;width:36px;height:1px;background:rgba(247,241,222,.3)"></div>
+                    </div>
+                    <div
+                        style="text-align:right;font-size:10px;line-height:2.1;letter-spacing:.2em;color:rgba(247,241,222,.45)">
+                        LOG<br>RECONCILE<br>SETTLE<br>REPEAT</div>
+                </div>
+
+                <div style="margin-top:44px;display:grid;grid-template-columns:repeat(4,1fr);gap:28px">
+                    <div
+                        style="display:flex;flex-direction:column;align-items:center;gap:18px;padding:32px 0;border-radius:16px;background:rgba(247,241,222,.04)">
+                        <svg viewBox="0 0 100 100" width="88" height="88">
+                            <path
+                                d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z"
+                                fill="#f7f1de"></path>
+                        </svg>
+                        <span style="font-size:10px;letter-spacing:.22em;color:rgba(247,241,222,.6)">SPADE</span>
+                    </div>
+                    <div
+                        style="display:flex;flex-direction:column;align-items:center;gap:18px;padding:32px 0;border-radius:16px;background:rgba(247,241,222,.04)">
+                        <svg viewBox="0 0 100 100" width="88" height="88">
+                            <path d="M50 88C28 72 8 56 8 35a20 20 0 0 1 36-12 20 20 0 0 1 36 12c0 21-20 37-30 53Z"
+                                fill="#d23548"></path>
+                        </svg>
+                        <span style="font-size:10px;letter-spacing:.22em;color:rgba(247,241,222,.6)">HEART</span>
+                    </div>
+                    <div
+                        style="display:flex;flex-direction:column;align-items:center;gap:18px;padding:32px 0;border-radius:16px;background:rgba(247,241,222,.04)">
+                        <svg viewBox="0 0 100 100" width="88" height="88">
+                            <path
+                                d="M50 6a17 17 0 0 0-13 28 17 17 0 1 0-9 28 17 17 0 0 0 16-3c-1 7-6 14-13 19h38c-7-5-12-12-13-19a17 17 0 0 0 16 3 17 17 0 1 0-9-28A17 17 0 0 0 50 6Z"
+                                fill="#f7f1de"></path>
+                        </svg>
+                        <span style="font-size:10px;letter-spacing:.22em;color:rgba(247,241,222,.6)">CLUB</span>
+                    </div>
+                    <div
+                        style="display:flex;flex-direction:column;align-items:center;gap:18px;padding:32px 0;border-radius:16px;background:rgba(247,241,222,.04)">
+                        <svg viewBox="0 0 100 100" width="88" height="88">
+                            <path d="M50 6 88 50 50 94 12 50Z" fill="#d23548"></path>
+                        </svg>
+                        <span style="font-size:10px;letter-spacing:.22em;color:rgba(247,241,222,.6)">DIAMOND</span>
+                    </div>
+                </div>
+
+                <div style="margin-top:28px;display:grid;grid-template-columns:1.4fr 1fr;gap:28px">
+                    <div style="padding:28px 32px;border-radius:16px;background:rgba(247,241,222,.04)">
+                        <div style="font-size:10px;letter-spacing:.22em;color:rgba(247,241,222,.6)">SIZE RAMP — 12 / 16
+                            / 24 / 40 / 64</div>
+                        <div style="margin-top:24px;display:flex;align-items:flex-end;gap:28px">
+                            <svg viewBox="0 0 100 100" width="12" height="12">
+                                <path
+                                    d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z"
+                                    fill="#f7f1de"></path>
+                            </svg>
+                            <svg viewBox="0 0 100 100" width="16" height="16">
+                                <path
+                                    d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z"
+                                    fill="#f7f1de"></path>
+                            </svg>
+                            <svg viewBox="0 0 100 100" width="24" height="24">
+                                <path
+                                    d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z"
+                                    fill="#f7f1de"></path>
+                            </svg>
+                            <svg viewBox="0 0 100 100" width="40" height="40">
+                                <path
+                                    d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z"
+                                    fill="#f7f1de"></path>
+                            </svg>
+                            <svg viewBox="0 0 100 100" width="64" height="64">
+                                <path
+                                    d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z"
+                                    fill="#f7f1de"></path>
+                            </svg>
+                        </div>
+                        <p
+                            style="margin:22px 0 0;font-size:12px;line-height:1.6;color:rgba(247,241,222,.6);max-width:52ch">
+                            Single path per suit, drawn from <span style="color:#f7f1de">SuitBadge</span>. Fill is the
+                            only variable: cream on felt, ink on card, crimson for hearts and diamonds. Never unicode.
+                        </p>
+                    </div>
+                    <div style="padding:28px 32px;border-radius:16px;background:rgba(247,241,222,.04)">
+                        <div style="font-size:10px;letter-spacing:.22em;color:rgba(247,241,222,.6)">MARK LOCKUPS</div>
+                        <div style="margin-top:24px;display:flex;flex-direction:column;gap:22px">
+                            <div style="display:flex;align-items:center;gap:8px">
+                                <span style="display:flex;align-items:center;gap:2px">
+                                    <svg viewBox="0 0 100 100" width="18" height="18">
+                                        <path
+                                            d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z"
+                                            fill="#f7f1de"></path>
+                                    </svg>
+                                    <svg viewBox="0 0 100 100" width="18" height="18">
+                                        <path
+                                            d="M50 88C28 72 8 56 8 35a20 20 0 0 1 36-12 20 20 0 0 1 36 12c0 21-20 37-30 53Z"
+                                            fill="#d23548"></path>
+                                    </svg>
+                                </span>
+                                <span
+                                    style="font-family:'DM Serif Display',Georgia,serif;font-size:30px;letter-spacing:-.02em">royal<span
+                                        style="color:#d23548">.gg</span></span>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:16px">
+                                <span
+                                    style="display:flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:14px;background:#f7f1de">
+                                    <svg viewBox="0 0 100 100" width="30" height="30">
+                                        <path
+                                            d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z"
+                                            fill="#0d3324"></path>
+                                    </svg>
+                                </span>
+                                <span
+                                    style="display:flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:14px;background:#0d3324;box-shadow:inset 0 0 0 1px rgba(247,241,222,.18)">
+                                    <svg viewBox="0 0 100 100" width="30" height="30">
+                                        <path
+                                            d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z"
+                                            fill="#f7f1de"></path>
+                                    </svg>
+                                </span>
+                                <span style="font-size:11px;color:rgba(247,241,222,.5);max-width:14ch">App icon, 14px
+                                    radius at 56px</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section data-screen-label="Suits on card" style="padding:48px 64px;background:#f7f1de;color:#1a1614">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px">
+                    <div>
+                        <div style="font-size:20px;font-weight:600;letter-spacing:.24em">ON CARD</div>
+                        <div style="margin-top:6px;font-size:11px;font-weight:500;letter-spacing:.24em;color:#6b5e54">
+                            INK / CRIMSON ON CREAM</div>
+                    </div>
+                    <div style="text-align:right;font-size:10px;letter-spacing:.2em;color:#6b5e54">SAME
+                        PATHS<br>DIFFERENT GROUND</div>
+                </div>
+                <div style="margin-top:40px;display:grid;grid-template-columns:repeat(4,1fr);gap:28px">
+                    <div
+                        style="display:flex;flex-direction:column;align-items:center;gap:18px;padding:32px 0;border-radius:16px;background:rgba(236,227,200,.55)">
+                        <svg viewBox="0 0 100 100" width="72" height="72">
+                            <path
+                                d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z"
+                                fill="#1a1614"></path>
+                        </svg>
+                        <span style="font-size:10px;letter-spacing:.22em;color:#6b5e54">SPADE · INK-900</span>
+                    </div>
+                    <div
+                        style="display:flex;flex-direction:column;align-items:center;gap:18px;padding:32px 0;border-radius:16px;background:rgba(236,227,200,.55)">
+                        <svg viewBox="0 0 100 100" width="72" height="72">
+                            <path d="M50 88C28 72 8 56 8 35a20 20 0 0 1 36-12 20 20 0 0 1 36 12c0 21-20 37-30 53Z"
+                                fill="#b21e2c"></path>
+                        </svg>
+                        <span style="font-size:10px;letter-spacing:.22em;color:#6b5e54">HEART · CRIMSON-600</span>
+                    </div>
+                    <div
+                        style="display:flex;flex-direction:column;align-items:center;gap:18px;padding:32px 0;border-radius:16px;background:rgba(236,227,200,.55)">
+                        <svg viewBox="0 0 100 100" width="72" height="72">
+                            <path
+                                d="M50 6a17 17 0 0 0-13 28 17 17 0 1 0-9 28 17 17 0 0 0 16-3c-1 7-6 14-13 19h38c-7-5-12-12-13-19a17 17 0 0 0 16 3 17 17 0 1 0-9-28A17 17 0 0 0 50 6Z"
+                                fill="#1a1614"></path>
+                        </svg>
+                        <span style="font-size:10px;letter-spacing:.22em;color:#6b5e54">CLUB · INK-900</span>
+                    </div>
+                    <div
+                        style="display:flex;flex-direction:column;align-items:center;gap:18px;padding:32px 0;border-radius:16px;background:rgba(236,227,200,.55)">
+                        <svg viewBox="0 0 100 100" width="72" height="72">
+                            <path d="M50 6 88 50 50 94 12 50Z" fill="#b21e2c"></path>
+                        </svg>
+                        <span style="font-size:10px;letter-spacing:.22em;color:#6b5e54">DIAMOND · CRIMSON-600</span>
+                    </div>
+                </div>
+
+                <div style="margin-top:32px;display:grid;grid-template-columns:1fr 1fr;gap:28px">
+                    <div>
+                        <div style="font-size:10px;letter-spacing:.22em;color:#6b5e54">PLAYER CARDS — 28 / 36 / 48 WIDE
+                        </div>
+                        <div style="margin-top:20px;display:flex;align-items:flex-end;gap:20px">
+                            <span
+                                style="position:relative;display:flex;height:36px;width:28px;align-items:center;justify-content:center;border-radius:6px;background:#f7f1de;box-shadow:0 0 0 1px #d9cfa8,0 1px 2px rgba(0,0,0,.06)"><span
+                                    style="position:absolute;left:4px;top:2px;font-family:'DM Serif Display',Georgia,serif;font-size:11px;line-height:1">A</span><svg
+                                    viewBox="0 0 100 100" width="16" height="16">
+                                    <path
+                                        d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z"
+                                        fill="#1a1614"></path>
+                                </svg></span>
+                            <span
+                                style="position:relative;display:flex;height:48px;width:36px;align-items:center;justify-content:center;border-radius:7px;background:#f7f1de;box-shadow:0 0 0 1px #d9cfa8,0 1px 2px rgba(0,0,0,.06)"><span
+                                    style="position:absolute;left:5px;top:3px;font-family:'DM Serif Display',Georgia,serif;font-size:14px;line-height:1;color:#b21e2c">Q</span><svg
+                                    viewBox="0 0 100 100" width="22" height="22">
+                                    <path
+                                        d="M50 88C28 72 8 56 8 35a20 20 0 0 1 36-12 20 20 0 0 1 36 12c0 21-20 37-30 53Z"
+                                        fill="#b21e2c"></path>
+                                </svg></span>
+                            <span
+                                style="position:relative;display:flex;height:64px;width:48px;align-items:center;justify-content:center;border-radius:8px;background:#f7f1de;box-shadow:0 0 0 1px #d9cfa8,0 2px 4px rgba(0,0,0,.08)"><span
+                                    style="position:absolute;left:6px;top:4px;font-family:'DM Serif Display',Georgia,serif;font-size:18px;line-height:1">K</span><svg
+                                    viewBox="0 0 100 100" width="32" height="32">
+                                    <path
+                                        d="M50 6a17 17 0 0 0-13 28 17 17 0 1 0-9 28 17 17 0 0 0 16-3c-1 7-6 14-13 19h38c-7-5-12-12-13-19a17 17 0 0 0 16 3 17 17 0 1 0-9-28A17 17 0 0 0 50 6Z"
+                                        fill="#1a1614"></path>
+                                </svg></span>
+                            <span
+                                style="display:flex;align-items:center;justify-content:center;height:64px;width:48px;border-radius:8px;background:#0d3324;box-shadow:0 0 0 1px #d9cfa8,0 2px 4px rgba(0,0,0,.08)"><svg
+                                    viewBox="0 0 100 100" width="26" height="26" style="opacity:.5">
+                                    <path d="M50 6 88 50 50 94 12 50Z" fill="#f7f1de"></path>
+                                </svg></span>
+                        </div>
+                        <p style="margin:18px 0 0;font-size:12px;line-height:1.6;color:#3a322b;max-width:46ch">Rank sits
+                            top-left, suit centred. The felt-backed card at the end is the face-down state — use it for
+                            unlinked guests.</p>
+                    </div>
+                    <div>
+                        <div style="font-size:10px;letter-spacing:.22em;color:#6b5e54">MONEY + STATE PILLS</div>
+                        <div style="margin-top:20px;display:flex;flex-wrap:wrap;gap:10px">
+                            <span
+                                style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;background:rgba(91,142,110,.18);font-size:12px;font-weight:600;color:#2f5540">+$120.00</span>
+                            <span
+                                style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;background:rgba(178,30,44,.14);font-size:12px;font-weight:600;color:#8a1620">-$40.00</span>
+                            <span
+                                style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;background:rgba(201,162,74,.2);font-size:12px;font-weight:600;color:#7a5d1a">Pending
+                                review</span>
+                            <span
+                                style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;background:rgba(91,142,110,.18);font-size:12px;font-weight:600;color:#2f5540">Reconciled</span>
+                            <span
+                                style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;background:rgba(107,94,84,.14);font-size:12px;font-weight:600;color:#3a322b">Guest</span>
+                            <span
+                                style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;background:rgba(201,162,74,.2);font-size:12px;font-weight:600;color:#7a5d1a"><svg
+                                    viewBox="0 0 100 100" width="10" height="10">
+                                    <path d="M50 6 88 50 50 94 12 50Z" fill="#7a5d1a"></path>
+                                </svg>Heater · 3 up</span>
+                            <span
+                                style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;background:rgba(178,30,44,.14);font-size:12px;font-weight:600;color:#8a1620">Off
+                                $4.50</span>
+                        </div>
+                        <div style="margin-top:26px;font-size:10px;letter-spacing:.22em;color:#6b5e54">OPTIONAL GLOSSY
+                            VARIANT</div>
+                        <div style="margin-top:16px;display:flex;align-items:center;gap:24px">
+                            <span
+                                style="display:flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 32% 26%,#5a5450,#1a1614 62%)"><svg
+                                    viewBox="0 0 100 100" width="34" height="34">
+                                    <path
+                                        d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z"
+                                        fill="#f7f1de" fill-opacity=".92"></path>
+                                </svg></span>
+                            <span
+                                style="display:flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 32% 26%,#e8636f,#8a1620 64%)"><svg
+                                    viewBox="0 0 100 100" width="34" height="34">
+                                    <path
+                                        d="M50 88C28 72 8 56 8 35a20 20 0 0 1 36-12 20 20 0 0 1 36 12c0 21-20 37-30 53Z"
+                                        fill="#f7f1de" fill-opacity=".92"></path>
+                                </svg></span>
+                            <p style="margin:0;font-size:12px;line-height:1.6;color:#3a322b;max-width:26ch">Kept as a
+                                one-off for marketing only — the product stays flat.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section data-screen-label="Chips"
+                style="padding:48px 64px;background-color:#11402c;background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.012) 0 2px,transparent 2px 6px)">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px">
+                    <div>
+                        <div style="font-size:20px;font-weight:600;letter-spacing:.24em">CHIPS</div>
+                        <div
+                            style="margin-top:6px;font-size:11px;font-weight:500;letter-spacing:.24em;color:rgba(247,241,222,.55)">
+                            DENOMINATIONS · $40 BUY-IN = 8 × $5</div>
+                    </div>
+                    <div style="text-align:right;font-size:10px;letter-spacing:.2em;color:rgba(247,241,222,.45)">FACE ·
+                        STACK · EDGE</div>
+                </div>
+
+                <div style="margin-top:40px;display:grid;grid-template-columns:repeat(5,1fr);gap:24px">
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:16px">
+                        <svg viewBox="0 0 100 100" width="104" height="104">
+                            <circle cx="50" cy="50" r="48" fill="#f7f1de"></circle>
+                            <circle cx="50" cy="50" r="41" fill="none" stroke="#0d3324" stroke-width="12"
+                                stroke-dasharray="15 27.9"></circle>
+                            <circle cx="50" cy="50" r="33" fill="#f7f1de"></circle>
+                            <circle cx="50" cy="50" r="29" fill="none" stroke="#d9cfa8" stroke-width="1.5"></circle>
+                            <text x="50" y="57" text-anchor="middle" font-family="DM Serif Display,Georgia,serif"
+                                font-size="22" fill="#1a1614">$1</text>
+                        </svg>
+                        <span style="font-size:10px;letter-spacing:.22em;color:rgba(247,241,222,.6)">WHITE · $1</span>
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:16px">
+                        <svg viewBox="0 0 100 100" width="104" height="104">
+                            <circle cx="50" cy="50" r="48" fill="#b21e2c"></circle>
+                            <circle cx="50" cy="50" r="41" fill="none" stroke="#f7f1de" stroke-width="12"
+                                stroke-dasharray="15 27.9"></circle>
+                            <circle cx="50" cy="50" r="33" fill="#b21e2c"></circle>
+                            <circle cx="50" cy="50" r="29" fill="none" stroke="rgba(247,241,222,.5)" stroke-width="1.5">
+                            </circle><text x="50" y="57" text-anchor="middle"
+                                font-family="DM Serif Display,Georgia,serif" font-size="22" fill="#f7f1de">$5</text>
+                        </svg>
+                        <span style="font-size:10px;letter-spacing:.22em;color:rgba(247,241,222,.6)">CRIMSON · $5</span>
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:16px">
+                        <svg viewBox="0 0 100 100" width="104" height="104">
+                            <circle cx="50" cy="50" r="48" fill="#1a5238"></circle>
+                            <circle cx="50" cy="50" r="41" fill="none" stroke="#f7f1de" stroke-width="12"
+                                stroke-dasharray="15 27.9"></circle>
+                            <circle cx="50" cy="50" r="33" fill="#1a5238"></circle>
+                            <circle cx="50" cy="50" r="29" fill="none" stroke="rgba(247,241,222,.5)" stroke-width="1.5">
+                            </circle><text x="50" y="57" text-anchor="middle"
+                                font-family="DM Serif Display,Georgia,serif" font-size="20" fill="#f7f1de">$25</text>
+                        </svg>
+                        <span style="font-size:10px;letter-spacing:.22em;color:rgba(247,241,222,.6)">FELT · $25</span>
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:16px">
+                        <svg viewBox="0 0 100 100" width="104" height="104">
+                            <circle cx="50" cy="50" r="48" fill="#1a1614"></circle>
+                            <circle cx="50" cy="50" r="41" fill="none" stroke="#c9a24a" stroke-width="12"
+                                stroke-dasharray="15 27.9"></circle>
+                            <circle cx="50" cy="50" r="33" fill="#1a1614"></circle>
+                            <circle cx="50" cy="50" r="29" fill="none" stroke="rgba(201,162,74,.6)" stroke-width="1.5">
+                            </circle><text x="50" y="57" text-anchor="middle"
+                                font-family="DM Serif Display,Georgia,serif" font-size="18" fill="#ddbb6b">$100</text>
+                        </svg>
+                        <span style="font-size:10px;letter-spacing:.22em;color:rgba(247,241,222,.6)">INK · $100</span>
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:16px">
+                        <svg viewBox="0 0 100 100" width="104" height="104">
+                            <circle cx="50" cy="50" r="48" fill="#c9a24a"></circle>
+                            <circle cx="50" cy="50" r="41" fill="none" stroke="#f7f1de" stroke-width="12"
+                                stroke-dasharray="15 27.9"></circle>
+                            <circle cx="50" cy="50" r="33" fill="#c9a24a"></circle>
+                            <circle cx="50" cy="50" r="29" fill="none" stroke="rgba(26,22,20,.35)" stroke-width="1.5">
+                            </circle>
+                            <path
+                                d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z"
+                                fill="#1a1614" transform="translate(31,31) scale(0.38)"></path>
+                        </svg>
+                        <span style="font-size:10px;letter-spacing:.22em;color:rgba(247,241,222,.6)">GOLD ·
+                            DEALER</span>
+                    </div>
+                </div>
+
+                <div style="margin-top:44px;display:grid;grid-template-columns:1.1fr 1fr;gap:32px;align-items:end">
+                    <div style="padding:32px;border-radius:16px;background:rgba(247,241,222,.04)">
+                        <div style="font-size:10px;letter-spacing:.22em;color:rgba(247,241,222,.6)">STACKS — 4 / 8 / 12
+                            HIGH</div>
+                        <div style="margin-top:28px;display:flex;align-items:flex-end;gap:44px">
+                            <svg viewBox="0 0 80 90" width="80" height="90">
+                                <g>
+                                    <ellipse cx="40" cy="76" rx="34" ry="10" fill="#8a1620"></ellipse>
+                                    <ellipse cx="40" cy="72" rx="34" ry="10" fill="#b21e2c"></ellipse>
+                                    <ellipse cx="40" cy="63" rx="34" ry="10" fill="#8a1620"></ellipse>
+                                    <ellipse cx="40" cy="59" rx="34" ry="10" fill="#b21e2c"></ellipse>
+                                    <ellipse cx="40" cy="50" rx="34" ry="10" fill="#8a1620"></ellipse>
+                                    <ellipse cx="40" cy="46" rx="34" ry="10" fill="#b21e2c"></ellipse>
+                                    <ellipse cx="40" cy="37" rx="34" ry="10" fill="#8a1620"></ellipse>
+                                    <ellipse cx="40" cy="33" rx="34" ry="10" fill="#b21e2c"></ellipse>
+                                    <ellipse cx="40" cy="33" rx="20" ry="5.5" fill="none" stroke="rgba(247,241,222,.55)"
+                                        stroke-width="1.4"></ellipse>
+                                </g>
+                            </svg>
+                            <svg viewBox="0 0 80 130" width="80" height="130">
+                                <g>
+                                    <ellipse cx="40" cy="116" rx="34" ry="10" fill="#0a2a1c"></ellipse>
+                                    <ellipse cx="40" cy="112" rx="34" ry="10" fill="#1a5238"></ellipse>
+                                    <ellipse cx="40" cy="103" rx="34" ry="10" fill="#0a2a1c"></ellipse>
+                                    <ellipse cx="40" cy="99" rx="34" ry="10" fill="#1a5238"></ellipse>
+                                    <ellipse cx="40" cy="90" rx="34" ry="10" fill="#0a2a1c"></ellipse>
+                                    <ellipse cx="40" cy="86" rx="34" ry="10" fill="#1a5238"></ellipse>
+                                    <ellipse cx="40" cy="77" rx="34" ry="10" fill="#0a2a1c"></ellipse>
+                                    <ellipse cx="40" cy="73" rx="34" ry="10" fill="#1a5238"></ellipse>
+                                    <ellipse cx="40" cy="64" rx="34" ry="10" fill="#0a2a1c"></ellipse>
+                                    <ellipse cx="40" cy="60" rx="34" ry="10" fill="#1a5238"></ellipse>
+                                    <ellipse cx="40" cy="51" rx="34" ry="10" fill="#0a2a1c"></ellipse>
+                                    <ellipse cx="40" cy="47" rx="34" ry="10" fill="#1a5238"></ellipse>
+                                    <ellipse cx="40" cy="38" rx="34" ry="10" fill="#0a2a1c"></ellipse>
+                                    <ellipse cx="40" cy="34" rx="34" ry="10" fill="#1a5238"></ellipse>
+                                    <ellipse cx="40" cy="25" rx="34" ry="10" fill="#0a2a1c"></ellipse>
+                                    <ellipse cx="40" cy="21" rx="34" ry="10" fill="#1a5238"></ellipse>
+                                    <ellipse cx="40" cy="21" rx="20" ry="5.5" fill="none" stroke="rgba(247,241,222,.5)"
+                                        stroke-width="1.4"></ellipse>
+                                </g>
+                            </svg>
+                            <svg viewBox="0 0 80 172" width="80" height="172">
+                                <g>
+                                    <ellipse cx="40" cy="158" rx="34" ry="10" fill="#000"></ellipse>
+                                    <ellipse cx="40" cy="154" rx="34" ry="10" fill="#1a1614"></ellipse>
+                                    <ellipse cx="40" cy="145" rx="34" ry="10" fill="#000"></ellipse>
+                                    <ellipse cx="40" cy="141" rx="34" ry="10" fill="#1a1614"></ellipse>
+                                    <ellipse cx="40" cy="132" rx="34" ry="10" fill="#000"></ellipse>
+                                    <ellipse cx="40" cy="128" rx="34" ry="10" fill="#1a1614"></ellipse>
+                                    <ellipse cx="40" cy="119" rx="34" ry="10" fill="#000"></ellipse>
+                                    <ellipse cx="40" cy="115" rx="34" ry="10" fill="#1a1614"></ellipse>
+                                    <ellipse cx="40" cy="106" rx="34" ry="10" fill="#000"></ellipse>
+                                    <ellipse cx="40" cy="102" rx="34" ry="10" fill="#1a1614"></ellipse>
+                                    <ellipse cx="40" cy="93" rx="34" ry="10" fill="#000"></ellipse>
+                                    <ellipse cx="40" cy="89" rx="34" ry="10" fill="#1a1614"></ellipse>
+                                    <ellipse cx="40" cy="80" rx="34" ry="10" fill="#000"></ellipse>
+                                    <ellipse cx="40" cy="76" rx="34" ry="10" fill="#1a1614"></ellipse>
+                                    <ellipse cx="40" cy="67" rx="34" ry="10" fill="#000"></ellipse>
+                                    <ellipse cx="40" cy="63" rx="34" ry="10" fill="#1a1614"></ellipse>
+                                    <ellipse cx="40" cy="54" rx="34" ry="10" fill="#000"></ellipse>
+                                    <ellipse cx="40" cy="50" rx="34" ry="10" fill="#1a1614"></ellipse>
+                                    <ellipse cx="40" cy="41" rx="34" ry="10" fill="#000"></ellipse>
+                                    <ellipse cx="40" cy="37" rx="34" ry="10" fill="#1a1614"></ellipse>
+                                    <ellipse cx="40" cy="28" rx="34" ry="10" fill="#000"></ellipse>
+                                    <ellipse cx="40" cy="24" rx="34" ry="10" fill="#1a1614"></ellipse>
+                                    <ellipse cx="40" cy="15" rx="34" ry="10" fill="#000"></ellipse>
+                                    <ellipse cx="40" cy="11" rx="34" ry="10" fill="#1a1614"></ellipse>
+                                    <ellipse cx="40" cy="11" rx="20" ry="5.5" fill="none" stroke="rgba(201,162,74,.75)"
+                                        stroke-width="1.4"></ellipse>
+                                </g>
+                            </svg>
+                        </div>
+                        <p
+                            style="margin:26px 0 0;font-size:12px;line-height:1.6;color:rgba(247,241,222,.6);max-width:50ch">
+                            Stacks are ellipse pairs — light face, dark edge, 13px rhythm. Use them for buy-in counters
+                            and the reconcile strip, never as decoration on data.</p>
+                    </div>
+                    <div style="padding:32px;border-radius:16px;background:rgba(247,241,222,.04)">
+                        <div style="font-size:10px;letter-spacing:.22em;color:rgba(247,241,222,.6)">BUY-IN COUNTER</div>
+                        <div style="margin-top:24px;display:flex;align-items:center;gap:14px">
+                            <span style="display:flex;align-items:center">
+                                <svg viewBox="0 0 100 100" width="34" height="34">
+                                    <circle cx="50" cy="50" r="48" fill="#b21e2c"></circle>
+                                    <circle cx="50" cy="50" r="41" fill="none" stroke="#f7f1de" stroke-width="12"
+                                        stroke-dasharray="15 27.9"></circle>
+                                    <circle cx="50" cy="50" r="33" fill="#b21e2c"></circle>
+                                </svg>
+                                <svg viewBox="0 0 100 100" width="34" height="34" style="margin-left:-10px">
+                                    <circle cx="50" cy="50" r="48" fill="#b21e2c"></circle>
+                                    <circle cx="50" cy="50" r="41" fill="none" stroke="#f7f1de" stroke-width="12"
+                                        stroke-dasharray="15 27.9"></circle>
+                                    <circle cx="50" cy="50" r="33" fill="#b21e2c"></circle>
+                                </svg>
+                                <svg viewBox="0 0 100 100" width="34" height="34" style="margin-left:-10px">
+                                    <circle cx="50" cy="50" r="48" fill="#b21e2c"></circle>
+                                    <circle cx="50" cy="50" r="41" fill="none" stroke="#f7f1de" stroke-width="12"
+                                        stroke-dasharray="15 27.9"></circle>
+                                    <circle cx="50" cy="50" r="33" fill="#b21e2c"></circle>
+                                </svg>
+                                <svg viewBox="0 0 100 100" width="34" height="34" style="margin-left:-10px">
+                                    <circle cx="50" cy="50" r="48" fill="#b21e2c"></circle>
+                                    <circle cx="50" cy="50" r="41" fill="none" stroke="#f7f1de" stroke-width="12"
+                                        stroke-dasharray="15 27.9"></circle>
+                                    <circle cx="50" cy="50" r="33" fill="#b21e2c"></circle>
+                                </svg>
+                            </span>
+                            <span
+                                style="font-family:'DM Serif Display',Georgia,serif;font-size:26px;font-variant-numeric:tabular-nums;color:#f7f1de">4
+                                × $40</span>
+                            <span style="font-size:13px;color:rgba(247,241,222,.6)">= $160.00 in</span>
+                        </div>
+                        <div style="margin-top:30px;font-size:10px;letter-spacing:.22em;color:rgba(247,241,222,.6)">
+                            RECONCILE STRIP</div>
+                        <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px;font-size:13px">
+                            <div style="display:flex;justify-content:space-between"><span
+                                    style="color:rgba(247,241,222,.65)">Total in</span><span
+                                    style="font-variant-numeric:tabular-nums">$1,240.00</span></div>
+                            <div style="display:flex;justify-content:space-between"><span
+                                    style="color:rgba(247,241,222,.65)">Total out</span><span
+                                    style="font-variant-numeric:tabular-nums">$1,235.50</span></div>
+                            <div
+                                style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid rgba(247,241,222,.14)">
+                                <span style="color:#ddbb6b">Off by</span><span
+                                    style="font-variant-numeric:tabular-nums;color:#ddbb6b">$4.50</span></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section data-screen-label="Empty states" style="padding:48px 64px;background:#f7f1de;color:#1a1614">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px">
+                    <div>
+                        <div style="font-size:20px;font-weight:600;letter-spacing:.24em">EMPTY + LOADING</div>
+                        <div style="margin-top:6px;font-size:11px;font-weight:500;letter-spacing:.24em;color:#6b5e54">NO
+                            SPINNERS — EVER</div>
+                    </div>
+                    <div style="text-align:right;font-size:10px;letter-spacing:.2em;color:#6b5e54">SAY WHAT'S
+                        MISSING<br>THEN THE ONE ACTION</div>
+                </div>
+
+                <div style="margin-top:40px;display:grid;grid-template-columns:repeat(3,1fr);gap:24px">
+                    <div
+                        style="border-radius:16px;background:rgba(236,227,200,.5);padding:36px 28px;display:flex;flex-direction:column;align-items:center;text-align:center;box-shadow:inset 0 0 0 1px #e2d8b8">
+                        <div style="position:relative;height:76px;width:120px">
+                            <span
+                                style="position:absolute;left:14px;top:10px;height:56px;width:42px;border-radius:7px;background:#f7f1de;box-shadow:0 0 0 1px #d9cfa8;transform:rotate(-14deg)"></span>
+                            <span
+                                style="position:absolute;left:40px;top:6px;height:56px;width:42px;border-radius:7px;background:#f7f1de;box-shadow:0 0 0 1px #d9cfa8;transform:rotate(2deg)"></span>
+                            <span
+                                style="position:absolute;left:64px;top:10px;height:56px;width:42px;border-radius:7px;background:#f7f1de;box-shadow:0 0 0 1px #d9cfa8;transform:rotate(15deg)"></span>
+                        </div>
+                        <div style="margin-top:22px;font-family:'DM Serif Display',Georgia,serif;font-size:22px">No
+                            nights logged</div>
+                        <p style="margin:8px 0 0;font-size:13px;line-height:1.55;color:#3a322b;max-width:30ch">Enter
+                            last Thursday after the fact — buy-ins, cash-outs, done in one pass.</p>
+                        <button type="button"
+                            style="margin-top:20px;border:0;border-radius:10px;padding:11px 18px;font-family:inherit;font-size:13px;font-weight:600;background:#0d3324;color:#f7f1de;cursor:pointer">Log
+                            a session</button>
+                    </div>
+
+                    <div
+                        style="border-radius:16px;background:rgba(236,227,200,.5);padding:36px 28px;display:flex;flex-direction:column;align-items:center;text-align:center;box-shadow:inset 0 0 0 1px #e2d8b8">
+                        <div style="display:flex;align-items:flex-end;gap:10px;height:76px">
+                            <span style="width:26px;height:30px;border-radius:5px 5px 0 0;background:#e2d8b8"></span>
+                            <span style="width:26px;height:52px;border-radius:5px 5px 0 0;background:#e2d8b8"></span>
+                            <span style="width:26px;height:22px;border-radius:5px 5px 0 0;background:#e2d8b8"></span>
+                            <span style="width:26px;height:40px;border-radius:5px 5px 0 0;background:#d9cfa8"></span>
+                        </div>
+                        <div style="margin-top:22px;font-family:'DM Serif Display',Georgia,serif;font-size:22px">
+                            Standings open at three</div>
+                        <p style="margin:8px 0 0;font-size:13px;line-height:1.55;color:#3a322b;max-width:30ch">One more
+                            night and the table gets a leaderboard. Two players are already eligible.</p>
+                        <span style="margin-top:20px;font-size:12px;color:#6b5e54">2 of 3 nights played</span>
+                    </div>
+
+                    <div
+                        style="border-radius:16px;background:rgba(236,227,200,.5);padding:36px 28px;box-shadow:inset 0 0 0 1px #e2d8b8">
+                        <div
+                            style="font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#6b5e54">
+                            Dealing…</div>
+                        <div style="margin-top:20px;display:flex;flex-direction:column;gap:12px">
+                            <span
+                                style="height:34px;width:62%;border-radius:8px;background:#e2d8b8;animation:pulse 1.6s ease-in-out infinite"></span>
+                            <span
+                                style="height:12px;width:88%;border-radius:6px;background:#e6dcc0;animation:pulse 1.6s ease-in-out .15s infinite"></span>
+                            <span
+                                style="height:12px;width:74%;border-radius:6px;background:#e6dcc0;animation:pulse 1.6s ease-in-out .3s infinite"></span>
+                            <span
+                                style="height:56px;width:100%;border-radius:10px;background:#e6dcc0;animation:pulse 1.6s ease-in-out .45s infinite"></span>
+                        </div>
+                        <p style="margin:20px 0 0;font-size:12px;line-height:1.6;color:#3a322b">Skeletons hold the exact
+                            geometry of what's coming, so nothing jumps when the data lands.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section data-screen-label="Share card"
+                style="padding:48px 64px 64px;background-color:#0d3324;background-image:radial-gradient(ellipse at 50% -20%,rgba(255,255,255,.05),transparent 62%),repeating-linear-gradient(45deg,rgba(255,255,255,.012) 0 2px,transparent 2px 6px)">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px">
+                    <div>
+                        <div style="font-size:20px;font-weight:600;letter-spacing:.24em">SHARE CARD</div>
+                        <div
+                            style="margin-top:6px;font-size:11px;font-weight:500;letter-spacing:.24em;color:rgba(247,241,222,.55)">
+                            1200 × 630 · SHOWN AT 50%</div>
+                    </div>
+                    <div style="text-align:right;font-size:10px;letter-spacing:.2em;color:rgba(247,241,222,.45)">DROPS
+                        IN THE GROUP CHAT<br>THE MORNING AFTER</div>
+                </div>
+
+                <div style="margin-top:36px;display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap">
+                    <div
+                        style="width:600px;height:315px;overflow:hidden;border-radius:14px;box-shadow:0 24px 60px -24px rgba(0,0,0,.8)">
+                        <div
+                            style="width:1200px;height:630px;transform:scale(.5);transform-origin:top left;position:relative;background-color:#0d3324;background-image:radial-gradient(ellipse at 78% 12%,rgba(201,162,74,.16),transparent 55%),repeating-linear-gradient(45deg,rgba(255,255,255,.014) 0 3px,transparent 3px 8px);padding:64px 72px;box-sizing:border-box">
+                            <div style="position:absolute;right:-40px;bottom:-70px;opacity:.07"><svg
+                                    viewBox="0 0 100 100" width="420" height="420">
+                                    <path
+                                        d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z"
+                                        fill="#f7f1de"></path>
+                                </svg></div>
+                            <div
+                                style="position:relative;display:flex;align-items:center;justify-content:space-between;gap:24px">
+                                <span
+                                    style="font-family:'DM Serif Display',Georgia,serif;font-size:38px;color:#f7f1de">royal<span
+                                        style="color:#d23548">.gg</span></span>
+                                <span style="font-size:18px;letter-spacing:.22em;color:rgba(247,241,222,.55)">SESSION
+                                    #24</span>
+                            </div>
+                            <div style="position:relative;margin-top:44px">
+                                <div style="font-size:20px;letter-spacing:.2em;color:#c9a24a">THURSDAY NIGHT · 4 SEP
+                                    2026</div>
+                                <div
+                                    style="margin-top:18px;font-family:'DM Serif Display',Georgia,serif;font-size:78px;line-height:1;color:#f7f1de">
+                                    Dan takes the night</div>
+                            </div>
+                            <div style="position:relative;margin-top:52px;display:flex;align-items:flex-end;gap:56px">
+                                <div>
+                                    <div style="font-size:17px;letter-spacing:.16em;color:rgba(247,241,222,.5)">BIGGEST
+                                        WINNER</div>
+                                    <div style="margin-top:10px;display:flex;align-items:center;gap:14px">
+                                        <span
+                                            style="position:relative;display:flex;height:58px;width:44px;align-items:center;justify-content:center;border-radius:8px;background:#f7f1de"><span
+                                                style="position:absolute;left:6px;top:4px;font-family:'DM Serif Display',Georgia,serif;font-size:16px;line-height:1;color:#1a1614">A</span><svg
+                                                viewBox="0 0 100 100" width="26" height="26">
+                                                <path
+                                                    d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z"
+                                                    fill="#1a1614"></path>
+                                            </svg></span>
+                                        <span
+                                            style="font-family:'DM Serif Display',Georgia,serif;font-size:56px;font-variant-numeric:tabular-nums;color:#a8cbb3">+$120.00</span>
+                                    </div>
+                                </div>
+                                <div style="height:78px;width:1px;background:rgba(247,241,222,.16)"></div>
+                                <div>
+                                    <div style="font-size:17px;letter-spacing:.16em;color:rgba(247,241,222,.5)">BIGGEST
+                                        LOSER</div>
+                                    <div style="margin-top:10px;display:flex;align-items:center;gap:14px">
+                                        <span
+                                            style="position:relative;display:flex;height:58px;width:44px;align-items:center;justify-content:center;border-radius:8px;background:#f7f1de"><span
+                                                style="position:absolute;left:6px;top:4px;font-family:'DM Serif Display',Georgia,serif;font-size:16px;line-height:1;color:#b21e2c">8</span><svg
+                                                viewBox="0 0 100 100" width="26" height="26">
+                                                <path d="M50 6 88 50 50 94 12 50Z" fill="#b21e2c"></path>
+                                            </svg></span>
+                                        <span
+                                            style="font-family:'DM Serif Display',Georgia,serif;font-size:56px;font-variant-numeric:tabular-nums;color:#e0808c">-$95.50</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div
+                                style="position:relative;margin-top:56px;display:flex;align-items:center;gap:40px;font-size:20px;color:rgba(247,241,222,.6)">
+                                <span>8 players</span><span>·</span><span>31 buy-ins</span><span>·</span><span>$1,240
+                                    across the table</span><span>·</span><span>reconciled to the cent</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="max-width:360px">
+                        <div style="font-size:10px;letter-spacing:.22em;color:rgba(247,241,222,.6)">STORY CROP · 1080 ×
+                            1350</div>
+                        <div
+                            style="margin-top:18px;width:216px;height:270px;overflow:hidden;border-radius:12px;box-shadow:0 20px 44px -20px rgba(0,0,0,.8)">
+                            <div
+                                style="width:1080px;height:1350px;transform:scale(.2);transform-origin:top left;position:relative;background-color:#0d3324;background-image:radial-gradient(ellipse at 50% 8%,rgba(201,162,74,.16),transparent 55%);padding:96px 80px;box-sizing:border-box">
+                                <span
+                                    style="font-family:'DM Serif Display',Georgia,serif;font-size:54px;color:#f7f1de">royal<span
+                                        style="color:#d23548">.gg</span></span>
+                                <div style="margin-top:120px;font-size:30px;letter-spacing:.2em;color:#c9a24a">4 SEP
+                                    2026</div>
+                                <div
+                                    style="margin-top:28px;font-family:'DM Serif Display',Georgia,serif;font-size:104px;line-height:1.05;color:#f7f1de">
+                                    Dan takes<br>the night</div>
+                                <div
+                                    style="margin-top:64px;font-family:'DM Serif Display',Georgia,serif;font-size:132px;color:#a8cbb3">
+                                    +$120.00</div>
+                                <div style="margin-top:48px;font-size:32px;color:rgba(247,241,222,.6)">8 players ·
+                                    $1,240 pot</div>
+                            </div>
+                        </div>
+                        <p style="margin:22px 0 0;font-size:12px;line-height:1.7;color:rgba(247,241,222,.6)">Both crops
+                            read from one session: date, winner, loser, pot. Nothing else — the group chat fills in the
+                            rest.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </x-dc>
+</body>
+
+</html>

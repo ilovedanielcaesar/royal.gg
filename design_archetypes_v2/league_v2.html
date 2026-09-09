@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>League Table — royal.gg</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <style>
+:root {
+  --felt-900: #0d3324;
+  --felt-800: #11402c;
+  --felt-700: #1a5238;
+  --card-50: #f7f1de;
+  --card-100: #ece3c8;
+  --card-200: #d9cfa8;
+  --ink-900: #1a1614;
+  --ink-700: #3a322b;
+  --ink-500: #6b5e54;
+  --crimson-700: #8a1620;
+  --crimson-600: #b21e2c;
+  --crimson-500: #d23548;
+  --gold-500: #c9a24a;
+  --gold-ink: #7a5d1a;
+  --sage-700: #436c54;
+  --sage-600: #5b8e6e;
+  --teal-500: #2c9c8e;
+  --sky-500: #2a7fb8;
+  --orange-500: #d97a3b;
+  --amber-500: #d6a13a;
+
+  --display: "DM Serif Display", Georgia, "Times New Roman", serif;
+  --sans: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html { background: var(--felt-900); }
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background-color: var(--felt-900);
+  background-image:
+    radial-gradient(ellipse at 50% -12%, rgba(255, 255, 255, 0.055), transparent 58%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.012) 0 2px, transparent 2px 6px);
+  background-attachment: fixed;
+  color: var(--card-50);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+a { color: inherit; text-decoration: none; }
+button { font: inherit; cursor: pointer; }
+
+:focus-visible {
+  outline: 2px solid var(--gold-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.tabular { font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+
+.topbar {
+  border-bottom: 1px solid rgba(247, 241, 222, 0.1);
+  background: rgba(13, 51, 36, 0.76);
+  backdrop-filter: blur(14px);
+}
+
+.wrap { width: min(1152px, calc(100% - 32px)); margin-inline: auto; }
+
+.topbar-inner { display: flex; align-items: center; gap: 20px; min-height: 66px; }
+
+.brand { display: flex; align-items: center; gap: 9px; }
+.brand-suits { display: flex; gap: 2px; }
+.brand-name { font-family: var(--display); font-size: 24px; letter-spacing: -0.02em; }
+.brand-name em { font-style: normal; color: var(--crimson-500); }
+
+.nav { display: flex; gap: 4px; margin-left: auto; }
+.nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 13px;
+  border-radius: 10px;
+  color: rgba(247, 241, 222, 0.62);
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 160ms ease, color 160ms ease;
+}
+.nav a:hover { background: rgba(247, 241, 222, 0.08); color: var(--card-50); }
+.nav a[aria-current="page"] { background: rgba(247, 241, 222, 0.1); color: var(--card-50); }
+
+.group-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(247, 241, 222, 0.07);
+  box-shadow: inset 0 0 0 1px rgba(247, 241, 222, 0.12);
+  color: var(--card-50);
+  font-size: 12px;
+  font-weight: 500;
+}
+.group-switch:hover { background: rgba(247, 241, 222, 0.12); }
+
+.profile { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500; }
+
+.pcard {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 34px;
+  border-radius: 5px;
+  background: var(--card-50);
+  box-shadow: 0 0 0 1px var(--card-200), 0 1px 2px rgba(0, 0, 0, 0.1);
+  color: var(--ink-900);
+}
+.pcard.red { color: var(--crimson-600); }
+.pcard .rank { position: absolute; top: 2px; left: 3.5px; font: 10px/1 var(--display); }
+.pcard svg { width: 13px; height: 13px; fill: currentColor; }
+
+.guest-tile {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 34px;
+  border-radius: 5px;
+  background: var(--felt-900);
+  box-shadow: inset 0 0 0 1px rgba(13, 51, 36, 0.3);
+}
+.guest-tile svg { width: 12px; height: 12px; fill: var(--card-50); opacity: 0.55; }
+
+.guest-badge {
+  color: var(--ink-500);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+main { padding: 30px 0 56px; }
+
+.page-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.page-heading h1 { margin: 0; font: 40px/1 var(--display); letter-spacing: -0.015em; }
+.page-heading p { margin: 7px 0 0; color: rgba(247, 241, 222, 0.6); font-size: 13px; }
+
+.actions { display: flex; gap: 8px; align-items: center; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 11px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: transform 150ms ease, background 150ms ease;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn-primary {
+  background: var(--card-50);
+  color: var(--ink-900);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.22);
+}
+.btn-ghost {
+  background: rgba(247, 241, 222, 0.08);
+  color: var(--card-50);
+  box-shadow: inset 0 0 0 1px rgba(247, 241, 222, 0.14);
+}
+.btn-card {
+  background: var(--card-100);
+  color: var(--ink-900);
+  box-shadow: inset 0 0 0 1px var(--card-200);
+}
+.btn-card:hover { background: var(--card-200); }
+.btn-sm {
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 9px;
+  font-size: 12.5px;
+}
+
+.admin-tag {
+  margin-left: 8px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(201, 162, 74, 0.2);
+  color: var(--gold-ink);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.sheet {
+  overflow: hidden;
+  border-radius: 22px;
+  background: var(--card-50);
+  box-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.14),
+    0 30px 70px -28px rgba(0, 0, 0, 0.65),
+    0 0 0 1px var(--card-100);
+  color: var(--ink-900);
+  animation: settle 460ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes settle {
+  from { opacity: 0; transform: translateY(14px) rotate(-0.35deg); }
+  to { opacity: 1; transform: none; }
+}
+
+.band { padding: 26px 36px; }
+.band + .band { border-top: 1px solid var(--card-100); }
+
+.kicker {
+  color: var(--ink-500);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.band-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.band-head h2 { margin: 0; font: 400 23px/1.1 var(--display); }
+.band-copy { margin: 5px 0 0; }
+.subtle { color: var(--ink-500); font-size: 12px; }
+.link { color: var(--ink-500); font-size: 12px; font-weight: 500; }
+.link:hover { color: var(--ink-900); text-decoration: underline; }
+
+.pos { color: var(--sage-700); }
+.neg { color: var(--crimson-700); }
+.flat { color: var(--ink-500); }
+
+.row {
+  display: grid;
+  align-items: center;
+  gap: 14px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  transition: background 150ms ease;
+}
+.row + .row { border-top: 1px solid var(--card-100); }
+.row:hover { background: rgba(236, 227, 200, 0.42); }
+.row.you { background: rgba(236, 227, 200, 0.62); }
+.row.you:hover { background: var(--card-100); }
+.row-rank { font: 17px/1 var(--display); color: var(--ink-500); text-align: center; }
+.row-name { min-width: 0; font-size: 13.5px; font-weight: 500; }
+.row-sub { color: var(--ink-500); font-size: 10.5px; font-weight: 400; display: block; margin-top: 2px; }
+.row-net { font: 18px/1 var(--display); text-align: right; }
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.pill-gold { background: rgba(201, 162, 74, 0.2); color: var(--gold-ink); }
+.pill-sage { background: rgba(91, 142, 110, 0.18); color: var(--sage-700); }
+.pill-crimson { background: rgba(178, 30, 44, 0.1); color: var(--crimson-700); }
+.pill-quiet { background: rgba(217, 207, 168, 0.5); color: var(--ink-500); }
+
+/* Shared grid for All-time rankings */
+.standings-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sort-label {
+  color: var(--ink-500);
+  font-size: 12px;
+  font-weight: 500;
+}
+.sort-select {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--card-200);
+  border-radius: 9px;
+  background: var(--card-50);
+  color: var(--ink-900);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.standings-list { margin-top: 14px; }
+.standings-grid {
+  display: grid;
+  grid-template-columns: 32px minmax(180px, 2fr) 90px 100px 96px 120px;
+  align-items: center;
+  gap: 14px;
+}
+.standings-header {
+  padding: 8px 10px;
+  color: var(--ink-500);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.player-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.score-cell, .consistency-cell {
+  color: var(--ink-900);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: right;
+}
+.spark-cell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.sparkline {
+  display: block;
+  width: 88px;
+  height: 26px;
+  overflow: visible;
+}
+
+/* Side-by-side band: Payout period and Guests */
+.split-band {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 36px;
+}
+.split-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.period-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 4px;
+}
+.period-copy {
+  margin: 0;
+  color: var(--ink-700);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.period-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.example-box {
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px dashed var(--card-200);
+  background: rgba(236, 227, 200, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.example-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.example-badge .kicker { color: var(--gold-ink); }
+.example-text {
+  margin: 0;
+  color: var(--ink-700);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+/* Guests list */
+.guests-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 4px;
+}
+.guest-row {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 8px 10px;
+}
+.guest-name-line {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.add-guest-form {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--card-100);
+}
+.add-guest-form input[type="text"] {
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--card-200);
+  border-radius: 7px;
+  background: var(--card-50);
+  color: var(--ink-900);
+  font: inherit;
+  font-size: 12.5px;
+}
+
+/* Facts */
+.facts {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 18px;
+  overflow: hidden;
+  border: 1px solid var(--card-100);
+  border-radius: 12px;
+  background: var(--card-100);
+}
+.fact { min-width: 0; padding: 14px; background: var(--card-50); }
+.fact dt {
+  color: var(--ink-500);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.fact dd { margin: 6px 0 0; font-size: 13px; font-weight: 500; line-height: 1.4; }
+
+/* Export */
+.export-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: rgba(236, 227, 200, 0.45);
+}
+.export-desc {
+  color: var(--ink-700);
+  font-size: 13px;
+  line-height: 1.45;
+  max-width: 60ch;
+}
+.export-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.export-select {
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--card-200);
+  border-radius: 8px;
+  background: var(--card-50);
+  color: var(--ink-900);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+/* Felt sections below sheet */
+.felt-section { margin-top: 36px; }
+.leave-zone {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 20px 24px;
+  border-radius: 14px;
+  background: rgba(178, 30, 44, 0.08);
+  border: 1px solid rgba(178, 30, 44, 0.25);
+}
+.leave-info h3 {
+  margin: 0;
+  color: var(--crimson-500);
+  font-size: 15px;
+  font-weight: 600;
+}
+.leave-info p {
+  margin: 5px 0 0;
+  color: rgba(247, 241, 222, 0.65);
+  font-size: 12.5px;
+  line-height: 1.5;
+  max-width: 68ch;
+}
+.btn-leave {
+  background: var(--crimson-700);
+  color: var(--card-50);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.26);
+}
+.btn-leave:hover {
+  background: var(--crimson-600);
+}
+
+.leave-dialog {
+  margin-top: 14px;
+  padding: 20px 24px;
+  border-radius: 14px;
+  background: var(--felt-800);
+  border: 1px solid var(--crimson-600);
+  animation: settle 200ms ease both;
+}
+.leave-dialog h4 {
+  margin: 0;
+  color: var(--card-50);
+  font-size: 15px;
+  font-weight: 600;
+}
+.leave-dialog p {
+  margin: 8px 0 16px;
+  color: rgba(247, 241, 222, 0.76);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.leave-dialog-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.cutlist { margin-top: 44px; }
+.cutlist > .kicker { color: rgba(247, 241, 222, 0.5); }
+.cutlist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(268px, 1fr));
+  gap: 1px;
+  margin-top: 14px;
+  background: rgba(247, 241, 222, 0.11);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.cut { padding: 15px 17px; background: var(--felt-900); }
+.cut h3 { margin: 0; color: rgba(247, 241, 222, 0.9); font-size: 12.5px; font-weight: 600; }
+.cut p { margin: 5px 0 0; color: rgba(247, 241, 222, 0.52); font-size: 11.5px; line-height: 1.5; }
+
+.footnote {
+  margin: 24px 0 0;
+  color: rgba(247, 241, 222, 0.42);
+  font-size: 11.5px;
+  line-height: 1.6;
+  max-width: 78ch;
+}
+.footnote code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.94em;
+  color: rgba(247, 241, 222, 0.62);
+}
+
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+[data-reveal].in { opacity: 1; transform: none; }
+
+@media (max-width: 920px) {
+  .split-band { grid-template-columns: 1fr; gap: 28px; }
+  .facts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 720px) {
+  .nav { display: none; }
+  .band { padding-inline: 20px; }
+  .page-heading h1 { font-size: 32px; }
+  .standings-grid {
+    grid-template-columns: 24px minmax(130px, 1fr) 56px 86px;
+    gap: 8px;
+  }
+  .consistency-col, .spark-col { display: none; }
+  .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .topbar-inner { gap: 10px; }
+  .group-switch { margin-left: auto; }
+}
+
+@media (max-width: 480px) {
+  .standings-grid {
+    grid-template-columns: 20px minmax(110px, 1fr) 80px;
+    gap: 8px;
+  }
+  .score-col { display: none; }
+  .facts { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet { animation: none; }
+  .btn:hover, .chip:hover { transform: none; }
+  * { transition-duration: 1ms !important; }
+  [data-reveal] { opacity: 1; transform: none; }
+}
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap topbar-inner">
+    <div class="brand">
+      <span class="brand-suits">
+        <svg viewBox="0 0 100 100" width="15" height="15" aria-hidden="true">
+          <path d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z" fill="#f7f1de" />
+        </svg>
+        <svg viewBox="0 0 100 100" width="15" height="15" aria-hidden="true">
+          <path d="M50 88C28 72 8 56 8 35a20 20 0 0 1 36-12 20 20 0 0 1 36 12c0 21-20 37-30 53Z" fill="#d23548" />
+        </svg>
+      </span>
+      <span class="brand-name">royal<em>.gg</em></span>
+    </div>
+
+    <nav class="nav" aria-label="Main">
+      <a href="/dashboard">Dashboard</a>
+      <a href="sessions_v2.html">Sessions</a>
+      <a href="league_v2.html" aria-current="page">League</a>
+      <a href="/profile">You</a>
+    </nav>
+
+    <button type="button" class="group-switch">Thursday Night <span aria-hidden="true">▾</span></button>
+
+    <div class="profile">
+      <span class="pcard" aria-hidden="true">
+        <span class="rank">A</span>
+        <svg viewBox="0 0 100 100"><path d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z" /></svg>
+      </span>
+      <span>Dan</span>
+    </div>
+  </div>
+</div>
+
+<main>
+  <div class="wrap">
+    <!-- Band 1: League settings button in page heading OUTSIDE the sheet -->
+    <header class="page-heading">
+      <div>
+        <h1>League</h1>
+        <p>Eight players, 24 nights, and who owes whom.</p>
+      </div>
+      <div class="actions">
+        <a class="btn btn-ghost" href="/settings">
+          League settings
+          <span class="admin-tag">ADMIN</span>
+        </a>
+      </div>
+    </header>
+
+    <article class="sheet" aria-label="Thursday Night league standings and rules">
+      <!-- Band 2: All-time rankings with shared grid and trajectory sparkline -->
+      <section class="band" aria-labelledby="rankings-title">
+        <div class="band-head">
+          <div>
+            <h2 id="rankings-title">All-time rankings</h2>
+            <p class="subtle band-copy">Lifetime net · never reset by a payout</p>
+          </div>
+          <div class="standings-controls">
+            <label for="ranking-sort" class="sort-label">Sort by</label>
+            <select id="ranking-sort" class="sort-select" aria-label="Sort rankings">
+              <option value="pl-desc">P/L high→low</option>
+              <option value="pl-asc">P/L low→high</option>
+              <option value="rating-desc">Player score</option>
+              <option value="consistency-desc">Consistency score</option>
+              <option value="nights-desc">Most games played</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="standings-list" id="standings-list">
+          <div class="standings-grid standings-header" aria-hidden="true">
+            <span style="text-align:center">#</span>
+            <span>Player</span>
+            <span class="score-col" style="text-align:right">Score</span>
+            <span class="consistency-col" style="text-align:right">Consistency</span>
+            <span class="spark-col" style="text-align:center">Last 5</span>
+            <span style="text-align:right">Lifetime P/L</span>
+          </div>
+          <div id="standings-rows"></div>
+        </div>
+      </section>
+
+      <!-- Band 3 & 4: Current payout period and Guests side by side -->
+      <section class="band" aria-labelledby="payout-guests-title">
+        <div class="split-band">
+          <!-- Item 3: Current payout period -->
+          <div class="split-col">
+            <div class="band-head">
+              <div>
+                <h2 id="payout-guests-title">Current payout period</h2>
+                <p class="subtle band-copy">Opened 2 Aug 2026 · 5 sessions since · still open</p>
+              </div>
+            </div>
+            <div class="period-panel">
+              <p class="period-copy">
+                The settlement ledger has moved to the dedicated payout view. Balances track the 5 sessions run since 2 Aug.
+              </p>
+              <div class="period-meta">
+                <a class="btn btn-card" href="/payout">Go to payout page →</a>
+                <span class="pill pill-sage tabular">5 of 8 sessions · Window open</span>
+              </div>
+              <!-- Example state clearly labelled per spec -->
+              <div class="example-box" role="region" aria-label="Example: Payout reminder">
+                <div class="example-badge">
+                  <span class="kicker">Example state · fires at &gt; 8 sessions</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span class="pill pill-gold">Reminder</span>
+                  <p class="example-text"><strong>Time to pay out:</strong> 9 sessions have run since last settlement. Settle balances before the window widens.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Item 4: Guests beside payout period -->
+          <div class="split-col">
+            <div class="band-head">
+              <div>
+                <h2>Guests</h2>
+                <p class="subtle band-copy">3 players not registered to the league</p>
+              </div>
+              <button type="button" class="btn btn-sm btn-card" id="toggle-guest-btn">+ Add guest</button>
+            </div>
+            <div class="guests-list" id="guests-list"></div>
+            <form class="add-guest-form" id="add-guest-form" hidden>
+              <input type="text" id="guest-name-input" placeholder="Guest name (e.g. Jamie)" required />
+              <button type="submit" class="btn btn-sm btn-primary">Save</button>
+              <button type="button" class="btn btn-sm btn-card" id="cancel-guest-btn">Cancel</button>
+            </form>
+            <div id="guest-feedback" class="subtle" style="margin-top:4px;" hidden></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Band 5: League rules -->
+      <section class="band" aria-labelledby="rules-title">
+        <div class="band-head">
+          <div>
+            <h2 id="rules-title">League rules</h2>
+            <p class="subtle band-copy">Active game parameters · League settings owns the rules</p>
+          </div>
+          <a class="link" href="/settings">Configure settings →</a>
+        </div>
+        <dl class="facts">
+          <div class="fact">
+            <dt>Stakes</dt>
+            <dd class="tabular" id="fact-stakes">$0.25 / $0.50</dd>
+          </div>
+          <div class="fact">
+            <dt>Default buy-in</dt>
+            <dd class="tabular" id="fact-buyin">$40.00</dd>
+          </div>
+          <div class="fact">
+            <dt>Reconcile threshold</dt>
+            <dd class="tabular" id="fact-threshold">$5.00</dd>
+          </div>
+          <div class="fact">
+            <dt>Payout reminder</dt>
+            <dd class="tabular" id="fact-reminder">After 8 sessions</dd>
+          </div>
+          <div class="fact">
+            <dt>Join policy</dt>
+            <dd>Code + admin approval</dd>
+          </div>
+        </dl>
+      </section>
+
+      <!-- Band 6: Export -->
+      <section class="band" aria-labelledby="export-title">
+        <div class="band-head">
+          <div>
+            <h2 id="export-title">Export league data</h2>
+            <p class="subtle band-copy">All games, buy-ins, cash-outs, dates, and players, plus league metadata.</p>
+          </div>
+        </div>
+        <div class="export-panel">
+          <div class="export-desc">
+            Download the complete 24-night league archive. Includes per-player session nets, adjusted reconciliations, buy-in multiples, and group parameter snapshots.
+          </div>
+          <div class="export-controls">
+            <select id="export-format" class="export-select" aria-label="Export format">
+              <option value="csv">CSV format (.csv)</option>
+              <option value="json">JSON format (.json)</option>
+            </select>
+            <button type="button" class="btn btn-card" id="export-btn">
+              Download export
+            </button>
+          </div>
+        </div>
+        <div id="export-feedback" class="subtle tabular" style="margin-top: 8px;" hidden></div>
+      </section>
+    </article>
+
+    <!-- Item 7: Leave league, red, with confirmation step on felt below sheet -->
+    <section class="felt-section" data-reveal aria-labelledby="leave-title">
+      <div class="leave-zone">
+        <div class="leave-info">
+          <h3 id="leave-title">Leave Thursday Night</h3>
+          <p>Remove yourself from this league. Your historical results remain in the ledger, but you will no longer appear on the active roster or receive payout notices.</p>
+        </div>
+        <button type="button" class="btn btn-leave" id="leave-init-btn">Leave league…</button>
+      </div>
+
+      <div class="leave-dialog" id="leave-dialog" hidden>
+        <h4>Confirm departure from Thursday Night</h4>
+        <p>Are you sure you want to leave? Your 24-night track record (+412.00 lifetime net) will stay in the immutable group history, but you will need an admin invite to rejoin.</p>
+        <div class="leave-dialog-actions">
+          <button type="button" class="btn btn-leave" id="leave-confirm-btn">Yes, leave league</button>
+          <button type="button" class="btn btn-ghost" id="leave-cancel-btn">Cancel</button>
+        </div>
+        <div id="leave-status" class="subtle" style="margin-top:10px; color:var(--card-50);" hidden></div>
+      </div>
+    </section>
+
+    <!-- Cut list in iteration 1's voice -->
+    <section class="cutlist" data-reveal aria-labelledby="cut-title">
+      <div class="kicker" id="cut-title">Cut from the redesign — not shipping</div>
+      <div class="cutlist-grid">
+        <article class="cut">
+          <h3>Huge payout display</h3>
+          <p>Settlement was cut from this page; payout has its own dedicated page with transaction tracking and confirmation records.</p>
+        </article>
+        <article class="cut">
+          <h3>Recent-form band</h3>
+          <p>Replaced by the 5-night trajectory sparkline sitting directly inside each player's row in all-time rankings, eliminating redundant table space.</p>
+        </article>
+        <article class="cut">
+          <h3>Add-a-guest footer form</h3>
+          <p>Replaced by a lightweight guest list and button beside the payout period, keeping guest management contextual to participants.</p>
+        </article>
+        <article class="cut">
+          <h3>Head-to-head records</h3>
+          <p>The schema records per-night totals, not hands or positions. “You beat Priya 12–8” would only mean out-netting her on shared nights—a weaker claim than promised.</p>
+        </article>
+        <article class="cut">
+          <h3>Deleting a player who has played</h3>
+          <p>Deletion is restricted to accounts with zero buy-ins. Removing a player with results would destroy part of the permanent ledger record.</p>
+        </article>
+        <article class="cut">
+          <h3>Season table / Next game</h3>
+          <p>There is no season concept or calendar RSVP in the database schema. The league runs weekly and historical form is tracked by group sessions.</p>
+        </article>
+      </div>
+    </section>
+
+    <p class="footnote" data-reveal>
+      Arithmetic check: The eight members' lifetime nets sum to exactly <span id="sum-members" class="tabular">+$0.00</span>, and the three guests' lifetime nets sum to exactly <span id="sum-guests" class="tabular">+$0.00</span>. Buy-ins are integer multiples of $40 (671 buy-ins = $26,840.00). The two flagged nights carry equal and opposite $8.00 discrepancies (15 May came up $8.00 short, 19 Jun $8.00 over), so the 24-night ledger still conserves money. All figures are sample data.
+    </p>
+  </div>
+</main>
+
+<script>
+/**
+ * FROZEN SAMPLE DATASET — iteration 2 of the royal.gg page redesigns.
+ *
+ * Every figure here is integer cents and every invariant below has been
+ * verified by script. DO NOT invent, round, re-derive or "tidy" any number in
+ * this file. Inline it verbatim into each v2 mock and format at render time.
+ *
+ * Verified invariants
+ * -------------------
+ *  1. The eight members' lifetime nets sum to exactly $0.00.
+ *  2. The three guests' lifetime nets sum to exactly $0.00.
+ *  3. Dan's 24 per-night nets sum to exactly +$412.00, 15 W / 9 L.
+ *  4. Buy-in counts over 24 nights sum to 671; 671 x $40 = $26,840.00.
+ *  5. Each of the last five nights conserves money exactly across every
+ *     participant present, members and guests together.
+ *  6. Each player's last-five-night nets sum to the canonical window total.
+ *  7. The 4 Sep reported cash-outs, run through the real reconcile() in
+ *     src/lib/reconcile.ts, produce the canonical adjusted cash-outs
+ *     ($280.00 / $164.50 / $104.50 / $41.00) to the cent.
+ *  8. The two flagged nights carry equal and opposite discrepancies
+ *     (15 May $8.00 short, 19 Jun $8.00 over), so the 24-night ledger still
+ *     conserves money even though neither night does on its own.
+ */
+
+const GROUP = {
+  name: "Thursday Night",
+  stakes: "$0.25 / $0.50",
+  buyInCents: 4000,
+  reconcileThresholdCents: 500,
+  payoutReminderAfterSessions: 8,
+};
+
+/** name, rank, suit, nights, W, L, lifetime net (cents), rating, consistency subscore, stdev (cents) */
+const MEMBERS = [
+  { name: "Dan Caesar",   rank: "A", suit: "spade",   nights: 24, w: 15, l:  9, lifetimeCents:  41200, rating: 8.1, consistency: 6.4, stdevCents: 4365, you: true },
+  { name: "Priya Raman",  rank: "Q", suit: "heart",   nights: 22, w: 13, l:  9, lifetimeCents:  28650, rating: 7.6, consistency: 4.8, stdevCents: 5820 },
+  { name: "Marcus Webb",  rank: "K", suit: "club",    nights: 19, w: 11, l:  8, lifetimeCents:  13400, rating: 6.9, consistency: 7.3, stdevCents: 3740 },
+  { name: "Theo Lund",    rank: "9", suit: "spade",   nights: 18, w:  9, l:  9, lifetimeCents:      0, rating: 5.8, consistency: 8.1, stdevCents: 3120 },
+  { name: "Ash Okonkwo",  rank: "7", suit: "diamond", nights: 16, w:  7, l:  9, lifetimeCents:  -7800, rating: 4.9, consistency: 5.9, stdevCents: 4780 },
+  { name: "Lena Sorokin", rank: "5", suit: "heart",   nights: 21, w:  8, l: 13, lifetimeCents: -14250, rating: 4.2, consistency: 4.3, stdevCents: 6490 },
+  { name: "Jonah Fitz",   rank: "J", suit: "club",    nights: 23, w:  9, l: 14, lifetimeCents: -21150, rating: 3.8, consistency: 6.8, stdevCents: 4010 },
+  { name: "Rory Adeyemi", rank: "8", suit: "spade",   nights: 20, w:  7, l: 13, lifetimeCents: -40050, rating: 2.9, consistency: 3.4, stdevCents: 7850 },
+];
+
+/**
+ * Per-member nets across the last five nights, in order:
+ * 7 Aug, 14 Aug, 21 Aug, 28 Aug, 4 Sep. `null` = did not play.
+ * Drives the League page's five-night trajectory sparkline. The sparkline is
+ * sage when the row's total is positive and crimson when it is negative.
+ */
+const LAST_FIVE = {
+  "Dan Caesar":   [-6250,  2400,  8650, -4000,  12000], // +$128.00
+  "Priya Raman":  [ 3200, -1500,  2500,  1000,   4450], //  +$96.50
+  "Marcus Webb":  [ 1800,  null, -1100,  1500,   2000], //  +$42.00
+  "Theo Lund":    [  600,  1200, -2000,  1250,    800], //  +$18.50
+  "Ash Okonkwo":  [ null, -1200,  null,  -450,  -1450], //  −$31.00
+  "Lena Sorokin": [-1600, -2200, -1250,   150,  -2550], //  −$74.50
+  "Jonah Fitz":   [-3200,   900, -7250,   550,  -1800], // −$108.00
+  "Rory Adeyemi": [ 5450,   400, -3450,  null,  -9550], //  −$71.50
+};
+
+/** Guests: no account, no card. A blank spade tile stands in for a card. */
+const GUESTS = [
+  { name: "Mo Haddad",  nights: 1, dates: ["4 Sep 2026"],               lifetimeCents: -3900, lastSeen: "4 Sep 2026",  invitedBy: "Dan Caesar" },
+  { name: "Bea Nolan",  nights: 1, dates: ["21 Aug 2026"],              lifetimeCents:  3900, lastSeen: "21 Aug 2026", invitedBy: "Priya Raman" },
+  { name: "Sam Ortiz",  nights: 2, dates: ["12 Jun 2026", "3 Jul 2026"], lifetimeCents:     0, lastSeen: "3 Jul 2026",  invitedBy: "Marcus Webb" },
+];
+
+const PAYOUT_PERIOD = {
+  openedAfter: "2 Aug 2026",
+  sessionsSince: 5,
+  firstSession: "7 Aug 2026",
+  lastSession: "4 Sep 2026",
+  stillOpen: true,
+};
+
+/**
+ * The 24 nights. `netSumCents` is the sum of every participant's net that
+ * night: 0 on a night that reconciles, non-zero only on the two flagged ones.
+ * `totalAbsCents = 2 * winnersTotalCents - netSumCents`, which is what the
+ * real action score consumes.
+ *
+ * actionScore = clamp(0, 10,
+ *   round10( (totalAbsCents / playerCount / 100) / 8
+ *            + max(0, playerCount - 4) * 0.3
+ *            + rebuyPlayers * 0.4 ) )
+ * — transcribed from SessionsListPage.tsx. Compute it, never hardcode it.
+ */
+const NIGHTS = [
+  { n:  1, date: "2026-03-27", state: "reconciled", playerCount: 7, buyInCount: 26, rebuyPlayers: 5, winnersTotalCents:  9200, netSumCents:    0, yourNetCents:  4800, yourBuyIns: 2, biggestWinCents:  4800, biggestWinner: "Dan Caesar",   biggestLossCents:  -3600, note: null },
+  { n:  2, date: "2026-04-03", state: "reconciled", playerCount: 6, buyInCount: 24, rebuyPlayers: 4, winnersTotalCents:  7400, netSumCents:    0, yourNetCents: -2400, yourBuyIns: 2, biggestWinCents:  4100, biggestWinner: "Priya Raman",  biggestLossCents:  -3900, note: null },
+  { n:  3, date: "2026-04-10", state: "reconciled", playerCount: 7, buyInCount: 26, rebuyPlayers: 5, winnersTotalCents:  6800, netSumCents:    0, yourNetCents:  2400, yourBuyIns: 1, biggestWinCents:  3300, biggestWinner: "Marcus Webb",  biggestLossCents:  -3100, note: null },
+  { n:  4, date: "2026-04-17", state: "reconciled", playerCount: 7, buyInCount: 28, rebuyPlayers: 5, winnersTotalCents: 12500, netSumCents:    0, yourNetCents:  6250, yourBuyIns: 2, biggestWinCents:  6250, biggestWinner: "Dan Caesar",   biggestLossCents:  -5800, note: "Theo's first night on the good side of it." },
+  { n:  5, date: "2026-04-24", state: "reconciled", playerCount: 7, buyInCount: 25, rebuyPlayers: 4, winnersTotalCents:  6400, netSumCents:    0, yourNetCents: -1600, yourBuyIns: 1, biggestWinCents:  3900, biggestWinner: "Jonah Fitz",   biggestLossCents:  -3400, note: null },
+  { n:  6, date: "2026-05-01", state: "reconciled", playerCount: 6, buyInCount: 27, rebuyPlayers: 5, winnersTotalCents:  5800, netSumCents:    0, yourNetCents:  1600, yourBuyIns: 1, biggestWinCents:  2700, biggestWinner: "Priya Raman",  biggestLossCents:  -2900, note: null },
+  { n:  7, date: "2026-05-08", state: "reconciled", playerCount: 8, buyInCount: 30, rebuyPlayers: 6, winnersTotalCents: 11200, netSumCents:    0, yourNetCents:  3200, yourBuyIns: 2, biggestWinCents:  5600, biggestWinner: "Priya Raman",  biggestLossCents:  -4800, note: null },
+  { n:  8, date: "2026-05-15", state: "review",     playerCount: 8, buyInCount: 34, rebuyPlayers: 7, winnersTotalCents: 30200, netSumCents: -800, yourNetCents: -5200, yourBuyIns: 3, biggestWinCents: 28600, biggestWinner: "Priya Raman",  biggestLossCents:  -9700, note: "Chips came up $8.00 short. Nobody could find it." },
+  { n:  9, date: "2026-05-22", state: "reconciled", playerCount: 7, buyInCount: 27, rebuyPlayers: 5, winnersTotalCents:  8200, netSumCents:    0, yourNetCents:   900, yourBuyIns: 1, biggestWinCents:  4400, biggestWinner: "Marcus Webb",  biggestLossCents:  -3800, note: null },
+  { n: 10, date: "2026-05-29", state: "reconciled", playerCount: 8, buyInCount: 29, rebuyPlayers: 6, winnersTotalCents: 13400, netSumCents:    0, yourNetCents:  5450, yourBuyIns: 2, biggestWinCents:  5450, biggestWinner: "Dan Caesar",   biggestLossCents:  -6200, note: null },
+  { n: 11, date: "2026-06-05", state: "reconciled", playerCount: 7, buyInCount: 26, rebuyPlayers: 5, winnersTotalCents:  7600, netSumCents:    0, yourNetCents:  -800, yourBuyIns: 1, biggestWinCents:  4000, biggestWinner: "Theo Lund",    biggestLossCents:  -3300, note: null },
+  { n: 12, date: "2026-06-12", state: "reconciled", playerCount: 8, buyInCount: 31, rebuyPlayers: 6, winnersTotalCents:  9800, netSumCents:    0, yourNetCents:  2050, yourBuyIns: 2, biggestWinCents:  4900, biggestWinner: "Priya Raman",  biggestLossCents:  -4100, note: "Sam sat in. Sam is not registered." },
+  { n: 13, date: "2026-06-19", state: "review",     playerCount: 8, buyInCount: 33, rebuyPlayers: 7, winnersTotalCents: 23000, netSumCents:  800, yourNetCents:  7200, yourBuyIns: 3, biggestWinCents:  9800, biggestWinner: "Priya Raman",  biggestLossCents: -21450, note: "Rory's −$214.50. Chips came up $8.00 over." },
+  { n: 14, date: "2026-06-26", state: "reconciled", playerCount: 7, buyInCount: 28, rebuyPlayers: 6, winnersTotalCents:  8600, netSumCents:    0, yourNetCents: -1250, yourBuyIns: 2, biggestWinCents:  4300, biggestWinner: "Marcus Webb",  biggestLossCents:  -3700, note: null },
+  { n: 15, date: "2026-07-03", state: "reconciled", playerCount: 7, buyInCount: 26, rebuyPlayers: 5, winnersTotalCents:  7200, netSumCents:    0, yourNetCents:  1250, yourBuyIns: 1, biggestWinCents:  3600, biggestWinner: "Priya Raman",  biggestLossCents:  -3200, note: null },
+  { n: 16, date: "2026-07-10", state: "reconciled", playerCount: 8, buyInCount: 30, rebuyPlayers: 6, winnersTotalCents: 11800, netSumCents:    0, yourNetCents:  3800, yourBuyIns: 2, biggestWinCents:  5100, biggestWinner: "Dan Caesar",   biggestLossCents:  -4600, note: null },
+  { n: 17, date: "2026-07-17", state: "reconciled", playerCount: 7, buyInCount: 27, rebuyPlayers: 5, winnersTotalCents:  6900, netSumCents:    0, yourNetCents:  -900, yourBuyIns: 1, biggestWinCents:  3500, biggestWinner: "Theo Lund",    biggestLossCents:  -3100, note: null },
+  { n: 18, date: "2026-07-24", state: "reconciled", playerCount: 8, buyInCount: 32, rebuyPlayers: 7, winnersTotalCents: 10400, netSumCents:    0, yourNetCents:  2600, yourBuyIns: 2, biggestWinCents:  4700, biggestWinner: "Priya Raman",  biggestLossCents:  -4200, note: null },
+  { n: 19, date: "2026-07-31", state: "reconciled", playerCount: 7, buyInCount: 27, rebuyPlayers: 5, winnersTotalCents:  7100, netSumCents:    0, yourNetCents:  -950, yourBuyIns: 1, biggestWinCents:  3800, biggestWinner: "Marcus Webb",  biggestLossCents:  -3300, note: null },
+  { n: 20, date: "2026-08-07", state: "reconciled", playerCount: 7, buyInCount: 26, rebuyPlayers: 6, winnersTotalCents: 11050, netSumCents:    0, yourNetCents: -6250, yourBuyIns: 3, biggestWinCents:  5450, biggestWinner: "Rory Adeyemi", biggestLossCents:  -6250, note: null },
+  { n: 21, date: "2026-08-14", state: "reconciled", playerCount: 7, buyInCount: 24, rebuyPlayers: 5, winnersTotalCents:  4900, netSumCents:    0, yourNetCents:  2400, yourBuyIns: 2, biggestWinCents:  2400, biggestWinner: "Dan Caesar",   biggestLossCents:  -2200, note: null },
+  { n: 22, date: "2026-08-21", state: "reconciled", playerCount: 8, buyInCount: 29, rebuyPlayers: 6, winnersTotalCents: 15050, netSumCents:    0, yourNetCents:  8650, yourBuyIns: 3, biggestWinCents:  8650, biggestWinner: "Dan Caesar",   biggestLossCents:  -7250, note: "Bea sat in for one. Bea is not registered." },
+  { n: 23, date: "2026-08-28", state: "draft",      playerCount: 7, buyInCount: 25, rebuyPlayers: 5, winnersTotalCents:  4450, netSumCents:    0, yourNetCents: -4000, yourBuyIns: 2, biggestWinCents:  1500, biggestWinner: "Marcus Webb",  biggestLossCents:  -4000, note: "Still a draft — balanced, nobody has locked it." },
+  { n: 24, date: "2026-09-04", state: "reconciled", playerCount: 9, buyInCount: 31, rebuyPlayers: 9, winnersTotalCents: 19250, netSumCents:    0, yourNetCents: 12000, yourBuyIns: 4, biggestWinCents: 12000, biggestWinner: "Dan Caesar",   biggestLossCents:  -9550, note: "Off by $4.50, distributed among the four winners." },
+];
+
+/** Who sat at each of the last five nights, for the Sessions page avatar row. */
+const ROSTERS = {
+  "2026-08-07": ["Dan Caesar", "Priya Raman", "Marcus Webb", "Theo Lund", "Lena Sorokin", "Jonah Fitz", "Rory Adeyemi"],
+  "2026-08-14": ["Dan Caesar", "Priya Raman", "Theo Lund", "Ash Okonkwo", "Lena Sorokin", "Jonah Fitz", "Rory Adeyemi"],
+  "2026-08-21": ["Dan Caesar", "Priya Raman", "Marcus Webb", "Theo Lund", "Lena Sorokin", "Jonah Fitz", "Rory Adeyemi", "Bea Nolan"],
+  "2026-08-28": ["Dan Caesar", "Priya Raman", "Marcus Webb", "Theo Lund", "Ash Okonkwo", "Lena Sorokin", "Jonah Fitz"],
+  "2026-09-04": ["Dan Caesar", "Priya Raman", "Marcus Webb", "Theo Lund", "Ash Okonkwo", "Lena Sorokin", "Jonah Fitz", "Rory Adeyemi", "Mo Haddad"],
+};
+
+/**
+ * The 4 Sep night in full — the subject of the individual-session page.
+ *
+ * `reportedCashOutCents` are what the table counted. They total $1,235.50
+ * against $1,240.00 of buy-ins, so the night is $4.50 short — under the
+ * $5.00 threshold, therefore distributed proportionally among the four
+ * reported winners by the real algorithm, which yields exactly the
+ * `adjustedCashOutCents` below. Show BOTH columns; never overwrite reported.
+ */
+const SESSION_4_SEP = {
+  date: "2026-09-04",
+  state: "reconciled",
+  approvedBy: "Dan Caesar",
+  approvedAt: "5 Sep 2026",
+  note: "Off by $4.50, distributed among the four winners.",
+  totalBuyInCents: 124000,
+  totalReportedCents: 123550,
+  totalAdjustedCents: 124000,
+  discrepancyCents: 450,
+  needsReview: false,
+  rows: [
+    { name: "Dan Caesar",   buyIns: 4, buyInCents: 16000, reportedCashOutCents: 27720, adjustmentCents: 280, adjustedCashOutCents: 28000, netCents:  12000, you: true },
+    { name: "Priya Raman",  buyIns: 3, buyInCents: 12000, reportedCashOutCents: 16346, adjustmentCents: 104, adjustedCashOutCents: 16450, netCents:   4450 },
+    { name: "Marcus Webb",  buyIns: 3, buyInCents: 12000, reportedCashOutCents: 13953, adjustmentCents:  47, adjustedCashOutCents: 14000, netCents:   2000 },
+    { name: "Theo Lund",    buyIns: 3, buyInCents: 12000, reportedCashOutCents: 12781, adjustmentCents:  19, adjustedCashOutCents: 12800, netCents:    800 },
+    { name: "Ash Okonkwo",  buyIns: 4, buyInCents: 16000, reportedCashOutCents: 14550, adjustmentCents:   0, adjustedCashOutCents: 14550, netCents:  -1450 },
+    { name: "Lena Sorokin", buyIns: 3, buyInCents: 12000, reportedCashOutCents:  9450, adjustmentCents:   0, adjustedCashOutCents:  9450, netCents:  -2550 },
+    { name: "Jonah Fitz",   buyIns: 4, buyInCents: 16000, reportedCashOutCents: 14200, adjustmentCents:   0, adjustedCashOutCents: 14200, netCents:  -1800 },
+    { name: "Rory Adeyemi", buyIns: 5, buyInCents: 20000, reportedCashOutCents: 10450, adjustmentCents:   0, adjustedCashOutCents: 10450, netCents:  -9550 },
+    { name: "Mo Haddad",    buyIns: 2, buyInCents:  8000, reportedCashOutCents:  4100, adjustmentCents:   0, adjustedCashOutCents:  4100, netCents:  -3900, guest: true },
+  ],
+};
+
+/** The 28 Aug draft — the editable state of the individual-session page. */
+const SESSION_28_AUG = {
+  date: "2026-08-28",
+  state: "draft",
+  note: "Still a draft — balanced, nobody has locked it.",
+  totalBuyInCents: 100000,
+  totalReportedCents: 100000,
+  discrepancyCents: 0,
+  rows: [
+    { name: "Dan Caesar",   buyIns: 2, buyInCents: 8000, reportedCashOutCents: 4000, netCents: -4000, you: true },
+    { name: "Priya Raman",  buyIns: 4, buyInCents:16000, reportedCashOutCents:17000, netCents:  1000 },
+    { name: "Marcus Webb",  buyIns: 3, buyInCents:12000, reportedCashOutCents:13500, netCents:  1500 },
+    { name: "Theo Lund",    buyIns: 4, buyInCents:16000, reportedCashOutCents:17250, netCents:  1250 },
+    { name: "Ash Okonkwo",  buyIns: 4, buyInCents:16000, reportedCashOutCents:15550, netCents:  -450 },
+    { name: "Lena Sorokin", buyIns: 4, buyInCents:16000, reportedCashOutCents:16150, netCents:   150 },
+    { name: "Jonah Fitz",   buyIns: 4, buyInCents:16000, reportedCashOutCents:16550, netCents:   550 },
+  ],
+};
+
+
+const SUITS = {
+  spade: "M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z",
+  heart: "M50 88C28 72 8 56 8 35a20 20 0 0 1 36-12 20 20 0 0 1 36 12c0 21-20 37-30 53Z",
+  club: "M50 6a17 17 0 0 0-13 28 17 17 0 1 0-9 28 17 17 0 0 0 16-3c-1 7-6 14-13 19h38c-7-5-12-12-13-19a17 17 0 0 0 16 3 17 17 0 1 0-9-28A17 17 0 0 0 50 6Z",
+  diamond: "M50 6 88 50 50 94 12 50Z",
+};
+const CARD_RANKS = {
+  A: "Ace", K: "King", Q: "Queen", J: "Jack", "10": "Ten",
+  "9": "Nine", "8": "Eight", "7": "Seven", "6": "Six",
+  "5": "Five", "4": "Four", "3": "Three", "2": "Two"
+};
+
+const CARD_SUITS = {
+  spade: "Spades", heart: "Hearts", club: "Clubs", diamond: "Diamonds"
+};
+
+function fullCardName(rank, suit) {
+  const r = CARD_RANKS[rank] || rank;
+  const s = CARD_SUITS[suit] || suit;
+  return `${r} of ${s}`;
+}
+
+const isRed = (s) => s === "heart" || s === "diamond";
+
+function formatCents(cents) {
+  const sign = cents < 0 ? "−" : "";
+  const absolute = Math.abs(cents);
+  const dollars = Math.floor(absolute / 100).toLocaleString("en-US");
+  const remainder = String(absolute % 100).padStart(2, "0");
+  return `${sign}$${dollars}.${remainder}`;
+}
+
+function formatSignedCents(cents) {
+  if (cents > 0) return `+${formatCents(cents)}`;
+  return formatCents(cents);
+}
+
+function moneyClass(cents) {
+  if (cents > 0) return "pos";
+  if (cents < 0) return "neg";
+  return "flat";
+}
+
+function avatar(player) {
+  return `<span class="pcard${isRed(player.suit) ? " red" : ""}" role="img" aria-label="${player.name} card, ${fullCardName(player.rank, player.suit)}">
+    <span class="rank">${player.rank}</span>
+    <svg viewBox="0 0 100 100" aria-hidden="true"><path d="${SUITS[player.suit]}"></path></svg>
+  </span>`;
+}
+
+function guestAvatar(name) {
+  return `<span class="guest-tile" role="img" aria-label="${name}, guest without a card">
+    <svg viewBox="0 0 100 100" aria-hidden="true"><path d="${SUITS.diamond}"></path></svg>
+  </span>`;
+}
+
+function sparkline(name) {
+  const history = LAST_FIVE[name] || [];
+  const width = 88;
+  const height = 26;
+  const pad = 3;
+
+  const validEntries = [];
+  let totalCents = 0;
+  history.forEach((val, index) => {
+    if (val !== null) {
+      validEntries.push({ val, index });
+      totalCents += val;
+    }
+  });
+
+  if (validEntries.length === 0) {
+    return `<span class="subtle" aria-label="No recent games">—</span>`;
+  }
+
+  const values = validEntries.map((e) => e.val);
+  const low = Math.min(...values);
+  const high = Math.max(...values);
+  const range = high === low ? 1 : high - low;
+
+  const points = validEntries.map((e) => {
+    const x = pad + e.index * ((width - pad * 2) / 4);
+    const y = high === low ? height / 2 : height - pad - ((e.val - low) / range) * (height - pad * 2);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(" ");
+
+  const stroke = totalCents > 0 ? "var(--sage-600)" : totalCents < 0 ? "var(--crimson-600)" : "var(--ink-500)";
+
+  return `<svg class="sparkline" viewBox="0 0 ${width} ${height}" role="img">
+    <title>${name}: five-night trajectory (${formatSignedCents(totalCents)})</title>
+    <polyline points="${points}" fill="none" stroke="${stroke}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polyline>
+  </svg>`;
+}
+
+let activeGuestList = [...GUESTS];
+
+function renderGuests() {
+  const container = document.getElementById("guests-list");
+  container.innerHTML = activeGuestList.map((g) => {
+    return `<div class="guest-row">
+      ${guestAvatar(g.name)}
+      <div class="row-name">
+        <div class="guest-name-line">
+          <span>${g.name}</span>
+          <span class="guest-badge">GUEST</span>
+        </div>
+        <span class="row-sub tabular">${g.nights} ${g.nights === 1 ? "night" : "nights"} · last seen ${g.lastSeen} · invited by ${g.invitedBy}</span>
+      </div>
+      <span class="row-net tabular ${moneyClass(g.lifetimeCents)}">${formatSignedCents(g.lifetimeCents)}</span>
+    </div>`;
+  }).join("");
+}
+
+function renderStandings() {
+  const sortKey = document.getElementById("ranking-sort").value;
+  const players = [...MEMBERS];
+
+  if (sortKey === "pl-desc") {
+    players.sort((a, b) => b.lifetimeCents - a.lifetimeCents);
+  } else if (sortKey === "pl-asc") {
+    players.sort((a, b) => a.lifetimeCents - b.lifetimeCents);
+  } else if (sortKey === "rating-desc") {
+    players.sort((a, b) => b.rating - a.rating);
+  } else if (sortKey === "consistency-desc") {
+    players.sort((a, b) => b.consistency - a.consistency);
+  } else if (sortKey === "nights-desc") {
+    players.sort((a, b) => b.nights - a.nights);
+  }
+
+  const container = document.getElementById("standings-rows");
+  container.innerHTML = players.map((player, index) => {
+    return `<div class="row standings-grid${player.you ? " you" : ""}">
+      <span class="row-rank tabular">${index + 1}</span>
+      <div class="player-cell">
+        ${avatar(player)}
+        <div class="row-name">
+          <span>${player.name}${player.you ? ' <span class="pill pill-gold" style="padding:2px 7px; font-size:9.5px; margin-left:4px;">YOU</span>' : ''}</span>
+          <span class="row-sub tabular">${player.nights} nights · ${player.w}W ${player.l}L</span>
+        </div>
+      </div>
+      <span class="score-cell tabular score-col">${player.rating.toFixed(1)}</span>
+      <span class="consistency-cell tabular consistency-col">${player.consistency.toFixed(1)}</span>
+      <span class="spark-cell spark-col">${sparkline(player.name)}</span>
+      <span class="row-net tabular ${moneyClass(player.lifetimeCents)}">${formatSignedCents(player.lifetimeCents)}</span>
+    </div>`;
+  }).join("");
+}
+
+function renderArithmeticChecks() {
+  const sumMembers = MEMBERS.reduce((sum, m) => sum + m.lifetimeCents, 0);
+  const sumGuests = GUESTS.reduce((sum, g) => sum + g.lifetimeCents, 0);
+
+  document.getElementById("sum-members").textContent = formatSignedCents(sumMembers);
+  document.getElementById("sum-guests").textContent = formatSignedCents(sumGuests);
+}
+
+// Interactivity: Sort dropdown
+document.getElementById("ranking-sort").addEventListener("change", renderStandings);
+
+// Interactivity: Guest form
+const toggleGuestBtn = document.getElementById("toggle-guest-btn");
+const guestForm = document.getElementById("add-guest-form");
+const cancelGuestBtn = document.getElementById("cancel-guest-btn");
+const guestFeedback = document.getElementById("guest-feedback");
+
+toggleGuestBtn.addEventListener("click", () => {
+  guestForm.hidden = !guestForm.hidden;
+  if (!guestForm.hidden) {
+    document.getElementById("guest-name-input").focus();
+  }
+});
+
+cancelGuestBtn.addEventListener("click", () => {
+  guestForm.hidden = true;
+});
+
+guestForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const nameInput = document.getElementById("guest-name-input");
+  const name = nameInput.value.trim();
+  if (!name) return;
+
+  activeGuestList.push({
+    name,
+    nights: 0,
+    dates: [],
+    lifetimeCents: 0,
+    lastSeen: "Today",
+    invitedBy: "Dan Caesar",
+  });
+
+  renderGuests();
+  guestForm.reset();
+  guestForm.hidden = true;
+  guestFeedback.textContent = `${name} added to the guest roster.`;
+  guestFeedback.hidden = false;
+  setTimeout(() => { guestFeedback.hidden = true; }, 4000);
+});
+
+/**
+ * Hand a generated file to the viewer.
+ *
+ * Published as an Artifact the frame cannot download anything itself, so the
+ * file must go through the `downloads` capability, which shows the viewer a
+ * confirmation. Opened from disk there is no capability and a blob anchor is
+ * the right answer. Resolve the capability lazily and await it here rather
+ * than caching it at load: claude.use() never settles inside the first script
+ * run, so a fast click would otherwise miss it and fall through to a blob
+ * anchor that the published viewer silently discards.
+ */
+const downloadsReady =
+  typeof window !== "undefined" && window.claude && typeof window.claude.use === "function"
+    ? window.claude.use("downloads").catch(() => null)
+    : Promise.resolve(null);
+
+async function deliverFile(filename, text, mime) {
+  const api = await downloadsReady;
+  if (api) {
+    try {
+      const { status } = await api.save({ filename, data: text });
+      return status === "saved" ? "saved" : "delivered";
+    } catch (err) {
+      if (err && err.code === "declined") return "declined";
+      if (err && err.code === "rate_limited") return "busy";
+      return "failed";
+    }
+  }
+  const blob = new Blob([text], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+  return "saved";
+}
+
+const EXPORT_MESSAGES = {
+  saved: (what) => `Exported ${what}.`,
+  delivered: (what) => `Sent ${what} to the destination you chose.`,
+  declined: () => "Export cancelled — nothing left the page.",
+  busy: () => "A save prompt is already open. Try again in a moment.",
+  failed: () => "Export could not be delivered in this view.",
+};
+
+// Interactivity: Export download
+document.getElementById("export-btn").addEventListener("click", async () => {
+  const format = document.getElementById("export-format").value;
+  const feedback = document.getElementById("export-feedback");
+
+  if (format === "json") {
+    const payload = {
+      group: GROUP,
+      members: MEMBERS,
+      guests: activeGuestList,
+      payoutPeriod: PAYOUT_PERIOD,
+      nights: NIGHTS,
+    };
+    const outcome = await deliverFile(
+      "thursday-night-league-export.json",
+      JSON.stringify(payload, null, 2),
+      "application/json"
+    );
+    feedback.textContent = EXPORT_MESSAGES[outcome]("JSON — 24 nights, 8 members, 3 guests");
+    feedback.hidden = false;
+  } else {
+    let csv = "date,night,state,playerCount,buyInCount,yourNet,biggestWinner,biggestWin,note\n";
+    NIGHTS.forEach((n) => {
+      const cleanNote = (n.note || "").replace(/"/g, '""');
+      csv += `${n.date},${n.n},${n.state},${n.playerCount},${n.buyInCount},${formatSignedCents(n.yourNetCents)},"${n.biggestWinner}",${formatSignedCents(n.biggestWinCents)},"${cleanNote}"\n`;
+    });
+    const outcome = await deliverFile(
+      "thursday-night-league-export.csv",
+      csv,
+      "text/csv"
+    );
+    feedback.textContent = EXPORT_MESSAGES[outcome]("CSV — 24 session records");
+    feedback.hidden = false;
+  }
+});
+
+// Interactivity: Leave league confirmation
+const leaveInitBtn = document.getElementById("leave-init-btn");
+const leaveDialog = document.getElementById("leave-dialog");
+const leaveConfirmBtn = document.getElementById("leave-confirm-btn");
+const leaveCancelBtn = document.getElementById("leave-cancel-btn");
+const leaveStatus = document.getElementById("leave-status");
+
+leaveInitBtn.addEventListener("click", () => {
+  leaveDialog.hidden = false;
+  leaveInitBtn.setAttribute("aria-expanded", "true");
+});
+
+leaveCancelBtn.addEventListener("click", () => {
+  leaveDialog.hidden = true;
+  leaveInitBtn.setAttribute("aria-expanded", "false");
+});
+
+leaveConfirmBtn.addEventListener("click", () => {
+  leaveStatus.textContent = "You have left Thursday Night. (Mock confirmation step complete; historical ledger remains intact.)";
+  leaveStatus.hidden = false;
+  leaveConfirmBtn.disabled = true;
+  setTimeout(() => {
+    leaveDialog.hidden = true;
+  }, 3500);
+});
+
+// Initial renders
+renderStandings();
+renderGuests();
+renderArithmeticChecks();
+
+// Scroll reveal
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const reveals = document.querySelectorAll("[data-reveal]");
+if (reducedMotion || !("IntersectionObserver" in window)) {
+  reveals.forEach((node) => node.classList.add("in"));
+} else {
+  const observer = new IntersectionObserver(
+    (entries) => entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("in");
+        observer.unobserve(entry.target);
+      }
+    }),
+    { rootMargin: "0px 0px -12% 0px", threshold: 0.08 }
+  );
+  reveals.forEach((node) => observer.observe(node));
+}
+</script>
+</body>
+</html>

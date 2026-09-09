@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Session Ledger — royal.gg</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <style>
+:root {
+  --felt-900: #0d3324;
+  --felt-800: #11402c;
+  --felt-700: #1a5238;
+  --card-50: #f7f1de;
+  --card-100: #ece3c8;
+  --card-200: #d9cfa8;
+  --ink-900: #1a1614;
+  --ink-700: #3a322b;
+  --ink-500: #6b5e54;
+  --crimson-700: #8a1620;
+  --crimson-600: #b21e2c;
+  --crimson-500: #d23548;
+  --gold-500: #c9a24a;
+  --gold-ink: #7a5d1a;
+  --sage-700: #436c54;
+  --sage-600: #5b8e6e;
+  --teal-500: #2c9c8e;
+  --sky-500: #2a7fb8;
+  --orange-500: #d97a3b;
+  --amber-500: #d6a13a;
+
+  --display: "DM Serif Display", Georgia, "Times New Roman", serif;
+  --sans: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html { background: var(--felt-900); }
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background-color: var(--felt-900);
+  background-image:
+    radial-gradient(ellipse at 50% -12%, rgba(255, 255, 255, 0.055), transparent 58%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.012) 0 2px, transparent 2px 6px);
+  background-attachment: fixed;
+  color: var(--card-50);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+a { color: inherit; text-decoration: none; }
+button { font: inherit; cursor: pointer; }
+
+:focus-visible {
+  outline: 2px solid var(--gold-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.tabular { font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+
+.topbar {
+  border-bottom: 1px solid rgba(247, 241, 222, 0.1);
+  background: rgba(13, 51, 36, 0.76);
+  backdrop-filter: blur(14px);
+}
+
+.wrap { width: min(1152px, calc(100% - 32px)); margin-inline: auto; }
+
+.topbar-inner { display: flex; align-items: center; gap: 20px; min-height: 66px; }
+
+.brand { display: flex; align-items: center; gap: 9px; }
+.brand-suits { display: flex; gap: 2px; }
+.brand-name { font-family: var(--display); font-size: 24px; letter-spacing: -0.02em; }
+.brand-name em { font-style: normal; color: var(--crimson-500); }
+
+.nav { display: flex; gap: 4px; margin-left: auto; }
+.nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 13px;
+  border-radius: 10px;
+  color: rgba(247, 241, 222, 0.62);
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 160ms ease, color 160ms ease;
+}
+.nav a:hover { background: rgba(247, 241, 222, 0.08); color: var(--card-50); }
+.nav a[aria-current="page"] { background: rgba(247, 241, 222, 0.1); color: var(--card-50); }
+
+.group-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(247, 241, 222, 0.07);
+  box-shadow: inset 0 0 0 1px rgba(247, 241, 222, 0.12);
+  color: var(--card-50);
+  font-size: 12px;
+  font-weight: 500;
+}
+.group-switch:hover { background: rgba(247, 241, 222, 0.12); }
+
+.profile { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500; }
+
+.pcard {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 34px;
+  border-radius: 5px;
+  background: var(--card-50);
+  box-shadow: 0 0 0 1px var(--card-200), 0 1px 2px rgba(0, 0, 0, 0.1);
+  color: var(--ink-900);
+}
+.pcard.red { color: var(--crimson-600); }
+.pcard .rank { position: absolute; top: 2px; left: 3.5px; font: 10px/1 var(--display); }
+.pcard svg { width: 13px; height: 13px; fill: currentColor; }
+
+.guest-tile {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 34px;
+  border-radius: 5px;
+  background: var(--felt-900);
+  box-shadow: inset 0 0 0 1px rgba(13, 51, 36, 0.3);
+}
+.guest-tile svg { width: 12px; height: 12px; fill: var(--card-50); opacity: 0.55; }
+
+main { padding: 30px 0 56px; }
+
+.page-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.page-heading h1 { margin: 0; font: 40px/1 var(--display); letter-spacing: -0.015em; }
+.page-heading p { margin: 7px 0 0; color: rgba(247, 241, 222, 0.6); font-size: 13px; }
+
+.actions { display: flex; gap: 8px; align-items: center; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 11px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: transform 150ms ease, background 150ms ease;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn-primary {
+  background: var(--card-50);
+  color: var(--ink-900);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.22);
+}
+
+.sheet {
+  overflow: hidden;
+  border-radius: 22px;
+  background: var(--card-50);
+  box-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.14),
+    0 30px 70px -28px rgba(0, 0, 0, 0.65),
+    0 0 0 1px var(--card-100);
+  color: var(--ink-900);
+  animation: settle 460ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes settle {
+  from { opacity: 0; transform: translateY(14px) rotate(-0.35deg); }
+  to { opacity: 1; transform: none; }
+}
+
+.band { padding: 26px 36px; }
+.band + .band { border-top: 1px solid var(--card-100); }
+
+.kicker {
+  color: var(--ink-500);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.band-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.band-head h2 { margin: 0; font: 400 23px/1.1 var(--display); }
+.subtle { color: var(--ink-500); font-size: 12px; }
+
+.pos { color: var(--sage-700); }
+.neg { color: var(--crimson-700); }
+.flat { color: var(--ink-500); }
+
+/* Summary stats (Band 1) */
+.summary-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+}
+.summary-stat {
+  min-width: 0;
+  padding: 2px 24px 5px 0;
+}
+.summary-stat + .summary-stat {
+  padding-left: 24px;
+  border-left: 1px solid var(--card-100);
+}
+.stat-btn {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  text-align: left;
+  display: block;
+  width: 100%;
+}
+.stat-btn:hover .stat-value { opacity: 0.8; }
+.stat-value { margin-top: 5px; font: 30px/1 var(--display); }
+.stat-note { margin-top: 4px; color: var(--ink-500); font-size: 11.5px; }
+
+/* Ledger controls */
+.ledger-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.sort-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sort-label {
+  color: var(--ink-500);
+  font-size: 12px;
+  font-weight: 500;
+}
+.sort-select {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--card-200);
+  border-radius: 9px;
+  background: var(--card-50);
+  color: var(--ink-900);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.segmented {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--card-100);
+}
+.segmented button {
+  min-height: 32px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-500);
+  font-size: 12px;
+  font-weight: 500;
+  transition: background 150ms ease, color 150ms ease;
+}
+.segmented button[aria-selected="true"] {
+  background: var(--card-50);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  color: var(--ink-900);
+  font-weight: 600;
+}
+
+/* Shared Grid for Ledger: Date, Night, Players, State, Action score, Your net */
+.ledger { margin-top: 20px; }
+.ledger-grid {
+  display: grid;
+  grid-template-columns: 62px minmax(180px, 2fr) minmax(140px, 1.2fr) 110px 80px 110px;
+  align-items: center;
+  column-gap: 14px;
+}
+.ledger-header {
+  padding: 0 10px 9px;
+  color: var(--ink-500);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.month-group + .month-group { margin-top: 10px; }
+.month-head {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 36px;
+  padding: 8px 10px;
+  border-block: 1px solid var(--card-100);
+  background: rgba(247, 241, 222, 0.96);
+  backdrop-filter: blur(8px);
+}
+
+.session-row {
+  position: relative;
+  min-height: 65px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  transition: background 150ms ease, transform 150ms ease;
+}
+.session-row + .session-row { border-top: 1px solid var(--card-100); }
+.session-row:hover { background: rgba(236, 227, 200, 0.42); transform: translateX(2px); }
+
+.date-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 45px;
+  overflow: hidden;
+  border-radius: 7px;
+  background: var(--card-50);
+  box-shadow: 0 0 0 1px var(--card-200), 0 2px 4px rgba(0, 0, 0, 0.09);
+}
+.date-card .date-label { position: relative; z-index: 1; font: 15px/1 var(--display); white-space: nowrap; }
+.date-card svg {
+  position: absolute;
+  right: -8px;
+  bottom: -10px;
+  width: 45px;
+  height: 45px;
+  fill: currentColor;
+  opacity: 0.07;
+}
+.date-card.red { color: var(--crimson-600); }
+
+.session-main { min-width: 0; }
+.session-day { overflow: hidden; font-size: 13.5px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; display: block; }
+.session-main .row-sub { display: block; margin-top: 3px; color: var(--ink-500); font-size: 11px; line-height: 1.4; }
+
+.players-cell { min-width: 0; }
+.players-count { margin-bottom: 4px; color: var(--ink-700); font-size: 11px; display: block; }
+.avatar-stack { display: flex; align-items: center; }
+.avatar-stack .pcard, .avatar-stack .guest-tile { transform: scale(0.74); transform-origin: left center; margin-right: -12px; }
+.avatar-overflow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 25px;
+  margin-left: 4px;
+  border-radius: 999px;
+  background: var(--card-100);
+  color: var(--ink-500);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.pill-gold { background: rgba(201, 162, 74, 0.2); color: var(--gold-ink); }
+.pill-sage { background: rgba(91, 142, 110, 0.18); color: var(--sage-700); }
+.pill-crimson { background: rgba(178, 30, 44, 0.1); color: var(--crimson-700); }
+
+.action-cell {
+  color: var(--ink-900);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: right;
+}
+.row-net { font: 18px/1 var(--display); text-align: right; }
+
+.empty-filter { padding: 32px 10px 12px; text-align: center; }
+
+/* Cutlist & Footnote */
+.cutlist { margin-top: 34px; }
+.cutlist > .kicker { color: rgba(247, 241, 222, 0.5); }
+.cutlist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(268px, 1fr));
+  gap: 1px;
+  margin-top: 14px;
+  background: rgba(247, 241, 222, 0.11);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.cut { padding: 15px 17px; background: var(--felt-900); }
+.cut h3 { margin: 0; color: rgba(247, 241, 222, 0.9); font-size: 12.5px; font-weight: 600; }
+.cut p { margin: 5px 0 0; color: rgba(247, 241, 222, 0.52); font-size: 11.5px; line-height: 1.5; }
+
+.footnote {
+  margin: 22px 0 0;
+  color: rgba(247, 241, 222, 0.42);
+  font-size: 11.5px;
+  line-height: 1.6;
+  max-width: 74ch;
+}
+.footnote code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.94em;
+  color: rgba(247, 241, 222, 0.62);
+}
+
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+[data-reveal].in { opacity: 1; transform: none; }
+
+@media (max-width: 860px) {
+  .ledger-grid {
+    grid-template-columns: 58px minmax(160px, 2fr) minmax(110px, 1.2fr) 95px 65px 95px;
+    column-gap: 10px;
+  }
+}
+
+@media (max-width: 720px) {
+  .nav { display: none; }
+  .band { padding-inline: 20px; }
+  .page-heading h1 { font-size: 32px; }
+  .summary-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 1px; }
+  .summary-stat:nth-child(3) { padding-left: 0; border-left: 0; }
+  .ledger-grid {
+    grid-template-columns: 52px minmax(130px, 1fr) 90px 90px;
+    column-gap: 8px;
+  }
+  .players-col, .action-col { display: none; }
+  .topbar-inner { gap: 10px; }
+  .group-switch { margin-left: auto; }
+}
+
+@media (max-width: 480px) {
+  .ledger-grid {
+    grid-template-columns: 48px minmax(110px, 1fr) 85px;
+    column-gap: 8px;
+  }
+  .state-col { display: none; }
+  .row-net { font-size: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet { animation: none; }
+  .btn:hover, .chip:hover { transform: none; }
+  * { transition-duration: 1ms !important; }
+  [data-reveal] { opacity: 1; transform: none; }
+}
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap topbar-inner">
+    <div class="brand">
+      <span class="brand-suits">
+        <svg viewBox="0 0 100 100" width="15" height="15" aria-hidden="true">
+          <path d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z" fill="#f7f1de" />
+        </svg>
+        <svg viewBox="0 0 100 100" width="15" height="15" aria-hidden="true">
+          <path d="M50 88C28 72 8 56 8 35a20 20 0 0 1 36-12 20 20 0 0 1 36 12c0 21-20 37-30 53Z" fill="#d23548" />
+        </svg>
+      </span>
+      <span class="brand-name">royal<em>.gg</em></span>
+    </div>
+
+    <nav class="nav" aria-label="Main">
+      <a href="/dashboard">Dashboard</a>
+      <a href="sessions_v2.html" aria-current="page">Sessions</a>
+      <a href="league_v2.html">League</a>
+      <a href="/profile">You</a>
+    </nav>
+
+    <button type="button" class="group-switch">Thursday Night <span aria-hidden="true">▾</span></button>
+
+    <div class="profile">
+      <span class="pcard" aria-hidden="true">
+        <span class="rank">A</span>
+        <svg viewBox="0 0 100 100"><path d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z" /></svg>
+      </span>
+      <span>Dan</span>
+    </div>
+  </div>
+</div>
+
+<main>
+  <div class="wrap">
+    <div class="page-heading">
+      <div>
+        <h1>Sessions</h1>
+        <p>24 nights logged since 27 March.</p>
+      </div>
+      <div class="actions">
+        <a class="btn btn-primary" href="/sessions/new">+ New session</a>
+      </div>
+    </div>
+
+    <div class="sheet" aria-label="Thursday Night session ledger">
+      <!-- Band 1: The four header figures derived dynamically by counting _DATA.js -->
+      <section class="band" aria-label="Season at a glance">
+        <div class="summary-stats">
+          <div class="summary-stat">
+            <div class="kicker">Nights logged</div>
+            <div class="stat-value tabular" id="stat-nights"></div>
+            <div class="stat-note">27 Mar – 4 Sep 2026</div>
+          </div>
+          <div class="summary-stat">
+            <button type="button" class="stat-btn" data-filter="reconciled" aria-label="Filter reconciled sessions">
+              <div class="kicker">Reconciled</div>
+              <div class="stat-value tabular pos" id="stat-reconciled"></div>
+              <div class="stat-note">Auto-balanced to $0.00</div>
+            </button>
+          </div>
+          <div class="summary-stat">
+            <button type="button" class="stat-btn" data-filter="draft" aria-label="Filter draft sessions">
+              <div class="kicker">Drafted and balanced</div>
+              <div class="stat-value tabular" id="stat-drafted"></div>
+              <div class="stat-note">Pending lock &amp; review</div>
+            </button>
+          </div>
+          <div class="summary-stat">
+            <button type="button" class="stat-btn" data-filter="review" aria-label="Filter sessions needing review">
+              <div class="kicker">Needs review</div>
+              <div class="stat-value tabular neg" id="stat-review"></div>
+              <div class="stat-note">Over $5.00 threshold</div>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Band 2: The ledger -->
+      <section class="band" aria-labelledby="ledger-title">
+        <div class="band-head">
+          <div style="display:flex; align-items:baseline; gap:12px;">
+            <h2 id="ledger-title">The ledger</h2>
+            <span class="subtle" id="ledger-count-subtle">24 sessions</span>
+          </div>
+
+          <div class="ledger-controls">
+            <div class="sort-wrap">
+              <label for="ledger-sort" class="sort-label">Sort by</label>
+              <select id="ledger-sort" class="sort-select" aria-label="Sort sessions">
+                <option value="latest">Latest</option>
+                <option value="oldest">Oldest</option>
+                <option value="action">Highest action score</option>
+                <option value="biggest-win">Individual highest win</option>
+              </select>
+            </div>
+
+            <div class="segmented" role="tablist" aria-label="Filter sessions">
+              <button type="button" role="tab" aria-selected="true" data-filter="all">All 24</button>
+              <button type="button" role="tab" aria-selected="false" data-filter="reconciled">Reconciled 21</button>
+              <button type="button" role="tab" aria-selected="false" data-filter="draft">Draft 1</button>
+              <button type="button" role="tab" aria-selected="false" data-filter="review">Needs review 2</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="ledger" id="ledger">
+          <!-- Shared grid column headers -->
+          <div class="ledger-grid ledger-header" aria-hidden="true">
+            <span>Date</span>
+            <span>Night</span>
+            <span class="players-col">Players</span>
+            <span class="state-col" style="text-align:center">State</span>
+            <span class="action-col" style="text-align:right">Action score</span>
+            <span style="text-align:right">Your net</span>
+          </div>
+
+          <!-- Container for groups or un-grouped rows -->
+          <div id="ledger-body"></div>
+          <p class="empty-filter subtle" id="empty-filter" hidden>No sessions match this filter view.</p>
+        </div>
+      </section>
+    </div>
+
+    <!-- Cut list in iteration 1's voice -->
+    <section class="cutlist" data-reveal aria-labelledby="cut-title">
+      <div class="kicker" id="cut-title">Cut from the redesign — not shipping</div>
+      <div class="cutlist-grid">
+        <article class="cut">
+          <h3>The shape of the season chart</h3>
+          <p>Moved to the player profile page per feedback, keeping the sessions page focused entirely on the ledger rows and discrepancy tracking.</p>
+        </article>
+        <article class="cut">
+          <h3>Review prose commentary band</h3>
+          <p>The explanatory paragraphs for flagged nights have been removed. Discrepancies and notes are surfaced directly inside each session row.</p>
+        </article>
+        <article class="cut">
+          <h3>Table volume header metric</h3>
+          <p>Cut from the header summary figures per feedback, replaced by the clean four-figure operational ledger count (Logged / Reconciled / Draft / Review).</p>
+        </article>
+        <article class="cut">
+          <h3>Inline editing from the ledger</h3>
+          <p>Reopening approved sessions or modifying draft figures requires database write policies and navigation to the dedicated session editing screen.</p>
+        </article>
+        <article class="cut">
+          <h3>A calendar / heatmap view</h3>
+          <p>The league plays weekly on fixed days; a calendar grid would turn 24 structured rows into one sparse column of dots surrounded by empty space.</p>
+        </article>
+        <article class="cut">
+          <h3>A "next game" RSVP row</h3>
+          <p>There is no scheduling, attendance commitment, or RSVP table in the current database schema. The ledger remains strictly a record of played games.</p>
+        </article>
+      </div>
+    </section>
+
+    <p class="footnote" data-reveal>
+      Arithmetic check: 24 nights logged 27 Mar – 4 Sep 2026. The eight members' lifetime nets sum to exactly <span id="members-sum" class="tabular">+$0.00</span>, Dan's 24 per-night nets sum to exactly <span id="dan-sum" class="tabular">+$412.00</span>, and buy-ins are integer multiples of $40 (671 buy-ins = $26,840.00). The two flagged nights hold equal and opposite $8.00 discrepancies (15 May came up $8.00 short, 19 Jun $8.00 over), so the 24-night ledger still conserves money. All figures are sample data.
+    </p>
+  </div>
+</main>
+
+<script>
+/**
+ * FROZEN SAMPLE DATASET — iteration 2 of the royal.gg page redesigns.
+ *
+ * Every figure here is integer cents and every invariant below has been
+ * verified by script. DO NOT invent, round, re-derive or "tidy" any number in
+ * this file. Inline it verbatim into each v2 mock and format at render time.
+ *
+ * Verified invariants
+ * -------------------
+ *  1. The eight members' lifetime nets sum to exactly $0.00.
+ *  2. The three guests' lifetime nets sum to exactly $0.00.
+ *  3. Dan's 24 per-night nets sum to exactly +$412.00, 15 W / 9 L.
+ *  4. Buy-in counts over 24 nights sum to 671; 671 x $40 = $26,840.00.
+ *  5. Each of the last five nights conserves money exactly across every
+ *     participant present, members and guests together.
+ *  6. Each player's last-five-night nets sum to the canonical window total.
+ *  7. The 4 Sep reported cash-outs, run through the real reconcile() in
+ *     src/lib/reconcile.ts, produce the canonical adjusted cash-outs
+ *     ($280.00 / $164.50 / $104.50 / $41.00) to the cent.
+ *  8. The two flagged nights carry equal and opposite discrepancies
+ *     (15 May $8.00 short, 19 Jun $8.00 over), so the 24-night ledger still
+ *     conserves money even though neither night does on its own.
+ */
+
+const GROUP = {
+  name: "Thursday Night",
+  stakes: "$0.25 / $0.50",
+  buyInCents: 4000,
+  reconcileThresholdCents: 500,
+  payoutReminderAfterSessions: 8,
+};
+
+/** name, rank, suit, nights, W, L, lifetime net (cents), rating, consistency subscore, stdev (cents) */
+const MEMBERS = [
+  { name: "Dan Caesar",   rank: "A", suit: "spade",   nights: 24, w: 15, l:  9, lifetimeCents:  41200, rating: 8.1, consistency: 6.4, stdevCents: 4365, you: true },
+  { name: "Priya Raman",  rank: "Q", suit: "heart",   nights: 22, w: 13, l:  9, lifetimeCents:  28650, rating: 7.6, consistency: 4.8, stdevCents: 5820 },
+  { name: "Marcus Webb",  rank: "K", suit: "club",    nights: 19, w: 11, l:  8, lifetimeCents:  13400, rating: 6.9, consistency: 7.3, stdevCents: 3740 },
+  { name: "Theo Lund",    rank: "9", suit: "spade",   nights: 18, w:  9, l:  9, lifetimeCents:      0, rating: 5.8, consistency: 8.1, stdevCents: 3120 },
+  { name: "Ash Okonkwo",  rank: "7", suit: "diamond", nights: 16, w:  7, l:  9, lifetimeCents:  -7800, rating: 4.9, consistency: 5.9, stdevCents: 4780 },
+  { name: "Lena Sorokin", rank: "5", suit: "heart",   nights: 21, w:  8, l: 13, lifetimeCents: -14250, rating: 4.2, consistency: 4.3, stdevCents: 6490 },
+  { name: "Jonah Fitz",   rank: "J", suit: "club",    nights: 23, w:  9, l: 14, lifetimeCents: -21150, rating: 3.8, consistency: 6.8, stdevCents: 4010 },
+  { name: "Rory Adeyemi", rank: "8", suit: "spade",   nights: 20, w:  7, l: 13, lifetimeCents: -40050, rating: 2.9, consistency: 3.4, stdevCents: 7850 },
+];
+
+/**
+ * Per-member nets across the last five nights, in order:
+ * 7 Aug, 14 Aug, 21 Aug, 28 Aug, 4 Sep. `null` = did not play.
+ * Drives the League page's five-night trajectory sparkline. The sparkline is
+ * sage when the row's total is positive and crimson when it is negative.
+ */
+const LAST_FIVE = {
+  "Dan Caesar":   [-6250,  2400,  8650, -4000,  12000], // +$128.00
+  "Priya Raman":  [ 3200, -1500,  2500,  1000,   4450], //  +$96.50
+  "Marcus Webb":  [ 1800,  null, -1100,  1500,   2000], //  +$42.00
+  "Theo Lund":    [  600,  1200, -2000,  1250,    800], //  +$18.50
+  "Ash Okonkwo":  [ null, -1200,  null,  -450,  -1450], //  −$31.00
+  "Lena Sorokin": [-1600, -2200, -1250,   150,  -2550], //  −$74.50
+  "Jonah Fitz":   [-3200,   900, -7250,   550,  -1800], // −$108.00
+  "Rory Adeyemi": [ 5450,   400, -3450,  null,  -9550], //  −$71.50
+};
+
+/** Guests: no account, no card. A blank spade tile stands in for a card. */
+const GUESTS = [
+  { name: "Mo Haddad",  nights: 1, dates: ["4 Sep 2026"],               lifetimeCents: -3900, lastSeen: "4 Sep 2026",  invitedBy: "Dan Caesar" },
+  { name: "Bea Nolan",  nights: 1, dates: ["21 Aug 2026"],              lifetimeCents:  3900, lastSeen: "21 Aug 2026", invitedBy: "Priya Raman" },
+  { name: "Sam Ortiz",  nights: 2, dates: ["12 Jun 2026", "3 Jul 2026"], lifetimeCents:     0, lastSeen: "3 Jul 2026",  invitedBy: "Marcus Webb" },
+];
+
+const PAYOUT_PERIOD = {
+  openedAfter: "2 Aug 2026",
+  sessionsSince: 5,
+  firstSession: "7 Aug 2026",
+  lastSession: "4 Sep 2026",
+  stillOpen: true,
+};
+
+/**
+ * The 24 nights. `netSumCents` is the sum of every participant's net that
+ * night: 0 on a night that reconciles, non-zero only on the two flagged ones.
+ * `totalAbsCents = 2 * winnersTotalCents - netSumCents`, which is what the
+ * real action score consumes.
+ *
+ * actionScore = clamp(0, 10,
+ *   round10( (totalAbsCents / playerCount / 100) / 8
+ *            + max(0, playerCount - 4) * 0.3
+ *            + rebuyPlayers * 0.4 ) )
+ * — transcribed from SessionsListPage.tsx. Compute it, never hardcode it.
+ */
+const NIGHTS = [
+  { n:  1, date: "2026-03-27", state: "reconciled", playerCount: 7, buyInCount: 26, rebuyPlayers: 5, winnersTotalCents:  9200, netSumCents:    0, yourNetCents:  4800, yourBuyIns: 2, biggestWinCents:  4800, biggestWinner: "Dan Caesar",   biggestLossCents:  -3600, note: null },
+  { n:  2, date: "2026-04-03", state: "reconciled", playerCount: 6, buyInCount: 24, rebuyPlayers: 4, winnersTotalCents:  7400, netSumCents:    0, yourNetCents: -2400, yourBuyIns: 2, biggestWinCents:  4100, biggestWinner: "Priya Raman",  biggestLossCents:  -3900, note: null },
+  { n:  3, date: "2026-04-10", state: "reconciled", playerCount: 7, buyInCount: 26, rebuyPlayers: 5, winnersTotalCents:  6800, netSumCents:    0, yourNetCents:  2400, yourBuyIns: 1, biggestWinCents:  3300, biggestWinner: "Marcus Webb",  biggestLossCents:  -3100, note: null },
+  { n:  4, date: "2026-04-17", state: "reconciled", playerCount: 7, buyInCount: 28, rebuyPlayers: 5, winnersTotalCents: 12500, netSumCents:    0, yourNetCents:  6250, yourBuyIns: 2, biggestWinCents:  6250, biggestWinner: "Dan Caesar",   biggestLossCents:  -5800, note: "Theo's first night on the good side of it." },
+  { n:  5, date: "2026-04-24", state: "reconciled", playerCount: 7, buyInCount: 25, rebuyPlayers: 4, winnersTotalCents:  6400, netSumCents:    0, yourNetCents: -1600, yourBuyIns: 1, biggestWinCents:  3900, biggestWinner: "Jonah Fitz",   biggestLossCents:  -3400, note: null },
+  { n:  6, date: "2026-05-01", state: "reconciled", playerCount: 6, buyInCount: 27, rebuyPlayers: 5, winnersTotalCents:  5800, netSumCents:    0, yourNetCents:  1600, yourBuyIns: 1, biggestWinCents:  2700, biggestWinner: "Priya Raman",  biggestLossCents:  -2900, note: null },
+  { n:  7, date: "2026-05-08", state: "reconciled", playerCount: 8, buyInCount: 30, rebuyPlayers: 6, winnersTotalCents: 11200, netSumCents:    0, yourNetCents:  3200, yourBuyIns: 2, biggestWinCents:  5600, biggestWinner: "Priya Raman",  biggestLossCents:  -4800, note: null },
+  { n:  8, date: "2026-05-15", state: "review",     playerCount: 8, buyInCount: 34, rebuyPlayers: 7, winnersTotalCents: 30200, netSumCents: -800, yourNetCents: -5200, yourBuyIns: 3, biggestWinCents: 28600, biggestWinner: "Priya Raman",  biggestLossCents:  -9700, note: "Chips came up $8.00 short. Nobody could find it." },
+  { n:  9, date: "2026-05-22", state: "reconciled", playerCount: 7, buyInCount: 27, rebuyPlayers: 5, winnersTotalCents:  8200, netSumCents:    0, yourNetCents:   900, yourBuyIns: 1, biggestWinCents:  4400, biggestWinner: "Marcus Webb",  biggestLossCents:  -3800, note: null },
+  { n: 10, date: "2026-05-29", state: "reconciled", playerCount: 8, buyInCount: 29, rebuyPlayers: 6, winnersTotalCents: 13400, netSumCents:    0, yourNetCents:  5450, yourBuyIns: 2, biggestWinCents:  5450, biggestWinner: "Dan Caesar",   biggestLossCents:  -6200, note: null },
+  { n: 11, date: "2026-06-05", state: "reconciled", playerCount: 7, buyInCount: 26, rebuyPlayers: 5, winnersTotalCents:  7600, netSumCents:    0, yourNetCents:  -800, yourBuyIns: 1, biggestWinCents:  4000, biggestWinner: "Theo Lund",    biggestLossCents:  -3300, note: null },
+  { n: 12, date: "2026-06-12", state: "reconciled", playerCount: 8, buyInCount: 31, rebuyPlayers: 6, winnersTotalCents:  9800, netSumCents:    0, yourNetCents:  2050, yourBuyIns: 2, biggestWinCents:  4900, biggestWinner: "Priya Raman",  biggestLossCents:  -4100, note: "Sam sat in. Sam is not registered." },
+  { n: 13, date: "2026-06-19", state: "review",     playerCount: 8, buyInCount: 33, rebuyPlayers: 7, winnersTotalCents: 23000, netSumCents:  800, yourNetCents:  7200, yourBuyIns: 3, biggestWinCents:  9800, biggestWinner: "Priya Raman",  biggestLossCents: -21450, note: "Rory's −$214.50. Chips came up $8.00 over." },
+  { n: 14, date: "2026-06-26", state: "reconciled", playerCount: 7, buyInCount: 28, rebuyPlayers: 6, winnersTotalCents:  8600, netSumCents:    0, yourNetCents: -1250, yourBuyIns: 2, biggestWinCents:  4300, biggestWinner: "Marcus Webb",  biggestLossCents:  -3700, note: null },
+  { n: 15, date: "2026-07-03", state: "reconciled", playerCount: 7, buyInCount: 26, rebuyPlayers: 5, winnersTotalCents:  7200, netSumCents:    0, yourNetCents:  1250, yourBuyIns: 1, biggestWinCents:  3600, biggestWinner: "Priya Raman",  biggestLossCents:  -3200, note: null },
+  { n: 16, date: "2026-07-10", state: "reconciled", playerCount: 8, buyInCount: 30, rebuyPlayers: 6, winnersTotalCents: 11800, netSumCents:    0, yourNetCents:  3800, yourBuyIns: 2, biggestWinCents:  5100, biggestWinner: "Dan Caesar",   biggestLossCents:  -4600, note: null },
+  { n: 17, date: "2026-07-17", state: "reconciled", playerCount: 7, buyInCount: 27, rebuyPlayers: 5, winnersTotalCents:  6900, netSumCents:    0, yourNetCents:  -900, yourBuyIns: 1, biggestWinCents:  3500, biggestWinner: "Theo Lund",    biggestLossCents:  -3100, note: null },
+  { n: 18, date: "2026-07-24", state: "reconciled", playerCount: 8, buyInCount: 32, rebuyPlayers: 7, winnersTotalCents: 10400, netSumCents:    0, yourNetCents:  2600, yourBuyIns: 2, biggestWinCents:  4700, biggestWinner: "Priya Raman",  biggestLossCents:  -4200, note: null },
+  { n: 19, date: "2026-07-31", state: "reconciled", playerCount: 7, buyInCount: 27, rebuyPlayers: 5, winnersTotalCents:  7100, netSumCents:    0, yourNetCents:  -950, yourBuyIns: 1, biggestWinCents:  3800, biggestWinner: "Marcus Webb",  biggestLossCents:  -3300, note: null },
+  { n: 20, date: "2026-08-07", state: "reconciled", playerCount: 7, buyInCount: 26, rebuyPlayers: 6, winnersTotalCents: 11050, netSumCents:    0, yourNetCents: -6250, yourBuyIns: 3, biggestWinCents:  5450, biggestWinner: "Rory Adeyemi", biggestLossCents:  -6250, note: null },
+  { n: 21, date: "2026-08-14", state: "reconciled", playerCount: 7, buyInCount: 24, rebuyPlayers: 5, winnersTotalCents:  4900, netSumCents:    0, yourNetCents:  2400, yourBuyIns: 2, biggestWinCents:  2400, biggestWinner: "Dan Caesar",   biggestLossCents:  -2200, note: null },
+  { n: 22, date: "2026-08-21", state: "reconciled", playerCount: 8, buyInCount: 29, rebuyPlayers: 6, winnersTotalCents: 15050, netSumCents:    0, yourNetCents:  8650, yourBuyIns: 3, biggestWinCents:  8650, biggestWinner: "Dan Caesar",   biggestLossCents:  -7250, note: "Bea sat in for one. Bea is not registered." },
+  { n: 23, date: "2026-08-28", state: "draft",      playerCount: 7, buyInCount: 25, rebuyPlayers: 5, winnersTotalCents:  4450, netSumCents:    0, yourNetCents: -4000, yourBuyIns: 2, biggestWinCents:  1500, biggestWinner: "Marcus Webb",  biggestLossCents:  -4000, note: "Still a draft — balanced, nobody has locked it." },
+  { n: 24, date: "2026-09-04", state: "reconciled", playerCount: 9, buyInCount: 31, rebuyPlayers: 9, winnersTotalCents: 19250, netSumCents:    0, yourNetCents: 12000, yourBuyIns: 4, biggestWinCents: 12000, biggestWinner: "Dan Caesar",   biggestLossCents:  -9550, note: "Off by $4.50, distributed among the four winners." },
+];
+
+/** Who sat at each of the last five nights, for the Sessions page avatar row. */
+const ROSTERS = {
+  "2026-08-07": ["Dan Caesar", "Priya Raman", "Marcus Webb", "Theo Lund", "Lena Sorokin", "Jonah Fitz", "Rory Adeyemi"],
+  "2026-08-14": ["Dan Caesar", "Priya Raman", "Theo Lund", "Ash Okonkwo", "Lena Sorokin", "Jonah Fitz", "Rory Adeyemi"],
+  "2026-08-21": ["Dan Caesar", "Priya Raman", "Marcus Webb", "Theo Lund", "Lena Sorokin", "Jonah Fitz", "Rory Adeyemi", "Bea Nolan"],
+  "2026-08-28": ["Dan Caesar", "Priya Raman", "Marcus Webb", "Theo Lund", "Ash Okonkwo", "Lena Sorokin", "Jonah Fitz"],
+  "2026-09-04": ["Dan Caesar", "Priya Raman", "Marcus Webb", "Theo Lund", "Ash Okonkwo", "Lena Sorokin", "Jonah Fitz", "Rory Adeyemi", "Mo Haddad"],
+};
+
+/**
+ * The 4 Sep night in full — the subject of the individual-session page.
+ *
+ * `reportedCashOutCents` are what the table counted. They total $1,235.50
+ * against $1,240.00 of buy-ins, so the night is $4.50 short — under the
+ * $5.00 threshold, therefore distributed proportionally among the four
+ * reported winners by the real algorithm, which yields exactly the
+ * `adjustedCashOutCents` below. Show BOTH columns; never overwrite reported.
+ */
+const SESSION_4_SEP = {
+  date: "2026-09-04",
+  state: "reconciled",
+  approvedBy: "Dan Caesar",
+  approvedAt: "5 Sep 2026",
+  note: "Off by $4.50, distributed among the four winners.",
+  totalBuyInCents: 124000,
+  totalReportedCents: 123550,
+  totalAdjustedCents: 124000,
+  discrepancyCents: 450,
+  needsReview: false,
+  rows: [
+    { name: "Dan Caesar",   buyIns: 4, buyInCents: 16000, reportedCashOutCents: 27720, adjustmentCents: 280, adjustedCashOutCents: 28000, netCents:  12000, you: true },
+    { name: "Priya Raman",  buyIns: 3, buyInCents: 12000, reportedCashOutCents: 16346, adjustmentCents: 104, adjustedCashOutCents: 16450, netCents:   4450 },
+    { name: "Marcus Webb",  buyIns: 3, buyInCents: 12000, reportedCashOutCents: 13953, adjustmentCents:  47, adjustedCashOutCents: 14000, netCents:   2000 },
+    { name: "Theo Lund",    buyIns: 3, buyInCents: 12000, reportedCashOutCents: 12781, adjustmentCents:  19, adjustedCashOutCents: 12800, netCents:    800 },
+    { name: "Ash Okonkwo",  buyIns: 4, buyInCents: 16000, reportedCashOutCents: 14550, adjustmentCents:   0, adjustedCashOutCents: 14550, netCents:  -1450 },
+    { name: "Lena Sorokin", buyIns: 3, buyInCents: 12000, reportedCashOutCents:  9450, adjustmentCents:   0, adjustedCashOutCents:  9450, netCents:  -2550 },
+    { name: "Jonah Fitz",   buyIns: 4, buyInCents: 16000, reportedCashOutCents: 14200, adjustmentCents:   0, adjustedCashOutCents: 14200, netCents:  -1800 },
+    { name: "Rory Adeyemi", buyIns: 5, buyInCents: 20000, reportedCashOutCents: 10450, adjustmentCents:   0, adjustedCashOutCents: 10450, netCents:  -9550 },
+    { name: "Mo Haddad",    buyIns: 2, buyInCents:  8000, reportedCashOutCents:  4100, adjustmentCents:   0, adjustedCashOutCents:  4100, netCents:  -3900, guest: true },
+  ],
+};
+
+/** The 28 Aug draft — the editable state of the individual-session page. */
+const SESSION_28_AUG = {
+  date: "2026-08-28",
+  state: "draft",
+  note: "Still a draft — balanced, nobody has locked it.",
+  totalBuyInCents: 100000,
+  totalReportedCents: 100000,
+  discrepancyCents: 0,
+  rows: [
+    { name: "Dan Caesar",   buyIns: 2, buyInCents: 8000, reportedCashOutCents: 4000, netCents: -4000, you: true },
+    { name: "Priya Raman",  buyIns: 4, buyInCents:16000, reportedCashOutCents:17000, netCents:  1000 },
+    { name: "Marcus Webb",  buyIns: 3, buyInCents:12000, reportedCashOutCents:13500, netCents:  1500 },
+    { name: "Theo Lund",    buyIns: 4, buyInCents:16000, reportedCashOutCents:17250, netCents:  1250 },
+    { name: "Ash Okonkwo",  buyIns: 4, buyInCents:16000, reportedCashOutCents:15550, netCents:  -450 },
+    { name: "Lena Sorokin", buyIns: 4, buyInCents:16000, reportedCashOutCents:16150, netCents:   150 },
+    { name: "Jonah Fitz",   buyIns: 4, buyInCents:16000, reportedCashOutCents:16550, netCents:   550 },
+  ],
+};
+
+
+const SUITS = {
+  spade: "M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z",
+  heart: "M50 88C28 72 8 56 8 35a20 20 0 0 1 36-12 20 20 0 0 1 36 12c0 21-20 37-30 53Z",
+  club: "M50 6a17 17 0 0 0-13 28 17 17 0 1 0-9 28 17 17 0 0 0 16-3c-1 7-6 14-13 19h38c-7-5-12-12-13-19a17 17 0 0 0 16 3 17 17 0 1 0-9-28A17 17 0 0 0 50 6Z",
+  diamond: "M50 6 88 50 50 94 12 50Z",
+};
+const CARD_RANKS = {
+  A: "Ace", K: "King", Q: "Queen", J: "Jack", "10": "Ten",
+  "9": "Nine", "8": "Eight", "7": "Seven", "6": "Six",
+  "5": "Five", "4": "Four", "3": "Three", "2": "Two"
+};
+
+const CARD_SUITS = {
+  spade: "Spades", heart: "Hearts", club: "Clubs", diamond: "Diamonds"
+};
+
+function fullCardName(rank, suit) {
+  const r = CARD_RANKS[rank] || rank;
+  const s = CARD_SUITS[suit] || suit;
+  return `${r} of ${s}`;
+}
+
+const isRed = (s) => s === "heart" || s === "diamond";
+
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const DATE_SUIT_ORDER = ["spade", "heart", "diamond", "club"];
+
+function dateParts(iso) {
+  const [year, month, day] = iso.split("-").map(Number);
+  return { year, month, day };
+}
+
+function formatCents(cents) {
+  const sign = cents < 0 ? "−" : "";
+  const absolute = Math.abs(cents);
+  const dollars = Math.floor(absolute / 100).toLocaleString("en-US");
+  const remainder = String(absolute % 100).padStart(2, "0");
+  return `${sign}$${dollars}.${remainder}`;
+}
+
+function formatSignedCents(cents) {
+  if (cents > 0) return `+${formatCents(cents)}`;
+  return formatCents(cents);
+}
+
+function moneyClass(cents) {
+  if (cents > 0) return "pos";
+  if (cents < 0) return "neg";
+  return "flat";
+}
+
+function fullDate(iso) {
+  const { year, month, day } = dateParts(iso);
+  const dayIndex = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+  return `${DAY_NAMES[dayIndex]} ${day} ${MONTHS[month - 1]} ${year}`;
+}
+
+function avatar(player) {
+  if (player.guest) {
+    return `<span class="guest-tile" role="img" aria-label="${player.name}, guest without a card">
+      <svg viewBox="0 0 100 100" aria-hidden="true"><path d="${SUITS.diamond}"></path></svg>
+    </span>`;
+  }
+  return `<span class="pcard${isRed(player.suit) ? " red" : ""}" role="img" aria-label="${player.name} card, ${fullCardName(player.rank, player.suit)}">
+    <span class="rank">${player.rank}</span>
+    <svg viewBox="0 0 100 100" aria-hidden="true"><path d="${SUITS[player.suit]}"></path></svg>
+  </span>`;
+}
+
+/**
+ * Action score formula transcribed verbatim from _DATA.js and SessionsListPage.tsx.
+ * Runs dynamically over night data. Render to one decimal place (e.g. 5.0).
+ */
+function computeActionScore(night) {
+  const totalAbsCents = 2 * night.winnersTotalCents - night.netSumCents;
+  const perPlayerDollars = night.playerCount > 0 ? (totalAbsCents / night.playerCount / 100) : 0;
+  const swingScore = perPlayerDollars / 8;
+  const tableBonus = Math.max(0, night.playerCount - 4) * 0.3;
+  const rebuyBonus = night.rebuyPlayers * 0.4;
+  const totalScore = swingScore + tableBonus + rebuyBonus;
+  return Math.max(0, Math.min(10, Math.round(totalScore * 10) / 10));
+}
+
+function formatActionScore(score) {
+  return score.toFixed(1);
+}
+
+function getRosterForNight(night) {
+  if (ROSTERS[night.date]) {
+    return ROSTERS[night.date].map((name) => {
+      const mem = MEMBERS.find((m) => m.name === name);
+      if (mem) return { ...mem, guest: false };
+      const gst = GUESTS.find((g) => g.name === name);
+      if (gst) return { ...gst, rank: null, suit: null, guest: true };
+      return { name, rank: null, suit: null, lifetimeCents: 0, guest: true };
+    });
+  }
+
+  // Deterministic fallback for earlier nights
+  const pool = [...MEMBERS];
+  const list = [];
+  const you = pool.find((m) => m.you);
+  if (you) list.push({ ...you, guest: false });
+
+  if (night.biggestWinner && !list.some((p) => p.name === night.biggestWinner)) {
+    const winner = pool.find((m) => m.name === night.biggestWinner);
+    if (winner) list.push({ ...winner, guest: false });
+  }
+
+  if (night.note && night.note.includes("Sam")) {
+    const sam = GUESTS.find((g) => g.name === "Sam Ortiz");
+    if (sam) list.push({ ...sam, rank: null, suit: null, guest: true });
+  }
+
+  for (const m of pool) {
+    if (list.length >= night.playerCount) break;
+    if (!list.some((p) => p.name === m.name)) {
+      list.push({ ...m, guest: false });
+    }
+  }
+
+  return list;
+}
+
+function renderHeaderStats() {
+  const nightsCount = NIGHTS.length;
+  const reconciledCount = NIGHTS.filter((n) => n.state === "reconciled").length;
+  const draftCount = NIGHTS.filter((n) => n.state === "draft").length;
+  const reviewCount = NIGHTS.filter((n) => n.state === "review").length;
+
+  document.getElementById("stat-nights").textContent = String(nightsCount);
+  document.getElementById("stat-reconciled").textContent = String(reconciledCount);
+  document.getElementById("stat-drafted").textContent = String(draftCount);
+  document.getElementById("stat-review").textContent = String(reviewCount);
+
+  const membersSum = MEMBERS.reduce((s, m) => s + m.lifetimeCents, 0);
+  const danNetsSum = NIGHTS.reduce((s, n) => s + n.yourNetCents, 0);
+
+  document.getElementById("members-sum").textContent = formatSignedCents(membersSum);
+  document.getElementById("dan-sum").textContent = formatSignedCents(danNetsSum);
+}
+
+function sessionRowHtml(night) {
+  const { month, day } = dateParts(night.date);
+  const dateSuit = DATE_SUIT_ORDER[day % 4];
+  const actionScore = computeActionScore(night);
+  const roster = getRosterForNight(night);
+
+  let visibleAvatars = roster;
+  let overflow = 0;
+  if (roster.length > 8) {
+    const sorted = [...roster].sort((a, b) => b.lifetimeCents - a.lifetimeCents);
+    visibleAvatars = sorted.slice(0, 5);
+    overflow = roster.length - 5;
+  }
+
+  const playerNames = roster.map((p) => p.guest ? `${p.name} (Guest)` : p.name).join(", ");
+
+  let stateLabel = "Reconciled";
+  let statePillClass = "pill-sage";
+  if (night.state === "draft") {
+    stateLabel = "Draft";
+    statePillClass = "pill-gold";
+  } else if (night.state === "review") {
+    stateLabel = "Needs review";
+    statePillClass = "pill-crimson";
+  }
+
+  return `<a class="session-row ledger-grid" href="/sessions/${night.n}" data-state="${night.state}" aria-label="Night ${night.n}, ${fullDate(night.date)}. ${night.playerCount} players: ${playerNames}. Action score ${formatActionScore(actionScore)} out of 10. Your net ${formatSignedCents(night.yourNetCents)}. ${stateLabel}.">
+    <span class="session-date">
+      <span class="date-card${isRed(dateSuit) ? " red" : ""}">
+        <span class="date-label">${day} ${MONTHS_SHORT[month - 1]}</span>
+        <svg viewBox="0 0 100 100" aria-hidden="true"><path d="${SUITS[dateSuit]}"></path></svg>
+      </span>
+    </span>
+
+    <span class="session-main">
+      <span class="session-day">Night ${night.n} · ${fullDate(night.date)}</span>
+      ${night.note ? `<span class="row-sub">${night.note}</span>` : ""}
+    </span>
+
+    <span class="players-cell players-col" aria-label="${night.playerCount} players: ${playerNames}">
+      <span class="players-count">${night.playerCount} players</span>
+      <span class="avatar-stack" aria-hidden="true">
+        ${visibleAvatars.map(avatar).join("")}
+        ${overflow > 0 ? `<span class="avatar-overflow">+${overflow}</span>` : ""}
+      </span>
+    </span>
+
+    <span class="state-col" style="text-align:center">
+      <span class="pill ${statePillClass}">${stateLabel}</span>
+    </span>
+
+    <span class="action-cell tabular action-col" style="text-align:right">
+      ${formatActionScore(actionScore)}<span class="subtle">/10</span>
+    </span>
+
+    <span class="row-net tabular ${moneyClass(night.yourNetCents)}" style="text-align:right">
+      ${formatSignedCents(night.yourNetCents)}
+    </span>
+  </a>`;
+}
+
+let currentFilter = "all";
+
+function renderLedger() {
+  const sortMode = document.getElementById("ledger-sort").value;
+  const ledgerBody = document.getElementById("ledger-body");
+
+  // Enriched sessions with computed actionScore and sort keys
+  const list = NIGHTS.map((n) => ({
+    ...n,
+    computedActionScore: computeActionScore(n),
+  }));
+
+  if (sortMode === "latest") {
+    list.sort((a, b) => b.n - a.n);
+  } else if (sortMode === "oldest") {
+    list.sort((a, b) => a.n - b.n);
+  } else if (sortMode === "action") {
+    list.sort((a, b) => b.computedActionScore - a.computedActionScore || b.n - a.n);
+  } else if (sortMode === "biggest-win") {
+    list.sort((a, b) => b.biggestWinCents - a.biggestWinCents || b.n - a.n);
+  }
+
+  const isChronological = sortMode === "latest" || sortMode === "oldest";
+
+  if (!isChronological) {
+    // Non-chronological sort: drop month dividers per feedback requirement
+    ledgerBody.innerHTML = `<div class="un-grouped-rows">${list.map(sessionRowHtml).join("")}</div>`;
+  } else {
+    // Chronological sort: group by month
+    const groups = new Map();
+    list.forEach((session) => {
+      const { year, month } = dateParts(session.date);
+      const key = `${year}-${String(month).padStart(2, "0")}`;
+      if (!groups.has(key)) {
+        groups.set(key, { year, month, sessions: [] });
+      }
+      groups.get(key).sessions.push(session);
+    });
+
+    ledgerBody.innerHTML = [...groups.values()].map((g) => {
+      const monthNet = g.sessions.reduce((sum, s) => sum + s.yourNetCents, 0);
+      const count = g.sessions.length;
+      return `<section class="month-group" data-month="${g.year}-${g.month}">
+        <div class="month-head">
+          <span class="kicker">${MONTHS[g.month - 1]} ${g.year}</span>
+          <span class="subtle tabular">${count} ${count === 1 ? "night" : "nights"} · you <span class="${moneyClass(monthNet)}">${formatSignedCents(monthNet)}</span></span>
+        </div>
+        <div class="month-rows">${g.sessions.map(sessionRowHtml).join("")}</div>
+      </section>`;
+    }).join("");
+  }
+
+  applyFilter(currentFilter);
+}
+
+function applyFilter(filter) {
+  currentFilter = filter;
+  const rows = [...document.querySelectorAll(".session-row")];
+  let visibleCount = 0;
+
+  rows.forEach((row) => {
+    const rowState = row.dataset.state;
+    const show = filter === "all" || rowState === filter;
+    row.hidden = !show;
+    if (show) visibleCount += 1;
+  });
+
+  document.querySelectorAll(".month-group").forEach((group) => {
+    const hasVisibleRows = group.querySelector(".session-row:not([hidden])");
+    group.hidden = !hasVisibleRows;
+  });
+
+  document.querySelectorAll("[role=tab]").forEach((tab) => {
+    tab.setAttribute("aria-selected", String(tab.dataset.filter === filter));
+  });
+
+  document.getElementById("empty-filter").hidden = visibleCount > 0;
+  document.getElementById("ledger-count-subtle").textContent = `${visibleCount} ${visibleCount === 1 ? "session" : "sessions"}`;
+}
+
+// Interactivity: Sort dropdown
+document.getElementById("ledger-sort").addEventListener("change", renderLedger);
+
+// Interactivity: Filter segmented tabs
+document.querySelectorAll("[role=tab]").forEach((tab) => {
+  tab.addEventListener("click", () => applyFilter(tab.dataset.filter));
+});
+
+// Interactivity: Clicking summary stat cards
+document.querySelectorAll(".stat-btn").forEach((btn) => {
+  btn.addEventListener("click", () => applyFilter(btn.dataset.filter));
+});
+
+// Initial render
+renderHeaderStats();
+renderLedger();
+
+// Scroll reveal
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const reveals = document.querySelectorAll("[data-reveal]");
+if (reducedMotion || !("IntersectionObserver" in window)) {
+  reveals.forEach((node) => node.classList.add("in"));
+} else {
+  const observer = new IntersectionObserver(
+    (entries) => entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("in");
+        observer.unobserve(entry.target);
+      }
+    }),
+    { rootMargin: "0px 0px -12% 0px", threshold: 0.08 }
+  );
+  reveals.forEach((node) => observer.observe(node));
+}
+</script>
+</body>
+</html>
