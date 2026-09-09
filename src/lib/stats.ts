@@ -229,19 +229,81 @@ export function netStats(nets: number[]): {
 }
 
 /**
- * Players sorted by net within a date window. Defaults to "last 3 months".
+ * The bar for appearing in a ranking: three lifetime nights.
+ *
+ * Deliberately the same number as RATING_MIN_SESSIONS, and deliberately not
+ * the same constant — they answer different questions ("is this score
+ * meaningful?" vs "does this player belong in the standings?") and could
+ * reasonably diverge. Sharing one constant would couple them by accident.
+ */
+export const RANKING_MIN_SESSIONS = 3;
+
+/**
+ * Whether a player appears in a ranking: active, not a guest, and at least
+ * RANKING_MIN_SESSIONS lifetime nights.
+ *
+ * ONE definition, used by the dashboard's seasonal leaders and the League
+ * page's all-time standings. Two copies of this rule will drift, and the two
+ * places it is used are the two places that make a claim about who is good.
+ *
+ * What this does NOT do is remove anyone's money from the record. A guest's
+ * buy-ins and cash-outs stay in session totals, in reconciliation, in the
+ * lifetime ledger and in every chart. Excluded from rankings is not excluded
+ * from the league.
+ *
+ * `sessionsPlayed` counts LIFETIME nights, even when the caller is ranking a
+ * five-game window — otherwise a five-game window could never seat anyone at
+ * a three-game bar.
+ *
+ * Former members stay eligible. Leaving does not erase your results, and
+ * `players.status` stays "active" after someone leaves the group anyway; the
+ * former-member marker lives on `group_members.status` and is a Stage 2
+ * concern.
+ */
+export function isRankingEligible(
+  player: Player,
+  sessionsPlayed: number
+): boolean {
+  return (
+    player.status === "active" &&
+    !player.is_guest &&
+    sessionsPlayed >= RANKING_MIN_SESSIONS
+  );
+}
+
+/**
+ * The most recent `count` sessions, oldest-first.
+ *
+ * A window measured in games rather than months, which is what makes it
+ * stable: "the last five" means the same thing whether the group played five
+ * straight weekends or took August off. Sorted with the same
+ * played_at-then-id tie-break as everywhere else, so two nights logged on one
+ * date order identically here and in the charts.
+ */
+export function recentSessions(sessions: Session[], count: number): Session[] {
+  const sorted = [...sessions].sort((a, b) => {
+    const cmp = a.played_at.localeCompare(b.played_at);
+    return cmp !== 0 ? cmp : a.id.localeCompare(b.id);
+  });
+  return count >= sorted.length ? sorted : sorted.slice(sorted.length - count);
+}
+
+/**
+ * Players sorted by net across the sessions handed in.
+ *
+ * Takes an already-windowed session list rather than a `windowStart: Date`.
+ * The window is a count of games now (see `recentSessions`), and a function
+ * that filters by date cannot express that — so the filtering moved out to
+ * the one helper that owns it.
  */
 export function seasonLeaders(
   players: Player[],
-  sessions: Session[],
+  windowSessions: Session[],
   buyIns: BuyIn[],
-  cashOuts: CashOut[],
-  windowStart: Date
+  cashOuts: CashOut[]
 ): Array<{ player: Player; netCents: number; sessionsPlayed: number }> {
-  const cutoff = windowStart.toISOString().slice(0, 10);
-  const inWindow = sessions.filter((s) => s.played_at >= cutoff);
   const byPlayer = new Map<string, { net: number; count: number }>();
-  for (const s of inWindow) {
+  for (const s of windowSessions) {
     const sb = buyIns.filter((b) => b.session_id === s.id);
     const sc = cashOuts.filter((c) => c.session_id === s.id);
     const playerIds = new Set([
@@ -456,18 +518,25 @@ export function lifetimeTotals(
   biggestWinCents: number;
   biggestWinDate: string | null;
   biggestWinPlayerId: string | null;
+  // The night it happened, so the figure can link to it. Every biggest-win
+  // figure is a claim about one identifiable evening; without the id the
+  // dashboard can name the night but not go there.
+  biggestWinSessionId: string | null;
   biggestLossCents: number;
   biggestLossDate: string | null;
   biggestLossPlayerId: string | null;
+  biggestLossSessionId: string | null;
 } {
   let totalPotCents = 0;
   let biggestWinCents = 0;
   let biggestWinDate: string | null = null;
   let biggestWinPlayerId: string | null = null;
-  
+  let biggestWinSessionId: string | null = null;
+
   let biggestLossCents = 0;
   let biggestLossDate: string | null = null;
   let biggestLossPlayerId: string | null = null;
+  let biggestLossSessionId: string | null = null;
 
   sessions.forEach((s) => {
     const agg = aggregateSession(s, buyIns, cashOuts);
@@ -491,11 +560,13 @@ export function lifetimeTotals(
         biggestWinCents = net;
         biggestWinDate = s.played_at;
         biggestWinPlayerId = pid;
+        biggestWinSessionId = s.id;
       }
       if (net < biggestLossCents) {
         biggestLossCents = net;
         biggestLossDate = s.played_at;
         biggestLossPlayerId = pid;
+        biggestLossSessionId = s.id;
       }
     });
   });
@@ -505,8 +576,10 @@ export function lifetimeTotals(
     biggestWinCents,
     biggestWinDate,
     biggestWinPlayerId,
+    biggestWinSessionId,
     biggestLossCents,
     biggestLossDate,
     biggestLossPlayerId,
+    biggestLossSessionId,
   };
 }
