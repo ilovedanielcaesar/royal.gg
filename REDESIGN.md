@@ -32,7 +32,7 @@ the checkbox — a tick with no log entry is how this file rots.
 
 | Stage | What | Backend? | State | Done |
 |:--:|---|:--:|---|:--:|
-| **P** | Pre-flight: land `qol-small-items`, commit the mocks | no | `[ ]` | 0/3 |
+| **P** | Pre-flight: land `qol-small-items`, commit the mocks | no | `[~]` | 2/3 |
 | **0** | Foundation: tokens, felt, chrome, sheet primitives | no | `[ ]` | 0/6 |
 | **1** | Dashboard | one route change | `[ ]` | 0/7 |
 | **2** | League | lib + roster read | `[ ]` | 0/8 |
@@ -40,23 +40,24 @@ the checkbox — a tick with no log entry is how this file rots.
 | **4** | Profile (merged) | routing | `[ ]` | 0/6 |
 | **5** | Session detail | **migration `0020`** | `[ ]` | 0/9 |
 
-**Current focus:** Stage P. Nothing has been built yet.
+**Current focus:** Stage P, one item left — the `qol-small-items` merge, which
+waits on Will pushing `0019`. See Stage P for why that order and not the
+other one. Nothing in Stages 0–5 has been built yet.
 
 > ### ⚠ START HERE
 >
 > Two things are true before any redesign work starts, and both are cheap to
 > check and expensive to assume:
 >
-> 1. **`0019_card_not_unique.sql` is in the migrations folder.** `WORKFLOW.md`
->    says `0007`–`0018` are applied and that the folder holds no unpushed work,
->    which was true when it was written. `0019` arrived after. Confirm it is
->    pushed (`npx supabase migration list`) before Stage 5 writes `0020` —
->    stacking an unpushed migration on an unpushed migration is how a push goes
->    wrong.
-> 2. **The mocks are untracked.** `design_archetypes_v2/`,
->    `design_archetypes/_STYLE_CONTRACT.md` and the three iteration-1 files
->    exist only on this disk. They are the design; commit them before building
->    against them.
+> 1. ~~**`0019_card_not_unique.sql` is in the migrations folder.**~~
+>    **Checked 2026-09-09: it is unpushed.** `WORKFLOW.md` says `0007`–`0018`
+>    are applied and that the folder holds no unpushed work, which was true
+>    when it was written; `0019` arrived after. It is still local-only. Stage P
+>    holds the full answer and the ordering it forces.
+> 2. ~~**The mocks are untracked.**~~ **Done** — `3abdbff` tracks
+>    `design_archetypes_v2/`, `design_archetypes/_STYLE_CONTRACT.md` and the
+>    three iteration-1 files. They are the design, and they are now in the
+>    history rather than on one disk.
 >
 > The full smoke gate, green as of 2026-09-08, is listed in `WORKFLOW.md`. It
 > is re-run in Stage 5 and nowhere else — Stages 0–4 touch no policy.
@@ -144,17 +145,44 @@ mock does not have — see Stage 4.
 
 ## Stage P — Pre-flight
 
-- [ ] Commit `design_archetypes_v2/`, `design_archetypes/_STYLE_CONTRACT.md`,
-      the three iteration-1 redesign files, and `.claude/skills/agy/`.
+- [x] Commit `design_archetypes_v2/`, `design_archetypes/_STYLE_CONTRACT.md`,
+      the three iteration-1 redesign files, and `.claude/skills/agy/`. Landed
+      as `3abdbff` on `qol-small-items`, so they arrive in `main` with the PR
+      below rather than as a separate commit on top of it.
 - [ ] PR `qol-small-items` into `main` and merge it. It carries `0019`, the
       shrunken `SuitRankPicker`, the `MyGroupProfilePage`/`PlayersPage` edits
       and the Dashboard spec in `DESIGN.md`. Building the redesign on top of an
-      unmerged branch buries all of it in one enormous diff.
-- [ ] Confirm `0019` is applied in the live schema (`npx supabase migration
+      unmerged branch buries all of it in one enormous diff. **PR #3, open.**
+- [x] Confirm `0019` is applied in the live schema (`npx supabase migration
       list`). Record the answer here.
 
-Record the current lint warning count when the branch lands; every stage below
-has to beat it, and `--max-warnings 1` in CI is a ratchet that only goes down.
+      **It is not.** As of 2026-09-09, `migration list` reports
+      `{"local":"0019","remote":""}` — `0001`–`0018` are paired, `0019` exists
+      only on disk. The START HERE note guessed right.
+
+      What that costs, and why it is not urgent. `0019` is `drop index if
+      exists players_group_card_unique` plus two column comments: no data is
+      rewritten, no policy moves, and there is no `smoke-0019.mjs` because
+      there is no rule left to assert. But `5efe5d8` already deleted
+      `MyGroupProfilePage`'s `isCardTaken()` and the 23505 handler that
+      translated the index's error into a sentence, so the moment that code is
+      in `main` the app has no answer for a duplicate card — and the index is
+      still live to raise one. **Order matters: Will pushes `0019` before or
+      with the merge, not after.** With one person using the app the window is
+      theoretical; it stops being theoretical the first time two people set up
+      a profile at once, which is exactly the race `0019` exists to remove.
+
+      This also settles the question Stage 5 was told to ask: `0020` must not
+      be written until `0019` is pushed, or the push stacks two unpushed
+      migrations.
+
+**Lint baseline, recorded 2026-09-09:** **1 warning** —
+`src/pages/SessionsListPage.tsx:98`, `react-hooks/set-state-in-effect`.
+`tsc -b --noEmit` clean, so the baseline is the one warning and nothing else.
+That is exactly CI's `--max-warnings 1`, which means every stage below has
+**zero headroom**: one new warning fails the build. Stage 3 rewrites
+`SessionsListPage` and should clear it, and the ratchet comes down to 0 in the
+same PR.
 
 ---
 
@@ -466,6 +494,12 @@ Not blocking any stage. Recorded so they are not rediscovered.
 ## Change log
 
 Newest first. One line per meaningful change.
+
+- **2026-09-09** — Stage P, two of three. Mocks committed (`3abdbff`).
+  `migration list` says `0019` is **unpushed** — Will pushes it before the
+  `qol-small-items` merge, because the branch already deleted the 23505
+  handler the live index can still raise. Lint baseline recorded: 1 warning,
+  `SessionsListPage:98`, which is CI's ceiling exactly — no headroom.
 
 - **2026-09-09** — This file created. Four decisions taken: Dashboard first;
   `submitted` dropped with a migration; all-time rankings show active,
