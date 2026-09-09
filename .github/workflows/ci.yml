@@ -5,10 +5,9 @@
 # service-role connection string does not belong in GitHub Actions for a public
 # repo. They stay a local gate, run before Will pushes a migration.
 #
-# Lint runs with --max-warnings 1, not 0. One warning is the known baseline:
-# SessionsListPage:98, react-hooks/set-state-in-effect. A ratchet fails the
-# moment a second appears, while zero would fail every run until the last one
-# is fixed. Lower the number as they go; never raise it.
+# Lint runs with --max-warnings 0. The Sessions list now reads through
+# useLeagueData(), which removed the last set-state-in-effect warning. Keep the
+# ratchet at zero so warnings cannot silently become a new baseline.
 #
 # Was 2. Phase 5C lifted the members fetch into useMembershipData(), which
 # cleared GroupMembersPage:39 — so the ratchet comes down with it. Tightening
@@ -56,4 +55,4 @@ jobs:
         run: npm run build
 
       - name: Lint
-        run: npm run lint -- --max-warnings 1
+        run: npm run lint -- --max-warnings 0
