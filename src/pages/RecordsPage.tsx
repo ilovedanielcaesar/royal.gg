@@ -1,18 +1,30 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import Button from "../components/Button";
-import Card from "../components/Card";
+import Band from "../components/Band";
+import ConfirmButton from "../components/ConfirmButton";
+import FeltButton from "../components/FeltButton";
+import PageHeading from "../components/PageHeading";
 import PayoutSummary from "../components/PayoutSummary";
 import PlayerAvatar from "../components/PlayerAvatar";
+import Sheet from "../components/Sheet";
 import { describeError } from "../lib/errors";
 import { formatPlayedAt } from "../lib/format";
 import { useGroup } from "../lib/groupContext";
-import {
-  type Player,
-} from "../lib/stats";
+import { type Player } from "../lib/stats";
 import { requireSupabase } from "../lib/supabase";
 import { useLeagueData } from "../lib/useLeagueData";
 
+/**
+ * Every settle-up that has ever happened, newest first.
+ *
+ * One sheet, one band per payout. This page has no v2 mock — it is restyled
+ * into the sheet language rather than redesigned, so its structure is the one
+ * that was already here and only its clothes are new.
+ *
+ * Per-payout Revert sits in its band's head rather than in the page heading,
+ * which is where the "no controls in the sheet" rule bends: a per-row action
+ * has nowhere else to go, and the v2 mocks put buttons in band heads too
+ * (league_v2's "+ Add guest"). The rule is about page-level controls.
+ */
 export default function RecordsPage() {
   const { isGroupAdmin, path } = useGroup();
   const { data, error: loadError, reload } = useLeagueData();
@@ -26,9 +38,8 @@ export default function RecordsPage() {
     return m;
   }, [data]);
 
-  // For each payout, the "startAfter" is the period_end_date of the
-  // previous (older) payout. Sorted descending, so we pair index i with
-  // payouts[i+1].
+  // For each payout, the "startAfter" is the period_end_date of the previous
+  // (older) payout. Sorted descending, so index i pairs with payouts[i+1].
   const payoutsWithRange = useMemo(() => {
     if (!data) return [];
     const payouts = [...data.payouts].sort((a, b) =>
@@ -41,13 +52,6 @@ export default function RecordsPage() {
   }, [data]);
 
   async function handleRevert(payoutId: string) {
-    if (
-      !confirm(
-        "Revert this payout? The period reopens — sessions are kept, the settle-up event is removed."
-      )
-    ) {
-      return;
-    }
     setRevertingId(payoutId);
     setError(null);
     try {
@@ -63,96 +67,90 @@ export default function RecordsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <Link
-          to={path("/players")}
-          className="text-xs text-card-50/60 hover:text-card-50"
-        >
-          ← League
-        </Link>
-        <h1 className="mt-1 font-display text-4xl text-card-50">
-          Payout records
-        </h1>
-        <p className="mt-1 text-sm text-card-50/70">
-          Every settle-up that has ever happened. Reverting a payout
-          re-opens its period — sessions stay, only the event is removed.
-        </p>
-      </div>
+    <>
+      <PageHeading
+        title="Payout records"
+        subtitle="Every settle-up that has ever happened. Reverting one re-opens its period — the sessions stay, only the event is removed."
+        actions={
+          // Becomes /league in Stage 2, which leaves a redirect behind.
+          <FeltButton variant="ghost" to={path("/players")}>
+            ← League
+          </FeltButton>
+        }
+      />
 
-      {displayedError && (
-        <Card accent="crimson">
-          <p className="p-4 text-sm text-crimson-700">{displayedError}</p>
-        </Card>
-      )}
+      <Sheet>
+        {displayedError && (
+          <Band>
+            <p className="text-sm text-crimson-700">{displayedError}</p>
+          </Band>
+        )}
 
-      {!data ? (
-        <p className="text-sm text-card-50/60">Dealing…</p>
-      ) : payoutsWithRange.length === 0 ? (
-        <Card>
-          <p className="p-6 text-sm text-ink-500">
-            No payouts yet. Hit "Settle up" on the League page when it's
-            time to settle.
-          </p>
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          {payoutsWithRange.map(({ payout, startAfter }) => {
+        {!data ? (
+          <Band>
+            {/* No spinners, per contract rule 6. */}
+            <p className="text-sm text-ink-500">Dealing…</p>
+          </Band>
+        ) : payoutsWithRange.length === 0 ? (
+          <Band title="No payouts yet">
+            <p className="mt-2 text-sm text-ink-500">
+              When it is time to settle, the League page's payout band is where
+              it starts. Nothing is settled from this page — it is the record.
+            </p>
+          </Band>
+        ) : (
+          payoutsWithRange.map(({ payout, startAfter }) => {
             const distributor = playerById.get(payout.distributor_player_id);
             return (
-              <Card key={payout.id} accent="sage">
-                <div className="p-5">
-                  <div className="flex flex-wrap items-baseline justify-between gap-3">
+              <Band
+                key={payout.id}
+                kicker="Settled"
+                title={formatPlayedAt(payout.period_end_date)}
+                caption={
+                  startAfter
+                    ? `Period since ${formatPlayedAt(startAfter)}`
+                    : "First-ever payout — covers all-time"
+                }
+                action={
+                  isGroupAdmin && (
+                    <ConfirmButton
+                      label="Revert"
+                      confirmLabel="Revert payout"
+                      consequence="Re-opens the period."
+                      busy={revertingId === payout.id}
+                      busyLabel="Reverting…"
+                      onConfirm={() => void handleRevert(payout.id)}
+                    />
+                  )
+                }
+              >
+                {distributor && (
+                  <div className="mt-4 flex items-center gap-3 rounded-xl bg-card-100/60 px-4 py-3">
+                    <PlayerAvatar player={distributor} size="sm" />
                     <div>
-                      <h2 className="font-display text-2xl text-ink-900">
-                        Payout · {formatPlayedAt(payout.period_end_date)}
-                      </h2>
-                      <p className="mt-0.5 text-xs text-ink-500">
-                        {startAfter
-                          ? `Period since ${formatPlayedAt(startAfter)}`
-                          : "First-ever payout — covers all-time"}
+                      <p className="text-[10px] font-semibold tracking-[0.13em] text-ink-500 uppercase">
+                        Distributor
+                      </p>
+                      <p className="text-sm font-medium text-ink-900">
+                        {distributor.display_name ?? distributor.name}
                       </p>
                     </div>
-                    {isGroupAdmin && (
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        disabled={revertingId === payout.id}
-                        onClick={() => void handleRevert(payout.id)}
-                      >
-                        {revertingId === payout.id ? "Reverting…" : "Revert"}
-                      </Button>
-                    )}
                   </div>
+                )}
 
-                  {distributor && (
-                    <div className="mt-3 flex items-center gap-3 rounded-md bg-card-100/60 p-3">
-                      <PlayerAvatar player={distributor} size="sm" />
-                      <div>
-                        <div className="text-xs uppercase tracking-wide text-ink-500">
-                          Distributor
-                        </div>
-                        <div className="font-medium text-ink-900">
-                          {distributor.display_name ?? distributor.name}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  <PayoutSummary
-                    players={data.players}
-                    sessions={data.sessions}
-                    buyIns={data.buyIns}
-                    cashOuts={data.cashOuts}
-                    startAfter={startAfter}
-                    endOn={payout.period_end_date}
-                  />
-                </div>
-              </Card>
+                <PayoutSummary
+                  players={data.players}
+                  sessions={data.sessions}
+                  buyIns={data.buyIns}
+                  cashOuts={data.cashOuts}
+                  startAfter={startAfter}
+                  endOn={payout.period_end_date}
+                />
+              </Band>
             );
-          })}
-        </div>
-      )}
-    </div>
+          })
+        )}
+      </Sheet>
+    </>
   );
 }

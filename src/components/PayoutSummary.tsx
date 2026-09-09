@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { formatPlayedAt } from "../lib/format";
 import { useGroup } from "../lib/groupContext";
 import { formatSignedCents } from "../lib/money";
+import { moneyToneClass } from "../lib/moneyTone";
 import {
   periodNets,
   type BuyIn,
@@ -54,11 +55,7 @@ export default function PayoutSummary({
       {rows.map((r) => {
         const className = [
           "tabular text-sm font-medium",
-          r.netCents > 0
-            ? "text-sage-700"
-            : r.netCents < 0
-              ? "text-crimson-700"
-              : "text-ink-500",
+          moneyToneClass(r.netCents),
         ].join(" ");
         const inner = (
           <>

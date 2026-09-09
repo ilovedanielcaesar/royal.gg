@@ -39,9 +39,13 @@ the checkbox — a tick with no log entry is how this file rots.
 | **3** | Sessions list | lib only | `[ ]` | 0/6 |
 | **4** | Profile (merged) | routing | `[ ]` | 0/6 |
 | **5** | Session detail | **migration `0020`** | `[ ]` | 0/9 |
+| **A** | **Audit: every surface in the new style** | no | `[~]` | 0/23 confirmed · 2 built |
 
-**Current focus:** Stage 2, League. Stage 0 merged (`7e22721`, PR #4) and
-Stage 1 is built and green on `redesign-1-dashboard`.
+**Current focus:** Stage 2, League. Stages 0 and 1 are merged (`7e22721` PR #4,
+`cc2bfe9` PR #5). `RecordsPage` was pulled forward out of Stage 2's tail and
+restyled early, which is what turned the mockless-pages note into **Stage A**
+below — a real stage with a real inventory, because "restyle the leftovers"
+was never going to be checked.
 
 **Owed by Will, and accumulating:** the browser passes. Stage 0's four tabs
 and Stage 1's admin-and-member walkthrough. Every machine gate is green for
@@ -474,9 +478,13 @@ This is the natural stage for it.
 **Cut from iteration 1:** the huge payout display, the recent-form band, the
 bottom-of-page add-guest form.
 
-**Open:** `RecordsPage` (158 lines) has no v2 mock and is where the payout
-button lands. Proposal: leave its structure, restyle it into the sheet
-language, and treat it as a Stage 2 tail rather than its own stage.
+**~~Open~~ Done, early.** `RecordsPage` had no v2 mock and is where the payout
+button lands. Settled the way the proposal suggested — structure kept, clothes
+new — but built **before** Stage 2 rather than after it, on
+`redesign-records-page`, because the payout button must not lead from a
+redesigned League page onto an un-redesigned one. It brought the last of
+Stage 0's deferred shared pieces with it: `ConfirmButton`, the two-step
+destructive confirm.
 
 ---
 
@@ -632,22 +640,99 @@ the cent on the two nights that are deliberately open drafts (the +$107.50 on
 must keep refusing approval), and a browser pass through all four states by
 Will.
 
-When this lands: `main` is tagged `v1.2.0`. Delete the branch before cutting
-the tag — a tag and a branch of the same name make every later checkout
-ambiguous, which is the lesson `v1.1.0` taught.
+When this lands: **Stage A runs, and only then** is `main` tagged `v1.2.0`.
+Stage 5 finishing is not the release; a redesign with six pages still in the
+old language is not done. Delete the branch before cutting the tag — a tag and
+a branch of the same name make every later checkout ambiguous, which is the
+lesson `v1.1.0` taught.
 
 ---
+
+## Stage A — every surface in the new style
+
+Branch: `redesign-a-audit`. No backend.
+
+**The rule: `v1.2.0` is not tagged until every row below is ticked.** Not
+"most", not "the ones anyone visits". A redesign that stops at the five mocked
+pages leaves a user two clicks from cream-on-felt `Card`s, a 4xl heading and a
+`window.confirm` — and the seam is worse than the old design was, because now
+it looks like something broke.
+
+This replaces the old "pages with no v2 mock" bullet, which was a list with no
+owner and no gate. Each row below has both.
+
+**`[~]` means built, `[x]` means seen.** The two are not the same and the
+distinction is the whole point of this stage: a row goes to `[x]` only after
+somebody has actually opened that route and looked at it. `tsc`, build and
+lint cannot see a layout, and rows 1 and 2 are `[~]` for exactly that reason
+even though both are merged and green. **A `[~]` row is not done.**
+
+**How to tick a row.** Open the route in a browser and confirm all five:
+
+1. The heading and its actions are a `PageHeading` on the **felt**, outside
+   the sheet — not an `<h1>` inside a card.
+2. The content is **one `Sheet`** divided into `Band`s. Not a stack of
+   `Card`s. (`Card` is not deleted — it is the right primitive for a small
+   standalone tile. It is the wrong one for a page body.)
+3. Buttons are the right primitive for their surface: `FeltButton` in a
+   `PageHeading`, `Button` inside a sheet, and **never** `Button
+   variant="ghost"` on cream — it is `card-50` text and vanishes.
+4. Money uses `formatCents`/`formatSignedCents` and `moneyToneClass`, with no
+   hand-written sage/crimson ternary. Non-money figures are `ink-900`.
+5. No `window.confirm` for a destructive action — `ConfirmButton`.
+
+| # | Surface | Route | Owner | State |
+|:--:|---|---|---|:--:|
+| 1 | `DashboardPage` | `/g/:slug` | Stage 1 | `[~]` |
+| 2 | `RecordsPage` | `/g/:slug/records` | pulled forward | `[~]` |
+| 3 | `PlayersPage` → League | `/g/:slug/league` | Stage 2 | `[ ]` |
+| 4 | `SessionsListPage` | `/g/:slug/sessions` | Stage 3 | `[ ]` |
+| 5 | `MyGroupProfilePage` + `ProfilePage` (merged) | `/g/:slug/profile`, `/profile` | Stage 4 | `[ ]` |
+| 6 | `PlayerProfilePage` | `/g/:slug/players/:id` | Stage 4 tail | `[ ]` |
+| 7 | `PlayerRatingPage` | `/g/:slug/players/:id/rating` | Stage 4 tail | `[ ]` |
+| 8 | `SessionFormPage` | `/g/:slug/sessions/new`, `/sessions/:id` | Stage 5 | `[ ]` |
+| 9 | `GroupSettingsPage` | `/g/:slug/settings` | **Stage A** | `[ ]` |
+| 10 | `GroupMembersPage` | `/g/:slug/members` | **Stage A** | `[ ]` |
+| 11 | `GroupsPage` | `/groups` | **Stage A** | `[ ]` |
+| 12 | `CreateGroupPage` | `/groups/new` | **Stage A** | `[ ]` |
+| 13 | `JoinPage` | `/join`, `/join/:code` | **Stage A** | `[ ]` |
+| 14 | `LoginPage` | `/login` | **Stage A** | `[ ]` |
+| 15 | `SignupPage` | `/signup` | **Stage A** | `[ ]` |
+| 16 | `AdminOverviewPage` | `/admin` | **Stage A** | `[ ]` |
+| 17 | `SetupNotice` | any route, unconfigured env | **Stage A** | `[ ]` |
+| 18 | `IndexRoute` loading + no-group states | `/` | **Stage A** | `[ ]` |
+| 19 | `RequireAuth` loading state | any guarded route | **Stage A** | `[ ]` |
+| 20 | `RequireGroupMember` loading + refusal | `/g/:slug/*` | **Stage A** | `[ ]` |
+| 21 | `RequireGroupAdmin` loading + refusal | `/g/:slug/members` | **Stage A** | `[ ]` |
+| 22 | `RequireAppOwner` loading + refusal | `/admin` | **Stage A** | `[ ]` |
+| 23 | `ErrorBoundary` fallback | any crash | **exempt** | `[-]` |
+
+**Rows 17–22 are not pages and are on the list anyway**, because a user
+absolutely lands on them: every one is a full-screen state, and four of them
+are the first thing a new or wrong-permission visitor sees. Five of the six
+are a bare `Dealing in…` on felt, which is close enough to right that the fix
+is small — but "close enough" is how a seam survives a redesign.
+
+**Row 23 is exempt, deliberately.** `ErrorBoundary`'s fallback uses plain
+markup rather than `Card`/`Button` **on purpose**, documented at
+`ErrorBoundary.tsx:10`: if the thing that crashed is `Card` or `Button`, a
+fallback built from them crashes too and the user gets a white screen instead
+of an error. Do not "fix" this row. It is marked `[-]` dropped, not `[ ]`
+todo, so nobody tries.
+
+**One thing to check that is not a page.** `formatCents` now emits U+2212 for
+negatives (Stage 1, finding 1), and it is used at 39 call sites. Sweep for
+figures that are built by hand instead of through it — a `-$40` written into a
+string literal will sit visibly out of line beside a real one.
 
 ## Cross-cutting open items
 
 Not blocking any stage. Recorded so they are not rediscovered.
 
-- [ ] **Pages with no v2 mock:** `RecordsPage`, `PlayerProfilePage`,
-      `PlayerRatingPage`, `GroupSettingsPage`, `GroupMembersPage`,
-      `AdminOverviewPage`, `GroupsPage`, `CreateGroupPage`, `JoinPage`,
-      `LoginPage`, `SignupPage`. Stage 0's primitives should carry most of them
-      for free; anywhere they don't, restyle minimally in the tail of the
-      nearest stage rather than inventing a design.
+- [-] **Pages with no v2 mock.** Superseded by **Stage A**, which is the same
+      list with an owner per row and a release gate on top. The old wording
+      ("restyle minimally in the tail of the nearest stage") had neither, and
+      a leftover with no owner is a leftover.
 - [ ] **The four copies of the "my active groups" query**
       (`GroupSwitcher`, `IndexRoute`, `GroupsPage`, `ProfilePage`) —
       `WORKFLOW.md` → Open Items 3. Stage 4 deletes one of the four when
@@ -666,6 +751,18 @@ Not blocking any stage. Recorded so they are not rediscovered.
 
 Newest first. One line per meaningful change.
 
+- **2026-09-09** — **`RecordsPage` restyled early**, out of Stage 2's tail,
+  on `redesign-records-page`. Brought `ConfirmButton` (the last deferred
+  Stage 0 shared piece) and a `subtle` `Button` variant — the existing `ghost`
+  is `card-50` text and is invisible inside a cream sheet, which nothing had
+  needed to discover yet. `PayoutSummary` lost its private copy of the
+  money-tone ternary.
+- **2026-09-09** — **Stage A added**, and it is a release gate: `v1.2.0` is
+  not tagged until all 23 surfaces are confirmed in the new style. Replaces a
+  cross-cutting bullet that listed eleven pages with no owner and no gate. Six
+  non-page full-screen states are on the list (loading and refusal states
+  nobody thinks of as pages); `ErrorBoundary`'s fallback is explicitly exempt
+  and marked dropped so nobody "fixes" it.
 - **2026-09-09** — **Stage 1 built** on `redesign-1-dashboard`. Five bands
   split out of a 481-line page, now 118. `isRankingEligible()` replaces two
   inline copies of the rule. Settings is member-reachable and read-only, with
