@@ -120,29 +120,52 @@ Buy-ins are still stored as N rows of $40 each in `buy_ins` (matches schema; all
 
 ## Dashboard layout
 
-Settled 2026-09-08, reconciling `design_archetypes/dashboard_redesign.html` against
-`design_archetypes/dashboard_overhaul_artifact.html`. The artifact won almost
-everywhere; the exceptions are noted inline.
+Settled 2026-09-08 by reconciling `design_archetypes/dashboard_redesign.html`
+against `design_archetypes/dashboard_overhaul_artifact.html`, and revised
+2026-09-09 after a pass over the preview. The artifact won almost everywhere;
+the exceptions are noted inline.
 
-Actions live **outside** the sheet, in the page heading on felt: `Settings` and
+The page heading on felt reads `Dashboard`, subtitled **`Welcome back, <name>.`**
+— the display name off the player's roster row, the same one `PlayerAvatar`
+labels. It is the one place on the page that addresses the reader directly, so
+it replaces the descriptive tagline the archetypes carried there.
+
+Actions live **outside** the sheet, in that same heading: `Settings` and
 `+ New session`. The sheet itself is a record of results and holds no controls
 except its own tabs. `Settings` navigates to the existing `GroupSettingsPage` —
 the dashboard never duplicates settings content.
 
-One cream sheet, five bands, in order:
+One cream sheet, five bands, in order — hero, recent five, trajectory,
+standings, seasonal leaders:
 
 ### 1. Hero — numbers only
 
-`Your lifetime net`, the figure at display scale, then a gold streak pill, then
-two mini-stats and a link to your profile.
+Four figures, one of them the headline: **your player score at display scale**,
+then a gold streak pill, then wins, losses and lifetime net as three smaller
+mini-stats.
 
+- **The score is the headline**, from `playerRating()` — the 1–10 figure with
+  `/10` set small in `ink-500` beside it, the same treatment `PlayerRatingPage`
+  already uses. The hero's link is `Open profile →`, going to the player's own
+  profile rather than to the rating explainer: the hero is about the player,
+  and the profile is where the rest of their record lives. `PlayerStatsCard`
+  there already carries a `ratingHref`, so the explainer is one hop further on
+  for anyone who wants it.
+- **The score is not money, so it is `ink-900`, not sage.** Sage and crimson
+  mean won and lost (see Palette); a rating tinted sage would read as a
+  positive dollar figure. Lifetime net keeps its money color in the mini-stats.
+- **Mini-stats: wins, losses, lifetime net**, all from `playerStats()`. Wins
+  and losses are shown rather than win rate — 15 and 9 carry the sample size
+  that 62.5% hides, and nights played is their sum, so it needs no tile.
+- **Null score.** `playerRating()` returns null below `RATING_MIN_SESSIONS`
+  (3). Then the headline is `—` with `Need 3+ sessions for a rating.` beneath;
+  the three mini-stats still render.
 - **No chart in the hero.** The page draws your cumulative net exactly once, in
   band 3 below. The artifact had a compact sparkline here as well; two renderings of
   one metric on one page is a redundancy, and dropping it lets band 3 be larger.
 - **Streak pill** (`3 of your last 4 nights up`) is the one piece of derived
   commentary on the page. Gold pill, `gold-500` at 16% on cream. It is a local
   template over `playerSessionNets()` — no API, no LLM, no extra query.
-- Mini-stats: win rate, nights played. Both from `playerStats()`.
 
 ### 2. Recent five
 
@@ -160,32 +183,31 @@ One chart, larger than the artifact's, with a two-tab segmented control.
 - The tabs switch **subject, not time window**: `You` draws your cumulative net,
   `League` overlays the top-3 winners and top-3 losers with a legend, using the
   ramps defined under Palette above.
+- **Hover snaps to a session column and marks that game on every line.** A
+  vertical `ink-500` rule at 28% plus one dot per series — `r=3.4` in the
+  series color with a cream stroke, over a soft `r=6.5` halo — matching what
+  `CumulativeChart` already does with `hoveredCol`. Not per-vertex hit
+  targets: at 24 points across 900 units they are fiddly to hit, and on the
+  League view a single vertex can only ever report one of six players, whereas
+  the column says what that night did to everybody.
+- **The tooltip answers what the vertex is for.** On `You`, the cumulative
+  figure as the headline and *that night's own net* beneath it — the line plots
+  cumulative, so the night's result is the difference from the night before,
+  and it is the thing you hover a point to find out. On `League`, all six
+  players with their swatches, **ordered by their standing on that night, not
+  today's** — the point of hovering an old game is seeing who was ahead then.
+- **Both views share one y-axis.** The domain is computed once, across every
+  series in both views, and neither view narrows it to its own data. Switching
+  tabs must not move the gridlines, the zero line or the money labels — an axis
+  that jumps makes the two views unreadable against each other and turns the
+  toggle into a different chart rather than the same chart filtered. The cost
+  is real and accepted: a single player's line uses only part of the height,
+  since the domain has to hold the biggest winner and the biggest loser at
+  once.
 - The redesign's `All time / Season / Last 10` control is **not** used. It
   switches time window, which requires a "season" concept the app does not have.
 
-### 4. Last five games
-
-Winners and losers over the **last five group sessions** — three each side, the
-existing `<SeasonLeaders>` component with a new window.
-
-- The window is **five sessions, not three months.** `seasonLeaders()` takes a
-  `windowStart: Date` and `SeasonLeaders` computes it from a `monthsBack` prop
-  defaulting to 3. Both change to a session count: take the five most recent
-  `played_at` values and filter on those, so the window is stable whether the
-  group played weekly or took a month off.
-- **The window counts group sessions, not the player's.** Someone who showed up
-  for one of the last five appears with a one-night sample, which is not form.
-  Each row therefore carries `n of 5` beside the net, so a small sample reads as
-  one.
-- **It is labelled "Last five games", not "Season standings."** The app has no
-  season — nothing defines when one starts or ends, and the word invited exactly
-  the goal-bar feature cut above. Five games is a fact the data already knows.
-  `seasonLeaders()` keeps its name; only the heading changes.
-
-Placed directly above At the table so the two league views sit together: recent
-form, then the lifetime record.
-
-### 5. At the table + stats panel
+### 4. At the table + stats panel
 
 Two columns: standings on the left, a stats panel on the right.
 
@@ -199,9 +221,47 @@ Two columns: standings on the left, a stats panel on the right.
   played, table volume. There is therefore **no separate footer stat row**; the
   artifact's group blurb ("the full table is one click away…") is dropped as it
   only restated the list beside it.
+- **Biggest win and biggest loss are links to their session** (`/sessions/:id`),
+  because each happened on one identifiable night. Nights played and table
+  volume are aggregates over every night and have nowhere to go, so they are
+  not links — which means the two that are must look clickable: a hover
+  background, an underlined caption, and a trailing arrow. `playerStats()`
+  already returns `best` and `worst` per player but not *which* session they
+  came from, so the session id has to be carried alongside them.
 - The panel's contents are **top-aligned, not stretched.** The list outgrows the
   panel as players are added, and whitespace below four stats is the correct
   answer to that, not four stats spread over 700px.
+
+### 5. Seasonal leaders
+
+Winners and losers over the **last five group sessions** — three each side, the
+existing `<SeasonLeaders>` component with a new window.
+
+Headed `Seasonal leaders`, subtitled `last five games · 7 Aug – 4 Sep`. The
+dates are part of the subtitle, not decoration: "last five games" alone doesn't
+say whether that means the last five weeks or the last five months, and the
+window shifts every time a session is logged.
+
+- The window is **five sessions, not three months.** `seasonLeaders()` takes a
+  `windowStart: Date` and `SeasonLeaders` computes it from a `monthsBack` prop
+  defaulting to 3. Both change to a session count: take the five most recent
+  `played_at` values and filter on those, so the window is stable whether the
+  group played weekly or took a month off.
+- **The window counts group sessions, not the player's.** Someone who showed up
+  for one of the last five appears with a one-night sample, which is not form.
+  Each row therefore carries `n of 5` beside the net, so a small sample reads as
+  one.
+- **The heading says "seasonal" but the app still has no season**, and the
+  subtitle is what keeps that honest. Nothing in the data defines when a season
+  starts or ends, so "last five games · 7 Aug – 4 Sep" states the window in
+  terms the data actually knows. Do not let the heading tempt the window back
+  into months, and do not add a season-scoped figure elsewhere on the strength
+  of this word — that road ends at the goal bar cut above.
+  `seasonLeaders()` keeps its name; only the heading and window change.
+
+Placed **last**, below the standings. The lifetime record is the league's
+primary ordering and earns the higher slot; recent form is the qualifier you
+read afterwards.
 
 ### Role behavior
 
@@ -275,10 +335,10 @@ before it can be built: "member" could mean `status = 'active'`, or
 guest who played six nights and won is a real result; a `pending` row that has
 never played is noise. Likely answer is `status = 'active'` **and** the row has
 played at least one session, with guests kept — but that is a call, not a
-cleanup. Whatever is chosen applies to the Last five games band too.
+cleanup. Whatever is chosen applies to the Seasonal leaders band too.
 
 **2. Season standings should be the last 5 games.** Settled and folded into
-the Dashboard layout section above as band 4.
+the Dashboard layout section above as band 5, `Seasonal leaders`.
 
 **3. Payout period says "ending today" when it isn't.** Done, 2026-09-08.
 `PlayersPage` appended the literal `" · ending today"` unconditionally, which
@@ -360,8 +420,9 @@ Considered for the dashboard on 2026-09-08 and deliberately cut. All of these
 appear in `design_archetypes/dashboard_redesign.html`; none of them ship:
 
 - **No season-goal progress bar.** Requires a per-player target and a
-  definition of "season," neither of which exists. The Last five games band is
-  a different thing and does ship — it windows by session count, not by season.
+  definition of "season," neither of which exists. The Seasonal leaders band is
+  a different thing and does ship — despite its name it windows by session
+  count, five games, not by season.
 - **No settle-up / transfer list on the dashboard.** Settling stays on its own
   surface; the dashboard is a record, not a ledger.
 - **No next-game tile or RSVP.** Scheduling and attendance are a feature in
