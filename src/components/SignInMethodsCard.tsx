@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { describeError } from "../lib/errors";
 import { linkGoogle, listIdentities } from "../lib/auth";
-import Card from "./Card";
 import GoogleButton from "./GoogleButton";
 
 /**
@@ -43,8 +42,8 @@ export default function SignInMethodsCard() {
   const hasGoogle = providers?.includes("google") ?? false;
 
   return (
-    <Card className="p-5">
-      <h2 className="font-display text-xl text-ink-900">Sign-in methods</h2>
+    <div>
+      <h3 className="font-display text-lg text-ink-900">Sign-in methods</h3>
       <p className="mt-1 text-xs text-ink-500">
         How you get into this account. Adding one never replaces another.
       </p>
@@ -92,6 +91,6 @@ export default function SignInMethodsCard() {
           {error}
         </div>
       )}
-    </Card>
+    </div>
   );
 }

@@ -1,15 +1,17 @@
 import { formatSignedCents } from "../lib/money";
+import { moneyToneClass } from "../lib/moneyTone";
 import { playerSuit, suitColor } from "../lib/playerSuit";
-import type { CumulativePoint } from "../lib/stats";
+import CumulativeChartSingleTooltipRow from "./CumulativeChartSingleTooltipRow";
+import type { ChartSeries } from "./cumulativeChartTypes";
 
 type Props = {
   /** The session column being hovered — one night, not one vertex. */
   hoveredCol: number;
-  series: Array<{ playerId: string; name: string; points: CumulativePoint[] }>;
+  series: ChartSeries[];
   sessions: { id: string; played_at: string }[];
   colorOf?: (playerId: string) => string | null | undefined;
   /** See `CumulativeChart`'s `tooltip` prop. */
-  mode: "multi" | "single";
+  mode: "multi" | "single" | "bar";
   /** SVG x of the hovered column. */
   colX: number;
   /** Right edge of the plot area. The box flips to the left of the column
@@ -76,19 +78,12 @@ export default function CumulativeChartTooltip({
 
   if (rows.length === 0) return null;
 
-  const single = mode === "single";
+  const single = mode !== "multi";
   const boxW = single ? 152 : 186;
   const boxH = single ? 62 : 20 + rows.length * 15 + 6;
   const placeRight = colX < maxX - boxW - 8;
   const tx = placeRight ? colX + 8 : colX - boxW - 8;
   const ty = top + 6;
-
-  const toneOf = (cents: number) =>
-    cents > 0
-      ? "var(--color-sage-700)"
-      : cents < 0
-        ? "var(--color-crimson-700)"
-        : "var(--color-ink-500)";
 
   return (
     <g pointerEvents="none">
@@ -114,11 +109,11 @@ export default function CumulativeChartTooltip({
       </text>
 
       {single ? (
-        <SingleRow
+        <CumulativeChartSingleTooltipRow
           row={rows[0]!}
           x={tx + 10}
           y={ty}
-          toneOf={toneOf}
+          bar={mode === "bar"}
         />
       ) : (
         rows.map((r, i) => (
@@ -144,8 +139,9 @@ export default function CumulativeChartTooltip({
               y={ty + 30 + i * 15}
               fontSize={10}
               textAnchor="end"
-              fill={toneOf(r.cumulativeCents)}
-              className="tabular"
+              className={`tabular fill-current ${moneyToneClass(
+                r.cumulativeCents
+              )}`}
             >
               {formatSignedCents(r.cumulativeCents)}
             </text>
@@ -153,48 +149,5 @@ export default function CumulativeChartTooltip({
         ))
       )}
     </g>
-  );
-}
-
-/**
- * The one-player readout: cumulative as the headline, that night's own result
- * beneath it. The line plots cumulative, so the night's net is the difference
- * from the night before — and that difference is what you hover a point to
- * find out.
- */
-function SingleRow({
-  row,
-  x,
-  y,
-  toneOf,
-}: {
-  row: { cumulativeCents: number; nightNetCents: number | null };
-  x: number;
-  y: number;
-  toneOf: (cents: number) => string;
-}) {
-  return (
-    <>
-      <text
-        x={x}
-        y={y + 36}
-        fontSize={16}
-        fill={toneOf(row.cumulativeCents)}
-        className="tabular"
-      >
-        {formatSignedCents(row.cumulativeCents)}
-      </text>
-      <text
-        x={x}
-        y={y + 52}
-        fontSize={10}
-        fill="var(--color-ink-500)"
-        className="tabular"
-      >
-        {row.nightNetCents === null
-          ? "did not play"
-          : `this night ${formatSignedCents(row.nightNetCents)}`}
-      </text>
-    </>
   );
 }
