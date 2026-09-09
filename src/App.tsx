@@ -19,11 +19,11 @@ import GroupMembersPage from "./pages/GroupMembersPage";
 import GroupSettingsPage from "./pages/GroupSettingsPage";
 import GroupsPage from "./pages/GroupsPage";
 import JoinPage from "./pages/JoinPage";
+import LeaguePage from "./pages/LeaguePage";
 import LoginPage from "./pages/LoginPage";
 import MyGroupProfilePage from "./pages/MyGroupProfilePage";
 import PlayerProfilePage from "./pages/PlayerProfilePage";
 import PlayerRatingPage from "./pages/PlayerRatingPage";
-import PlayersPage from "./pages/PlayersPage";
 import ProfilePage from "./pages/ProfilePage";
 import RecordsPage from "./pages/RecordsPage";
 import SessionFormPage from "./pages/SessionFormPage";
@@ -128,7 +128,11 @@ export default function App() {
             <Route path="sessions" element={<SessionsListPage />} />
             <Route path="sessions/new" element={<SessionFormPage />} />
             <Route path="sessions/:id" element={<SessionFormPage />} />
-            <Route path="players" element={<PlayersPage />} />
+            <Route path="league" element={<LeaguePage />} />
+            <Route
+              path="players"
+              element={<Navigate to="../league" replace />}
+            />
             <Route path="players/:id" element={<PlayerProfilePage />} />
             <Route
               path="players/:id/rating"
