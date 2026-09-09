@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { playerSuit, suitColor } from "../lib/playerSuit";
-import { formatSignedCents } from "../lib/money";
+import { cumulativeDomain, type Domain } from "../lib/chartDomain";
 import type { CumulativePoint } from "../lib/stats";
+import CumulativeChartTooltip from "./CumulativeChartTooltip";
 
 type Props = {
   series: Array<{
@@ -16,6 +17,25 @@ type Props = {
    * the chart falls back to suit-derived ink/crimson colors.
    */
   colorOf?: (playerId: string) => string | null | undefined;
+  /**
+   * Force the y-domain rather than deriving it from `series`.
+   *
+   * This is what lets two views of the same chart share an axis. Without it,
+   * each view narrows the domain to its own data, and switching tabs moves
+   * the gridlines, the zero line and the money labels — which turns a toggle
+   * between two views of one chart into two different charts.
+   */
+  domain?: Domain;
+  /**
+   * How the hover tooltip reads.
+   *
+   * "multi" lists every series with its colour swatch, ordered by standing on
+   * the hovered night. "single" is for a one-player view: the cumulative
+   * figure as the headline with that night's own net beneath it — the line
+   * plots cumulative, so the night's result is the difference from the night
+   * before, and it is the thing you hover a point to find out.
+   */
+  tooltip?: "multi" | "single";
 };
 
 const PAD_LEFT = 44;
@@ -28,28 +48,19 @@ export default function CumulativeChart({
   sessions,
   height = 400,
   colorOf,
+  domain,
+  tooltip = "multi",
 }: Props) {
   const [hoverX, setHoverX] = useState<number | null>(null);
 
   const { yMin, yMax, xMax } = useMemo(() => {
-    let min = 0;
-    let max = 0;
-    series.forEach((s) =>
-      s.points.forEach((p) => {
-        if (p.cumulativeCents < min) min = p.cumulativeCents;
-        if (p.cumulativeCents > max) max = p.cumulativeCents;
-      })
-    );
-    if (min === max) {
-      min = -1000;
-      max = 1000;
-    } else {
-      const pad = (max - min) * 0.12;
-      min -= pad;
-      max += pad;
-    }
-    return { yMin: min, yMax: max, xMax: Math.max(sessions.length - 1, 1) };
-  }, [series, sessions]);
+    const d = domain ?? cumulativeDomain(series.map((s) => s.points));
+    return {
+      yMin: d.yMinCents,
+      yMax: d.yMaxCents,
+      xMax: Math.max(sessions.length - 1, 1),
+    };
+  }, [series, sessions, domain]);
 
   const width = 800; // viewBox width — chart scales with container
   const innerW = width - PAD_LEFT - PAD_RIGHT;
@@ -189,7 +200,7 @@ export default function CumulativeChart({
             x2={xOf(hoveredCol)}
             y2={height - PAD_BOTTOM}
             stroke="var(--color-ink-500)"
-            strokeOpacity={0.25}
+            strokeOpacity={0.28}
           />
         )}
 
@@ -245,91 +256,45 @@ export default function CumulativeChart({
                     .find((p) => p.sessionIndex <= hoveredCol);
                   if (!pt) return null;
                   return (
-                    <circle
-                      cx={xOf(hoveredCol)}
-                      cy={yOf(pt.cumulativeCents)}
-                      r={3}
-                      fill={color}
-                    />
+                    <g>
+                      {/* A soft halo under the dot. On the League view six
+                          lines can cross near one column, and the halo is
+                          what separates "this line's value" from the
+                          gridline behind it. */}
+                      <circle
+                        cx={xOf(hoveredCol)}
+                        cy={yOf(pt.cumulativeCents)}
+                        r={6.5}
+                        fill={color}
+                        fillOpacity={0.18}
+                      />
+                      <circle
+                        cx={xOf(hoveredCol)}
+                        cy={yOf(pt.cumulativeCents)}
+                        r={3.4}
+                        fill={color}
+                        stroke="var(--color-card-50)"
+                        strokeWidth={1.2}
+                      />
+                    </g>
                   );
                 })()}
             </g>
           );
         })}
 
-        {/* Hover tooltip — shows lifetime cumulative net P/L at that point in
-            time so you can read each player's running total at a glance. */}
-        {hoveredCol !== null &&
-          (() => {
-            const lines = series
-              .map((s) => {
-                const pt =
-                  s.points.find((p) => p.sessionIndex === hoveredCol) ??
-                  [...s.points]
-                    .reverse()
-                    .find((p) => p.sessionIndex <= hoveredCol);
-                if (!pt) return null;
-                return { name: s.name, cents: pt.cumulativeCents };
-              })
-              .filter((x): x is { name: string; cents: number } => Boolean(x))
-              .sort((a, b) => b.cents - a.cents)
-              .slice(0, 6);
-            const x = xOf(hoveredCol);
-            const tooltipW = 140;
-            const placeRight = x < width - PAD_RIGHT - tooltipW - 8;
-            const tx = placeRight ? x + 8 : x - tooltipW - 8;
-            const ty = PAD_TOP + 6;
-            const tooltipH = 14 + lines.length * 14 + 6;
-            return (
-              <g pointerEvents="none">
-                <rect
-                  x={tx}
-                  y={ty}
-                  width={tooltipW}
-                  height={tooltipH}
-                  rx={6}
-                  ry={6}
-                  fill="var(--color-card-50)"
-                  stroke="var(--color-card-200)"
-                />
-                <text
-                  x={tx + 8}
-                  y={ty + 14}
-                  fontSize={10}
-                  fill="var(--color-ink-500)"
-                  fontWeight={600}
-                >
-                  {(() => {
-                    const session = sessions[hoveredCol];
-                    if (!session) return `Session #${hoveredCol + 1}`;
-                    const date = new Date(session.played_at + "T12:00:00");
-                    const dd = String(date.getDate()).padStart(2, "0");
-                    const mm = String(date.getMonth() + 1).padStart(2, "0");
-                    const yy = String(date.getFullYear()).slice(-2);
-                    return `Session: ${dd}/${mm}/${yy}`;
-                  })()}
-                </text>
-                {lines.map((l, i) => (
-                  <text
-                    key={l.name}
-                    x={tx + 8}
-                    y={ty + 28 + i * 14}
-                    fontSize={11}
-                    fill={
-                      l.cents > 0
-                        ? "var(--color-sage-700)"
-                        : l.cents < 0
-                          ? "var(--color-crimson-700)"
-                          : "var(--color-ink-900)"
-                    }
-                    className="tabular"
-                  >
-                    {l.name} {formatSignedCents(l.cents)}
-                  </text>
-                ))}
-              </g>
-            );
-          })()}
+        {hoveredCol !== null && (
+          <CumulativeChartTooltip
+            hoveredCol={hoveredCol}
+            series={series}
+            sessions={sessions}
+            colorOf={colorOf}
+            mode={tooltip}
+            colX={xOf(hoveredCol)}
+            maxX={width - PAD_RIGHT}
+            top={PAD_TOP}
+          />
+        )}
       </svg>
     </div>
   );

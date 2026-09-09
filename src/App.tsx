@@ -113,14 +113,18 @@ export default function App() {
                 </RequireGroupAdmin>
               }
             />
-            <Route
-              path="settings"
-              element={
-                <RequireGroupAdmin>
-                  <GroupSettingsPage />
-                </RequireGroupAdmin>
-              }
-            />
+            {/* Member-reachable, and read-only for members. Seeing the
+                reconcile threshold is what explains why a night got flagged
+                for review, so hiding the page hides the explanation.
+
+                Nothing is widened by this. `groups_select`
+                (0015_rls_isolation.sql:148) already lets a member read
+                join_code and join_policy off their own group row, and
+                `groups_write_admin` already refuses their writes — so the
+                read-only page is enforced by the database, not by which
+                buttons we happen to render. /g/:slug/members stays
+                admin-only: members invite, they do not approve. */}
+            <Route path="settings" element={<GroupSettingsPage />} />
             <Route path="sessions" element={<SessionsListPage />} />
             <Route path="sessions/new" element={<SessionFormPage />} />
             <Route path="sessions/:id" element={<SessionFormPage />} />

@@ -33,17 +33,21 @@ the checkbox — a tick with no log entry is how this file rots.
 | Stage | What | Backend? | State | Done |
 |:--:|---|:--:|---|:--:|
 | **P** | Pre-flight: land `qol-small-items`, commit the mocks | no | `[x]` | 3/3 |
-| **0** | Foundation: tokens, felt, chrome, sheet primitives | no | `[~]` | 5/6 |
-| **1** | Dashboard | one route change | `[ ]` | 0/7 |
+| **0** | Foundation: tokens, felt, chrome, sheet primitives | no | `[x]` | 6/6 |
+| **1** | Dashboard | one route change | `[~]` | 7/7 |
 | **2** | League | lib + roster read | `[ ]` | 0/8 |
 | **3** | Sessions list | lib only | `[ ]` | 0/6 |
 | **4** | Profile (merged) | routing | `[ ]` | 0/6 |
 | **5** | Session detail | **migration `0020`** | `[ ]` | 0/9 |
 
-**Current focus:** Stage 0, built and green on `ui_redesign_0`. The one thing
-between it and `[x]` is Will's browser pass on the four tabs — a machine can
-say `tsc`, build and lint are clean, and did, but not that the chrome looks
-right.
+**Current focus:** Stage 2, League. Stage 0 merged (`7e22721`, PR #4) and
+Stage 1 is built and green on `redesign-1-dashboard`.
+
+**Owed by Will, and accumulating:** the browser passes. Stage 0's four tabs
+and Stage 1's admin-and-member walkthrough. Every machine gate is green for
+both — `tsc`, build, lint at baseline — but no machine can say the chrome
+looks right, and Stage 1's exit gate specifically wants a member's-eye view of
+the settings page.
 
 > ### ⚠ START HERE
 >
@@ -250,8 +254,13 @@ topbar, without a redesign half-finished on screen.
       for the inside of a card. They are two different controls and merging
       them would have restyled every existing page, which Stage 0 must not do.
       `FeltButton` renders a `Link` when given `to`, since both of Stage 1's
-      heading actions are navigations. The other six wait for a stage that
-      needs them.
+      heading actions are navigations.
+
+      **Stage 1 took four more** as it needed them: `StatFigure` (the
+      display-scale figure), `MiniStat`, `GoldPill` and `Sparkline`. The two
+      left are the sort dropdown (Stage 2) and the two-step destructive
+      confirm (Stage 2 or 4). This item is working as designed rather than
+      unfinished.
 
 **Exit gate:** every existing route renders, `tsc` clean, build clean, lint at
 or below the recorded baseline, and a browser pass on all four tabs.
@@ -323,32 +332,98 @@ Branch: `redesign-1-dashboard`. Spec: `DESIGN.md` → "Dashboard layout".
 `DashboardPage.tsx` is 481 lines, well over the ~200-line convention, and five
 bands is a natural split. One component per band.
 
-- [ ] Heading on felt: `Dashboard`, subtitled `Welcome back, <name>` from the
+- [x] Heading on felt: `Dashboard`, subtitled `Welcome back, <name>` from the
       roster display name. Actions outside the sheet: `Settings`, `+ New
-      session`.
-- [ ] Band 1 — hero. Player score at display scale, gold streak pill, then
-      wins / losses / lifetime net as mini-stats. `playerRating()` already
-      exists in `src/lib/stats.ts`.
-- [ ] Streak-pill copy rules, both edges: no pill under 4 nights played, and
-      `0 of the last 4 up` flips to `3 of your last 4 nights down`.
-- [ ] Band 2 — recent five. Band 3 — your trajectory. Band 4 — at the table +
+      session`. Both are `FeltButton`s; both were admin-only before and are
+      not any more, since Settings is now member-reachable and any member may
+      log a night.
+- [x] Band 1 — hero. Player score at display scale, gold streak pill, then
+      wins / losses / lifetime net as mini-stats.
+- [x] Streak-pill copy rules, both edges — `src/features/dashboard/streakPill.ts`.
+
+      A **third** edge turned up writing it: four nights that are all
+      *exactly* flat. Counting downs rather than assuming `4 − ups` is what
+      makes that case visible, and it renders no pill, because
+      `0 of your last 4 nights down` says nothing. Vanishingly unlikely, one
+      line to handle, and the alternative is a pill that lies.
+- [x] Band 2 — recent five. Band 3 — your trajectory. Band 4 — at the table +
       stats panel.
-- [ ] Band 5 — seasonal leaders, last 5 games, drawn from the Decision 3
+- [x] Band 5 — seasonal leaders, last 5 games, drawn from the Decision 3
       eligible set.
-- [ ] The eligibility filter itself: one helper in `src/lib/stats.ts`, active
-      and not a guest and ≥3 lifetime sessions, used by this band and by
-      Stage 2's standings. Two copies of this rule will drift.
-- [ ] **The one backend change:** drop `RequireGroupAdmin` from the `settings`
-      route in `src/App.tsx`. Settings becomes member-reachable and read-only
-      for members — seeing the reconcile threshold is what explains why a night
-      got flagged. No migration: `groups_select` already lets a member read
-      `join_code` and `join_policy`, and `groups_write_admin` already refuses
-      their writes, so the read-only page is enforced by the database rather
-      than by hiding buttons. Still hidden from members: regenerate-code, and
-      the link to the members page they cannot reach.
+- [x] The eligibility filter itself: `isRankingEligible()` plus
+      `RANKING_MIN_SESSIONS` in `src/lib/stats.ts`. Deliberately **not** the
+      same constant as `RATING_MIN_SESSIONS`, though both are 3 — they answer
+      different questions ("is this score meaningful?" against "does this
+      player belong in the standings?") and sharing one constant would couple
+      them by accident.
+
+      It is used in three places, one more than this file expected: band 5,
+      and **both** halves of band 3's League view (the featured six and the
+      legend). The chart's League view is a claim about the league, so it
+      obeys the same rule the standings do. It replaced an inline
+      `sessionsPlayed >= 3 && !is_guest` that the old dashboard had written
+      out twice — the drift this helper exists to prevent had already
+      started.
+- [x] **The one backend change:** `RequireGroupAdmin` dropped from the
+      `settings` route in `src/App.tsx`.
+
+      Four things are hidden from members, not the two this file listed:
+      regenerate-code and the members-page link, plus **`InviteLinksCard`**
+      and the whole Members card. Both extras are doors a member cannot walk
+      through — `group_invites` has no member select policy
+      (`0010_group_join.sql:12`), so the card would render an empty list and a
+      create button that fails, and the Members card is a link to an
+      admin-gated page. The join-policy radios are also disabled for members;
+      the database already refuses the write, but a control that looks live
+      and does nothing is worse than one that looks dead.
 
 **Exit gate:** browser pass as both an admin and a member. Confirm a member
 sees settings read-only and gets no dead links.
+
+Machine half, 2026-09-09: `tsc` clean · build clean · lint **1 warning**, back
+at baseline. `DashboardPage` went 481 → **118** lines; every new file is under
+200.
+
+### What Stage 1 turned up
+
+**1. Money was printing a hyphen, not a minus sign.** Contract rule 1 asks for
+U+2212 "exactly as `formatSignedCents()` does" — and `formatSignedCents()` did
+not do it; `formatCents` emitted an ASCII `-`. Fixed at the source, which
+changes every money figure in the app. The reason is mechanical rather than
+fussy: a hyphen is narrower than a digit, so in a `.tabular` column a negative
+figure sits a fraction out of line with the one above it. Checked before
+changing it that nothing parses the output back — `parseDollarsToCents` reads
+what a human types and rejects the `$` this always emits.
+
+**2. `react-refresh/only-export-components` nearly ate the whole CI budget.**
+Exporting `cumulativeDomain` beside `CumulativeChart`, and `moneyToneClass`
+beside a `MoneyText` component, produced **two** new warnings — against a
+ratchet of exactly 1. Both moved to `src/lib/` (`chartDomain.ts`,
+`moneyTone.ts`). Worth internalising: in this repo a helper exported from a
+component file is not a style question, it is a build failure. `MoneyText`
+itself was **deleted before shipping** — every call site wanted the class for
+its own element, because a wrapping `<span>` breaks the `font-display` and
+width rules its parent sets, so the component had no users.
+
+**3. `CumulativeChart` hit 460 lines, so its tooltip is now its own file.**
+The chart gained a shared-domain prop and two tooltip shapes; that put it 130
+lines past where it already was. `CumulativeChartTooltip.tsx` is split for
+size, not reuse — nothing in it is chart-agnostic — and it leaves Stage 4 a
+323-line file to add a bar mode to rather than a 460-line one.
+
+**4. Two signatures changed, both narrowing to what the caller actually
+knows.** `seasonLeaders()` took a `windowStart: Date`; it now takes the
+windowed session list, because the window is a count of games and a date
+filter cannot express that (`recentSessions()` owns it). `lifetimeTotals()`
+gained `biggestWinSessionId` / `biggestLossSessionId` — it already returned
+the date and the player, so it could *name* the night but not link to it,
+which is what band 4 needs.
+
+**5. Never-played roster rows are excluded from band 4.** "Every player is
+listed" is about not eliding the middle of the table, not about listing people
+with no record; a row reading `0 nights · $0.00` with an empty sparkline is
+noise, not inclusion. Guests **are** listed — this band is who was at the
+table, and eligibility is a rule about standings.
 
 ---
 
@@ -591,6 +666,16 @@ Not blocking any stage. Recorded so they are not rediscovered.
 
 Newest first. One line per meaningful change.
 
+- **2026-09-09** — **Stage 1 built** on `redesign-1-dashboard`. Five bands
+  split out of a 481-line page, now 118. `isRankingEligible()` replaces two
+  inline copies of the rule. Settings is member-reachable and read-only, with
+  four things hidden rather than two. Five findings under Stage 1: money was
+  printing a hyphen instead of U+2212; `react-refresh/only-export-components`
+  cost two warnings against a 1-warning ratchet, so helpers moved to `lib/`
+  and the unused `MoneyText` was deleted; `CumulativeChart`'s tooltip is its
+  own file; `seasonLeaders()` and `lifetimeTotals()` changed shape; band 4
+  drops never-played roster rows. Browser pass outstanding.
+- **2026-09-09** — Stage 0 **merged** as PR #4 (`7e22721`).
 - **2026-09-09** — **Stage 0 built** on `ui_redesign_0` (branch named by Will;
   this file had proposed `redesign-0-foundation`). Eight token/felt gaps
   closed, not one. Chrome to the contract, active tab now a translucent wash

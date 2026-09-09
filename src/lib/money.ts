@@ -19,8 +19,18 @@ export function parseDollarsToCents(raw: string): number | null {
   return Number(whole) * 100 + Number(frac.padEnd(2, "0"));
 }
 
+/**
+ * The sign is U+2212 MINUS SIGN, not a hyphen.
+ *
+ * Rule 1 of the style contract asks for it, and the reason is mechanical: a
+ * hyphen is narrower than a digit, so in a `.tabular` column of money a
+ * hyphen-signed figure sits a fraction off from the one above it. U+2212 is
+ * digit-width and lines up. This is display text only — nothing parses it
+ * back (`parseDollarsToCents` reads what a human types, and rejects the `$`
+ * this always emits).
+ */
 export function formatCents(cents: number): string {
-  const sign = cents < 0 ? "-" : "";
+  const sign = cents < 0 ? "−" : "";
   const abs = Math.abs(cents);
   const dollars = Math.floor(abs / 100);
   const remainder = abs % 100;

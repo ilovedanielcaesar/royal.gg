@@ -90,7 +90,9 @@ export default function GroupSettingsPage() {
       <header>
         <h1 className="font-display text-4xl text-card-50">Settings</h1>
         <p className="mt-1 text-sm text-card-50/60">
-          Manage {group.name}'s table and membership settings.
+          {isGroupAdmin
+            ? `Manage ${group.name}'s table and membership settings.`
+            : `${group.name}'s table settings. Admins can change these.`}
         </p>
       </header>
 
@@ -118,20 +120,22 @@ export default function GroupSettingsPage() {
           <p className="mt-3 break-all font-mono text-sm text-ink-700">
             {joinUrl}
           </p>
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-xs text-ink-500">
-              Regenerating invalidates the old code and any link built from it.
-              Invite links below are separate and keep working.
-            </p>
-            <Button
-              size="sm"
-              variant="danger"
-              disabled={regenerating}
-              onClick={() => void regenerateJoinCode()}
-            >
-              {regenerating ? "Regenerating…" : "Regenerate"}
-            </Button>
-          </div>
+          {isGroupAdmin && (
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs text-ink-500">
+                Regenerating invalidates the old code and any link built from
+                it. Invite links below are separate and keep working.
+              </p>
+              <Button
+                size="sm"
+                variant="danger"
+                disabled={regenerating}
+                onClick={() => void regenerateJoinCode()}
+              >
+                {regenerating ? "Regenerating…" : "Regenerate"}
+              </Button>
+            </div>
+          )}
         </div>
       </Card>
 
@@ -149,21 +153,26 @@ export default function GroupSettingsPage() {
                   name="join-policy"
                   value={value}
                   checked={group.join_policy === value}
-                  disabled={savingPolicy}
+                  disabled={savingPolicy || !isGroupAdmin}
                   onChange={() => void saveJoinPolicy(value)}
-                  className="mt-1 accent-felt-700"
+                  className="mt-1 accent-felt-700 disabled:opacity-60"
                 />
                 <span className="text-sm text-ink-700">{description}</span>
               </label>
             ))}
           </div>
-          <p className="mt-4 text-xs text-ink-500">
-            Approve pending requests on the{" "}
-            <Link className="underline hover:text-ink-900" to={path("/members")}>
-              members page
-            </Link>
-            .
-          </p>
+          {isGroupAdmin && (
+            <p className="mt-4 text-xs text-ink-500">
+              Approve pending requests on the{" "}
+              <Link
+                className="underline hover:text-ink-900"
+                to={path("/members")}
+              >
+                members page
+              </Link>
+              .
+            </p>
+          )}
         </div>
       </Card>
 
@@ -174,19 +183,27 @@ export default function GroupSettingsPage() {
         save={save}
       />
 
-      <InviteLinksCard key={groupId} groupId={groupId} />
+      {/* Both admin-only, and for the same reason: they are doors a member
+          cannot walk through. `group_invites` has no member select policy
+          (0010_group_join.sql:12), so the card would render an empty list and
+          a create button that fails; the members page is admin-gated, so the
+          link below is a dead end. A member's invite is the standing join
+          code above. */}
+      {isGroupAdmin && <InviteLinksCard key={groupId} groupId={groupId} />}
 
-      <Card>
-        <div className="p-5">
-          <h2 className="font-display text-2xl text-ink-900">Members</h2>
-          <Link
-            className="mt-2 inline-block text-sm text-sage-700 underline hover:text-sage-600"
-            to={path("/members")}
-          >
-            Approve requests, change roles, and remove members →
-          </Link>
-        </div>
-      </Card>
+      {isGroupAdmin && (
+        <Card>
+          <div className="p-5">
+            <h2 className="font-display text-2xl text-ink-900">Members</h2>
+            <Link
+              className="mt-2 inline-block text-sm text-sage-700 underline hover:text-sage-600"
+              to={path("/members")}
+            >
+              Approve requests, change roles, and remove members →
+            </Link>
+          </div>
+        </Card>
+      )}
     </div>
   );
 }
