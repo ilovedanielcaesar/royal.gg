@@ -1,11 +1,19 @@
 import { NavLink, useLocation } from "react-router-dom";
 
+/**
+ * Four tabs, and only `aria-current` moves between pages.
+ *
+ * The active tab is a translucent cream wash, not the solid cream pill it used
+ * to be: a solid pill in the topbar reads as a small playing card, which is
+ * the language the sheet and the avatars own. The chrome stays quiet.
+ */
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   [
-    "rounded-md px-3 py-1.5 text-sm font-medium transition",
+    "inline-flex min-h-9 items-center rounded-[10px] px-[13px] text-[13px] font-medium",
+    "transition-[background,color] duration-150",
     isActive
-      ? "bg-card-50 text-ink-900 shadow-[0_2px_0_0_rgba(0,0,0,0.2)]"
-      : "text-card-50/70 hover:bg-card-50/10 hover:text-card-50",
+      ? "bg-card-50/10 text-card-50"
+      : "text-card-50/[0.62] hover:bg-card-50/[0.08] hover:text-card-50",
   ].join(" ");
 
 export default function GroupNav() {
@@ -16,7 +24,20 @@ export default function GroupNav() {
   if (!slug) return null;
 
   return (
-    <nav className="flex items-center gap-1">
+    // The contract hides this below 720px. Taken literally that leaves the
+    // app with no navigation at all on a phone — and a phone at the table is
+    // the case the app exists for. The responsive section says "extend as
+    // needed", so instead of hiding it the nav wraps onto its own full-width
+    // row and centres. Desktop is untouched. If Phase 3 wants a real mobile
+    // pattern this is the seam to replace.
+    <nav
+      className={[
+        "ml-auto flex gap-1",
+        "max-[720px]:order-last max-[720px]:ml-0 max-[720px]:w-full",
+        "max-[720px]:justify-center max-[720px]:pb-3",
+      ].join(" ")}
+      aria-label="Main"
+    >
       <NavLink to={`/g/${slug}`} end className={navLinkClass}>
         Dashboard
       </NavLink>

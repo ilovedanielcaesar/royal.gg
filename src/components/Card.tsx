@@ -48,7 +48,7 @@ export default function Card({
   ].join(" ");
 
   return (
-    <Tag className={baseClass} style={style}>
+    <Tag data-cream className={baseClass} style={style}>
       <div className={`absolute inset-x-0 top-0 h-1 ${ACCENT_BAR[accent]}`} />
       {rankLabel && (
         <div className="pointer-events-none absolute left-3 top-3 font-display text-xs leading-none text-ink-700">

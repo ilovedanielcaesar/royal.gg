@@ -14,6 +14,19 @@ type ActiveMembership = {
   groups: GroupSummary | null;
 };
 
+/**
+ * The contract's `.group-switch`: a cream-tinted capsule with an inset
+ * hairline, not a rectangular text button. Both branches below render it —
+ * whether the group name is a link (one group) or a menu trigger (several),
+ * it looks identical, because to the eye it is the same control.
+ */
+const PILL = [
+  "inline-flex min-h-[34px] items-center gap-[7px] rounded-full px-3",
+  "bg-card-50/[0.07] text-[12px] font-medium text-card-50",
+  "shadow-[inset_0_0_0_1px_rgba(247,241,222,0.12)]",
+  "transition-[background] duration-150 hover:bg-card-50/[0.12]",
+].join(" ");
+
 export default function GroupSwitcher() {
   const { user } = useCurrentUser();
   const { pathname } = useLocation();
@@ -71,10 +84,7 @@ export default function GroupSwitcher() {
 
   if (groups.length <= 1) {
     return (
-      <Link
-        to="/groups"
-        className="rounded-md px-2 py-1 text-xs font-medium text-card-50/70 hover:bg-card-50/10 hover:text-card-50"
-      >
+      <Link to="/groups" className={PILL}>
         {label}
       </Link>
     );
@@ -89,7 +99,7 @@ export default function GroupSwitcher() {
         aria-expanded={open}
         aria-haspopup="menu"
         onClick={() => setOpen((value) => !value)}
-        className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-card-50/70 hover:bg-card-50/10 hover:text-card-50"
+        className={PILL}
       >
         {label}
         <span aria-hidden="true">▾</span>
@@ -97,7 +107,7 @@ export default function GroupSwitcher() {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-20 mt-2 min-w-44 rounded-md bg-card-50 p-1 shadow-lg ring-1 ring-card-200"
+          className="absolute right-0 z-20 mt-2 min-w-44 rounded-xl bg-card-50 p-1 shadow-[0_2px_0_rgba(0,0,0,0.14),0_18px_40px_-20px_rgba(0,0,0,0.6),0_0_0_1px_var(--color-card-100)]"
         >
           {otherGroups.map((group) => (
             <Link
