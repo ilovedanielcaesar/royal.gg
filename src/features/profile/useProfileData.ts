@@ -7,17 +7,20 @@ import {
   playerRating,
   playerSessionNets,
   playerStats,
+  rebuySuccessRate,
   type CumulativePoint,
   type Player,
   type PlayerRating,
   type PlayerStats,
+  type RebuySuccess,
   type Session,
 } from "../../lib/stats";
 import { useLeagueData, type LeagueData } from "../../lib/useLeagueData";
 
 export type ProfileLedgerRow = {
   session: Session;
-  nightNumber: number;
+  /** Rows in `buy_ins`, not dollars — what `rebuySuccessRate()` counts. */
+  buyInCount: number;
   buyInCents: number;
   cashOutCents: number;
   netCents: number;
@@ -33,6 +36,7 @@ export type ProfileData = {
   meanCents: number | null;
   varianceCentsSquared: number | null;
   stdevCents: number | null;
+  rebuy: RebuySuccess;
   chartSessions: Session[];
   chartSeries: Array<{
     playerId: string;
@@ -63,13 +67,15 @@ export function useProfileData(): {
       league.cashOuts
     );
     let runningTotalCents = 0;
-    const ledgerOldestFirst = sessionNets.map(({ session, netCents }, index) => {
-      const buyInCents = league.buyIns
-        .filter(
-          (entry) =>
-            entry.session_id === session.id && entry.player_id === player.id
-        )
-        .reduce((sum, entry) => sum + entry.amount_cents, 0);
+    const ledgerOldestFirst = sessionNets.map(({ session, netCents }) => {
+      const nightBuyIns = league.buyIns.filter(
+        (entry) =>
+          entry.session_id === session.id && entry.player_id === player.id
+      );
+      const buyInCents = nightBuyIns.reduce(
+        (sum, entry) => sum + entry.amount_cents,
+        0
+      );
       const cashOutCents = league.cashOuts
         .filter(
           (entry) =>
@@ -79,7 +85,7 @@ export function useProfileData(): {
       runningTotalCents += netCents;
       return {
         session,
-        nightNumber: index + 1,
+        buyInCount: nightBuyIns.length,
         buyInCents,
         cashOutCents,
         netCents,
@@ -124,6 +130,7 @@ export function useProfileData(): {
       meanCents: netSummary.mean,
       varianceCentsSquared: netSummary.variance,
       stdevCents: netSummary.stdev,
+      rebuy: rebuySuccessRate(ledgerOldestFirst),
       chartSessions: ledgerOldestFirst.map((row) => row.session),
       chartSeries: [
         {
@@ -149,6 +156,7 @@ function emptyProfile(league: LeagueData): ProfileData {
     meanCents: null,
     varianceCentsSquared: null,
     stdevCents: null,
+    rebuy: { rate: null, successes: 0, qualifying: 0 },
     chartSessions: [],
     chartSeries: [],
     ledgerRows: [],

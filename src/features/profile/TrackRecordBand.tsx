@@ -1,18 +1,21 @@
-import { Link } from "react-router-dom";
 import Band from "../../components/Band";
+import InfoTip from "../../components/InfoTip";
 import MiniStat from "../../components/MiniStat";
 import { formatCents, formatSignedCents } from "../../lib/money";
 import { moneyToneClass } from "../../lib/moneyTone";
-import type { PlayerRating, PlayerStats } from "../../lib/stats";
+import {
+  REBUY_MIN_BUY_INS,
+  type PlayerStats,
+  type RebuySuccess,
+} from "../../lib/stats";
 
 type Props = {
   stats: PlayerStats;
-  rating: PlayerRating;
+  rebuy: RebuySuccess;
   leagueRank: number | null;
   meanCents: number | null;
   varianceCentsSquared: number | null;
   stdevCents: number | null;
-  ratingHref: string;
 };
 
 const squaredDollars = new Intl.NumberFormat(undefined, {
@@ -20,14 +23,23 @@ const squaredDollars = new Intl.NumberFormat(undefined, {
   maximumFractionDigits: 2,
 });
 
+/**
+ * Everything about how you play that is not the two hero figures.
+ *
+ * Laid out in two named groups rather than one nine-cell grid. The old
+ * version ran counts, money and statistics together in reading order, so
+ * "Win rate" sat between "Record" and "E(X)" and the eye had to sort them
+ * itself. Splitting them means each row answers one kind of question, and the
+ * distribution figures — which are the ones that need a moment — are no
+ * longer buried mid-grid.
+ */
 export default function TrackRecordBand({
   stats,
-  rating,
+  rebuy,
   leagueRank,
   meanCents,
   varianceCentsSquared,
   stdevCents,
-  ratingHref,
 }: Props) {
   const winRate =
     stats.sessionsPlayed === 0
@@ -42,54 +54,64 @@ export default function TrackRecordBand({
 
   return (
     <Band title="Track record" kicker={rankLabel}>
-      <div className="mt-5 grid grid-cols-2 gap-x-5 gap-y-6 sm:grid-cols-3 lg:grid-cols-4">
-        <MiniStat
-          label="Player score"
-          value={
-            rating.rating == null ? (
-              "—"
-            ) : (
-              <Link to={ratingHref} className="hover:underline">
-                {rating.rating.toFixed(1)}
-                <span className="text-sm text-ink-500">/10</span>
-              </Link>
-            )
-          }
-        />
+      <div className="mt-5 grid grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-4">
         <MiniStat label="Nights played" value={stats.sessionsPlayed} />
         <MiniStat label="Record" value={`${stats.wins}W ${stats.losses}L`} />
-        <MiniStat
-          label="Lifetime net"
-          value={formatSignedCents(stats.totalNetCents)}
-          toneClass={moneyToneClass(stats.totalNetCents)}
-        />
         <MiniStat label="Win rate" value={winRate} />
         <MiniStat
-          label="Expected value E(X)"
-          value={
-            meanCents == null
-              ? "—"
-              : formatSignedCents(Math.round(meanCents))
+          label={
+            <span className="inline-flex items-center gap-1.5">
+              Rebuy success
+              <InfoTip label="About rebuy success rate">
+                Of the nights you bought in {REBUY_MIN_BUY_INS} or more times,
+                the share you finished ahead on. Breaking even does not count.
+              </InfoTip>
+            </span>
           }
-          toneClass={meanCents == null ? undefined : moneyToneClass(meanCents)}
-        />
-        <MiniStat
-          label="Sample variance Var(X)"
           value={
-            varianceCentsSquared == null
-              ? "—"
-              : `${squaredDollars.format(varianceCentsSquared / 10_000)} dollars²`
+            rebuy.rate == null ? "—" : `${(rebuy.rate * 100).toFixed(0)}%`
+          }
+          caption={
+            rebuy.rate == null
+              ? "No nights with a rebuy yet"
+              : `${rebuy.successes} of ${rebuy.qualifying} rebuy nights`
           }
         />
-        <MiniStat
-          label="Standard deviation σ"
-          value={stdevCents == null ? "—" : formatCents(Math.round(stdevCents))}
-        />
-        <MiniStat
-          label="Best night"
-          value={formatSignedCents(stats.best)}
-          toneClass={moneyToneClass(stats.best)}
-        />
+      </div>
+
+      <div className="mt-7 border-t border-card-100 pt-6">
+        <p className="text-[10px] font-semibold tracking-[0.13em] text-ink-500 uppercase">
+          The shape of your results
+        </p>
+        <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-4">
+          <MiniStat
+            label="Best night"
+            value={formatSignedCents(stats.best)}
+            toneClass={moneyToneClass(stats.best)}
+          />
+          <MiniStat
+            label="Expected value E(X)"
+            value={
+              meanCents == null ? "—" : formatSignedCents(Math.round(meanCents))
+            }
+            toneClass={meanCents == null ? undefined : moneyToneClass(meanCents)}
+            caption="Your average night"
+          />
+          <MiniStat
+            label="Standard deviation σ"
+            value={stdevCents == null ? "—" : formatCents(Math.round(stdevCents))}
+            caption="How far a night typically strays"
+          />
+          <MiniStat
+            label="Sample variance Var(X)"
+            value={
+              varianceCentsSquared == null
+                ? "—"
+                : `${squaredDollars.format(varianceCentsSquared / 10_000)}`
+            }
+            caption="Dollars², σ before the square root"
+          />
+        </div>
       </div>
     </Band>
   );

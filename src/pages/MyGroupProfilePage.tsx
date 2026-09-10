@@ -1,5 +1,4 @@
 import Band from "../components/Band";
-import FeltButton from "../components/FeltButton";
 import PageHeading from "../components/PageHeading";
 import Sheet from "../components/Sheet";
 import AccountBand from "../features/profile/AccountBand";
@@ -47,23 +46,16 @@ export default function MyGroupProfilePage() {
     player?.name ??
     profile?.display_name ??
     "Your profile";
-  const latestSession = data.ledgerRows[0]?.session;
 
   return (
     <>
+      {/* No page action. The one that was here — "Session detail view" —
+          linked to whichever night happened to be most recent, which is not
+          a thing anybody comes to their own profile to do. The ledger below
+          links every night, including that one. */}
       <PageHeading
         title={displayName}
         subtitle={`${group.name} member profile · ${stats?.sessionsPlayed ?? 0} sessions logged`}
-        actions={
-          latestSession ? (
-            <FeltButton
-              variant="ghost"
-              to={path(`/sessions/${latestSession.id}`)}
-            >
-              Session detail view →
-            </FeltButton>
-          ) : undefined
-        }
       />
 
       <Sheet>
@@ -78,16 +70,18 @@ export default function MyGroupProfilePage() {
             <ProfileCardBand
               player={player}
               groupId={group.id}
+              stats={stats}
+              rating={rating}
+              ratingHref={path(`/players/${player.id}/rating`)}
               reload={reload}
             />
             <TrackRecordBand
               stats={stats}
-              rating={rating}
+              rebuy={data.rebuy}
               leagueRank={data.leagueRank}
               meanCents={data.meanCents}
               varianceCentsSquared={data.varianceCentsSquared}
               stdevCents={data.stdevCents}
-              ratingHref={path(`/players/${player.id}/rating`)}
             />
             <NightsChartBand
               sessions={data.chartSessions}

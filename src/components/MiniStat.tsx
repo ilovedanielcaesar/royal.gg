@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
 
 type Props = {
-  label: string;
+  /** `ReactNode` so a figure whose definition needs a word can carry an
+   *  `InfoTip` beside its label. Plain strings are still the common case. */
+  label: ReactNode;
   value: ReactNode;
   caption?: ReactNode;
   toneClass?: string;

@@ -25,7 +25,7 @@ export default function NightsLedgerBand({ rows, sessionHref }: Props) {
       ) : (
         <div className="mt-5 overflow-x-auto">
           <div className={`${GRID} px-2.5 py-2 text-[9.5px] font-semibold tracking-[0.09em] text-ink-500 uppercase`}>
-            <span>Session</span>
+            <span>Date</span>
             <span className="text-right">Buy-in cash</span>
             <span className="text-right">Cash-out</span>
             <span className="text-right">Net</span>
@@ -38,11 +38,12 @@ export default function NightsLedgerBand({ rows, sessionHref }: Props) {
                 to={sessionHref(row.session.id)}
                 className={`${GRID} min-h-12 border-t border-card-100 px-2.5 py-2 text-sm transition first:border-t-0 hover:bg-card-100/40`}
               >
-                <span>
-                  <span className="block font-medium">Night {row.nightNumber}</span>
-                  <span className="mt-0.5 block text-[11px] text-ink-500">
-                    {formatPlayedAt(row.session.played_at)}
-                  </span>
+                {/* The date IS the name of the night. "Night 7" was a
+                    number this page invented — it is not on the session, it
+                    is not what anyone calls the game, and it changes meaning
+                    the moment a back-dated night is logged. */}
+                <span className="font-medium">
+                  {formatPlayedAt(row.session.played_at)}
                 </span>
                 <span className="tabular text-right">{formatCents(row.buyInCents)}</span>
                 <span className="tabular text-right">{formatCents(row.cashOutCents)}</span>
