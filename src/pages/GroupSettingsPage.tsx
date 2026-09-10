@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import Button from "../components/Button";
 import Card from "../components/Card";
+import GoldPill from "../components/GoldPill";
 import InviteLinksCard from "../components/InviteLinksCard";
 import StakesCard, { type StakesUpdate } from "../components/StakesCard";
 import { publicAppUrl } from "../lib/appUrl";
@@ -89,7 +90,15 @@ export default function GroupSettingsPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="font-display text-4xl text-card-50">Settings</h1>
+        {/* The ADMIN marker lives here, not on the link that got you here.
+            This is the page where the privilege is actually exercised, and
+            it is the one place a member and an admin see visibly different
+            controls — so it is the one place saying which you are earns its
+            space. Felt tone: gold-ink is unreadable on the table. */}
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="font-display text-4xl text-card-50">Settings</h1>
+          {isGroupAdmin && <GoldPill tone="felt">ADMIN</GoldPill>}
+        </div>
         <p className="mt-1 text-sm text-card-50/60">
           {isGroupAdmin
             ? `Manage ${group.name}'s table and membership settings.`

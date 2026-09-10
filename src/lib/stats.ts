@@ -520,10 +520,20 @@ export function periodNets(
 }
 
 /**
- * Given the list of all payouts (most-recent first or any order), return
- * the date range for the *current* (open) payout period: start exclusive,
- * end inclusive. Start is null when no payouts have happened yet.
+ * Nights in an open payout period before the League page starts nagging.
+ *
+ * A named constant because the number is stated in two places that must
+ * agree: the reminder that fires in the payout band, and the "Payout
+ * reminder" fact in the rules band directly below it. It was an inline `8`
+ * in the first of those and absent from the second, which is precisely the
+ * shape of a figure that drifts.
+ *
+ * Not a `groups` column. Nothing in the app can set it yet, and a settings
+ * control nobody asked for is a bigger change than this stage owns — if the
+ * reminder ever wants to be per-group, this constant is the seam.
  */
+export const PAYOUT_REMINDER_AFTER_SESSIONS = 8;
+
 /**
  * The smallest number of buy-ins that counts as having rebought.
  *
@@ -580,6 +590,11 @@ export function rebuySuccessRate(
   };
 }
 
+/**
+ * Given the list of all payouts (most-recent first or any order), return
+ * the date range for the *current* (open) payout period: start exclusive,
+ * end inclusive. Start is null when no payouts have happened yet.
+ */
 export function currentPayoutPeriod(
   payouts: Payout[],
   todayIso: string

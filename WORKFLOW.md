@@ -868,6 +868,36 @@ Found while testing, not blocking any phase. All three reported by Will on
       Proper answer is a `MyGroupsProvider` + `useMyGroups()` with `reload()`,
       the same consolidation Phase 0 did for auth and league data.
 
+- [ ] **Sixteen of seventeen accounts still carry a synthetic
+      `@royal.gg.local` address.** Recorded 2026-09-10, after Will asked why
+      a fake email was on the profile page. It is no longer displayed
+      (`AccountBand`), which was the visible half. The data half is open, and
+      it is three different problems wearing one name:
+
+      | | Count | Can lose the fake address? |
+      |---|:--:|---|
+      | Google linked — `will`, `kerry`, `ryan`, `pat` | 4 | **Yes.** A real address is already in `auth.identities`. |
+      | Password only — `dale`, `andrew`, `duc`, `willc`, `michael`, `matthew`, `thomas`, `jifan` | 8 | **No.** The synthetic address IS their login. |
+      | No profile, no groups, last seen 2026-04-28 | 4 | Delete outright. |
+
+      **Why the eight are stuck.** Username login works *because* the fake
+      address is derived from the username — `auth.ts:116` turns `will` into
+      `will@royal.gg.local` and hands that to Supabase. Change the address
+      without replacing that path and those eight cannot sign in. Retiring
+      `syntheticEmail()` is therefore gated on eight people linking Google or
+      supplying an address, which is a conversation, not a code change.
+
+      **The safe slice, whenever someone wants it.** Set `auth.users.email`
+      to the real Google address for the four who have one, and delete the
+      four dead test accounts. Their login does not change — they already
+      come in through Google. Needs a migration, a rehearsal in a rolled-back
+      transaction, and an update to `smoke-auth.mjs`, which currently asserts
+      *"all twelve synthetic accounts still exist"* and would rightly fail.
+
+      **Not a security item.** `is_admin()` — the one policy that keyed on
+      `will@royal.gg.local` — was dropped in `0015`, which asserts no policy
+      still references it. This is a login and display question now.
+
 Carried from `GROUPS.md` §11 — not blocking any phase.
 
 - [ ] Notifications: nothing tells an admin a log awaits approval, or a member
