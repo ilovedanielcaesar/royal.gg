@@ -6,6 +6,7 @@ import Button from "../../components/Button";
 import GoldPill from "../../components/GoldPill";
 import SuitBadge from "../../components/SuitBadge";
 import { formatPlayedAt } from "../../lib/format";
+import { PAYOUT_REMINDER_AFTER_SESSIONS } from "../../lib/stats";
 import { formatSignedCents } from "../../lib/money";
 import { moneyToneClass } from "../../lib/moneyTone";
 import type { LeagueGuestRow, LeaguePageData } from "./useLeaguePageData";
@@ -65,7 +66,7 @@ export default function PayoutGuestsBand({
               {periodSessionCount} {periodSessionCount === 1 ? "session" : "sessions"} · Window open
             </span>
           </div>
-          {periodSessionCount > 8 && (
+          {periodSessionCount > PAYOUT_REMINDER_AFTER_SESSIONS && (
             <div className="flex items-center gap-2 rounded-xl border border-dashed border-card-200 bg-card-100/40 px-4 py-3">
               <GoldPill>Reminder</GoldPill>
               <p className="text-xs leading-5 text-ink-700">
