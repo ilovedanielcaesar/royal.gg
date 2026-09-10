@@ -31,6 +31,29 @@ const RANKS: Rank[] = [
   "K",
 ];
 
+const RANK_NAMES: Record<Rank, string> = {
+  A: "Ace",
+  "2": "Two",
+  "3": "Three",
+  "4": "Four",
+  "5": "Five",
+  "6": "Six",
+  "7": "Seven",
+  "8": "Eight",
+  "9": "Nine",
+  "10": "Ten",
+  J: "Jack",
+  Q: "Queen",
+  K: "King",
+};
+
+const SUIT_NAMES: Record<Suit, string> = {
+  spade: "Spades",
+  heart: "Hearts",
+  diamond: "Diamonds",
+  club: "Clubs",
+};
+
 function hashString(s: string): number {
   let h = 5381;
   for (let i = 0; i < s.length; i += 1) {
@@ -64,4 +87,8 @@ export function effectiveSuit(player: {
 
 export function suitColor(suit: Suit): "ink" | "red" {
   return suit === "spade" || suit === "club" ? "ink" : "red";
+}
+
+export function cardFullName(rank: Rank, suit: Suit): string {
+  return `${RANK_NAMES[rank]} of ${SUIT_NAMES[suit]}`;
 }

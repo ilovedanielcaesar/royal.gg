@@ -520,11 +520,6 @@ export function periodNets(
 }
 
 /**
- * Given the list of all payouts (most-recent first or any order), return
- * the date range for the *current* (open) payout period: start exclusive,
- * end inclusive. Start is null when no payouts have happened yet.
- */
-/**
  * Nights in an open payout period before the League page starts nagging.
  *
  * A named constant because the number is stated in two places that must
@@ -539,6 +534,67 @@ export function periodNets(
  */
 export const PAYOUT_REMINDER_AFTER_SESSIONS = 8;
 
+/**
+ * The smallest number of buy-ins that counts as having rebought.
+ *
+ * Two: the buy-in you sat down with, plus one more. Named because "rebought"
+ * is ambiguous in English — "more than one rebuy" would be three — and the
+ * stat below is meaningless if the reader guesses the wrong one.
+ */
+export const REBUY_MIN_BUY_INS = 2;
+
+export type RebuySuccess = {
+  /** 0..1, or null when no night qualifies. */
+  rate: number | null;
+  /** Qualifying nights that ended up. */
+  successes: number;
+  /** Nights with REBUY_MIN_BUY_INS or more buy-ins. */
+  qualifying: number;
+};
+
+/**
+ * How often digging in actually worked: of the nights you rebought, the share
+ * you finished ahead on.
+ *
+ * A night qualifies on buy-in COUNT, not on money — three $40 buy-ins is a
+ * rebuy night and one $120 buy-in is not, because the question is about the
+ * decision to buy back in after busting, and that decision is a row in
+ * `buy_ins`.
+ *
+ * Success is `netCents > 0`, strictly. Breaking exactly even after rebuying
+ * is not a success; it is a night you got your money back, and rounding it
+ * up would flatter the figure at precisely the point it is supposed to be
+ * honest.
+ *
+ * `rate` is null rather than 0 when nothing qualifies. A player who has never
+ * rebought has no rate — 0% would read as "rebought and always lost", which
+ * is the opposite of what happened. The caller renders the em dash.
+ *
+ * Takes per-night pairs rather than a player id because every caller already
+ * has them, the same reason `consistencyScore()` takes nets.
+ */
+export function rebuySuccessRate(
+  nights: Array<{ buyInCount: number; netCents: number }>
+): RebuySuccess {
+  let qualifying = 0;
+  let successes = 0;
+  for (const night of nights) {
+    if (night.buyInCount < REBUY_MIN_BUY_INS) continue;
+    qualifying += 1;
+    if (night.netCents > 0) successes += 1;
+  }
+  return {
+    rate: qualifying === 0 ? null : successes / qualifying,
+    successes,
+    qualifying,
+  };
+}
+
+/**
+ * Given the list of all payouts (most-recent first or any order), return
+ * the date range for the *current* (open) payout period: start exclusive,
+ * end inclusive. Start is null when no payouts have happened yet.
+ */
 export function currentPayoutPeriod(
   payouts: Payout[],
   todayIso: string
