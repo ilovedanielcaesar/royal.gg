@@ -41,33 +41,43 @@ the checkbox — a tick with no log entry is how this file rots.
 | **5** | Session detail | **migration `0020`** | `[ ]` | 0/9 |
 | **A** | **Audit: every surface in the new style** | no | `[~]` | 0/23 confirmed · 5 built |
 
-**Current focus:** landing Stages 2, 3 and 4, which are **built and waiting**.
-Stages 0 and 1 are merged (`7e22721` PR #4, `cc2bfe9` PR #5). `RecordsPage` was
-pulled forward out of Stage 2's tail and restyled early, which is what turned
-the mockless-pages note into **Stage A** below — a real stage with a real
-inventory, because "restyle the leftovers" was never going to be checked.
+**Current focus:** Stage 5, the last unbuilt stage — and the **five browser
+passes now owed**, which are the release gate, not a formality.
 
-> **Three stages are finished code sitting on unmerged branches.** Each has one
-> commit, in its own git worktree, branched from `main` rather than from each
-> other:
->
-> | Branch | Worktree | Commit | `tsc` | build | lint |
-> |---|---|---|:--:|:--:|:--:|
-> | `redesign-2-league` | `../royal-stage2` | `c6806b8` | clean | clean | 1 (baseline) |
-> | `redesign-3-sessions` | `../royal-stage3` | `16d1f68` | clean | clean | **0** |
-> | `redesign-4-profile` | `../royal-stage4` | `06b9b02` | clean | clean | 1 (baseline) |
->
-> Gates re-run and confirmed 2026-09-10, not taken from the commit messages.
-> **None is pushed**, so none has been through CI or a PR, and `origin` has
-> never seen them. They are siblings, so nothing has been integration-tested
-> against anything else.
->
-> **Merge order is `2 → 3 → 4`,** for one concrete reason: Stage 3 is the
-> branch that drops CI's ratchet to `--max-warnings 0`, because it is the
-> rewrite that clears the `SessionsListPage:98` warning. Land 3 before 2 and
-> Stage 2's PR fails CI on a warning it did not introduce and cannot fix.
-> Stage 4 is last because it is the largest and touches `CumulativeChart`,
-> which Stage 1 already moved.
+**Stages 0 through 4 are all merged.** `main` carries the whole redesign
+except the session detail page.
+
+| Stage | PR | Merge | Feedback round |
+|:--:|:--:|---|---|
+| 0 | #4 | `7e22721` | — |
+| 1 | #5 | `cc2bfe9` | 8 items, landed direct on `main` |
+| 2 | #7 | `cf4d7b0` | 3 items |
+| 3 | #8 | `81fa783` | 2 items |
+| 4 | #9 | `f740f02` | 7 items |
+
+All merged 2026-09-10 in the order `2 → 3 → 4`, which mattered: Stage 3 is the
+branch that dropped CI's ratchet to `--max-warnings 0`, so landing it first
+would have failed the other two on a warning they neither introduced nor
+could fix. Every branch and worktree is deleted.
+
+**One conflict, and it is worth knowing why.** Stage 2 and Stage 4 both added
+a block immediately above `currentPayoutPeriod` in `stats.ts` —
+`PAYOUT_REMINDER_AFTER_SESSIONS` and `rebuySuccessRate` — so git could not
+choose. Both were wanted and both were kept. The instructive part is what the
+conflict exposed: **both branches had inserted themselves between
+`currentPayoutPeriod`'s doc comment and `currentPayoutPeriod`**, orphaning it.
+The same mistake on each side, invisible on either branch alone, visible the
+moment they met. Anchoring an insertion on `export function foo(` lands it
+below `foo`'s documentation, not above it.
+
+**The lint baseline is now 0.** `SessionsListPage:98` is gone with the page
+that held it, and CI runs `--max-warnings 0`. The "zero headroom" warning
+under Stage P is now literal: any new warning fails the build.
+
+`RecordsPage` was pulled forward out of Stage 2's tail and restyled early,
+which is what turned the mockless-pages note into **Stage A** below — a real
+stage with a real inventory, because "restyle the leftovers" was never going
+to be checked.
 
 **Owed by Will:** Stage 0's four tabs, and a **re-check** of Stage 1 as a
 member. Stage 1's admin pass is **done** — 2026-09-09, and it found eight
@@ -78,16 +88,16 @@ read-only for them for the first time, and nobody has looked at it in a
 browser. Every machine gate is green — `tsc`, build, lint at baseline — but no
 machine can say the chrome looks right.
 
-Three more browser passes joined that queue on 2026-09-09 without anyone
-noting it: **League, Sessions and Profile are all built and none has been
-opened.** That is Stage A rows 3, 4 and 5, and it is why they are `[~]` and
-not `[x]`. Five of the twenty-three surfaces are now built-but-unseen, which
-is a bigger unseen surface than the redesign has ever had at once.
+**League, Sessions and Profile have now been through a preview pass** — Will
+read all three on their Vercel previews on 2026-09-10 and returned twelve
+items, all of them fixed before merge and all recorded under their stages
+below. That is not the same as a Stage A tick: the pass was a read of the
+design, not the five-point check, and it happened before the fixes landed.
+Rows 3, 4 and 5 stay `[~]` until someone opens the merged pages and runs the
+list. Five of the twenty-three surfaces are built-but-unseen, the most the
+redesign has had at once.
 
-Stage 2's two findings are **both closed** (`8034b75`, `c6806b8`) — the rules
-band says all five rules, and the `YOU` pill is gone in favour of the
-dashboard's faint tint. Nothing on Stage 2 waits on a decision now; it waits
-on a PR and a pair of eyes.
+Nothing in Stages 0–4 waits on a decision. Everything below waits on eyes.
 
 > ### ⚠ START HERE
 >
@@ -650,6 +660,27 @@ redesigned League page onto an un-redesigned one. It brought the last of
 Stage 0's deferred shared pieces with it: `ConfirmButton`, the two-step
 destructive confirm.
 
+### Stage 2 feedback round — preview pass, 2026-09-10
+
+Three items off the Vercel preview, all fixed before the merge.
+
+- [x] **The rules band showed three of five facts.** Fixed in `8034b75`; see
+      finding 3 above.
+- [x] **The standings `YOU` pill is gone.** Fixed in `c6806b8`; see finding 3.
+- [x] **The `ADMIN` pill came off the Settings button** and moved beside the
+      heading on the settings page itself (`f0f13c1`). It was the one place
+      the marker could not work: the button is admin-only, so a member never
+      saw it and the admin already knew. The settings page is where a member
+      and an admin genuinely see different controls — read-only stakes, no
+      invite links, no members card, disabled join-policy radios — so it is
+      where naming the role earns its space.
+
+      `GoldPill` grew a `tone` for it. Not decoration: `gold-500` on cream is
+      about 1.9:1 and `gold-ink` on `felt-900` is dark on dark, so each
+      surface has exactly one readable gold pairing and the component now
+      knows both. **This is the first Stage A row-9 work done ahead of the
+      stage** — the settings page is otherwise untouched.
+
 ---
 
 ## Stage 3 — Sessions list
@@ -679,6 +710,35 @@ Rewrites `SessionsListPage.tsx` (301 lines). No backend.
 
 "The shape of the season" leaves this page. It reappears in Stage 4 as the bar
 mode of the profile chart; that is what the move means in practice.
+
+### Stage 3 feedback round — preview pass, 2026-09-10
+
+Two items, both fixed before the merge (`0250c09`).
+
+- [x] **"Individual highest win" now means yours.** It sorted by whoever
+      happened to win that night, so every player saw the same order and the
+      sort answered a question nobody asked. The name reads as a claim about
+      the person reading it. It now sorts on your own net: profitable nights
+      first, losses after them worst-last, and **a night you did not play
+      below every night you did** — absence is not a result, and ranking it
+      among them puts an empty row above a real one. `biggestWinCents` fed
+      only that comparison and is deleted.
+- [x] **The avatar preview is three, always, by that night's net.** It was
+      "all of them up to eight, then the top five by lifetime net" — this
+      file's own spec. Both halves were wrong: a row is a glance and eight
+      overlapping cards is a smear, and lifetime net is the wrong question
+      for a row about one night. The three faces should be the three who won
+      *it*, not the three who are up overall and happened to be there. The
+      full participant list stays in the row's `aria-label`, so hiding five
+      faces hides nothing from a reader.
+
+**Still open, deliberately not changed.** The ledger row prints
+`Night 7 · 4 Sep 2026`. Stage 4's pass killed exactly this on the profile
+ledger — an invented number that is not on the session, is not what anyone
+calls the game, and renumbers everything the first time a night is logged
+back-dated. The same objection applies here and the same fix is one line.
+It was left because the feedback named the profile page and because this
+file's Stage 3 row order lists `night` as a column. **Worth settling.**
 
 ---
 
@@ -724,6 +784,55 @@ below said it should be. Stage 2 shipped without it and this stage shipped
 Proposal: the other-player view is this same page minus the picker, the account
 band and Leave. `PlayerRatingPage` (206 lines) likewise has no mock; restyle it
 and reach it from a player score.
+
+### Stage 4 feedback round — preview pass, 2026-09-10
+
+Seven items, all fixed before the merge (`d1d9c1b`).
+
+- [x] **The card is the hero and the picker hides behind it.** Clicking the
+      card opens the seventeen buttons underneath, Save beside them. The
+      picker is used about twice in the life of an account and was
+      permanently occupying the widest part of the page.
+- [x] **The card got its tilt back** — resting at `−1.2°`, straightening and
+      lifting `2px` under the cursor, from iteration 1's `.large-card`
+      (`design_archetypes/profile_redesign.html:353`), which the v2 build
+      dropped. A card lying at an angle reads as an object rather than a div.
+      `motion-reduce` removes it entirely rather than shortening it.
+- [x] **Player score and lifetime net fill the space beside the card**, at
+      display scale. They **moved** out of Track record rather than being
+      copied — the same figure printed twice on one page makes the reader
+      check whether the two disagree.
+- [x] **Track record is two named groups**, not one nine-cell grid. Win rate
+      no longer sits between Record and E(X) with the eye left to sort them.
+- [x] **Rebuy success rate.** Of the nights you bought in twice or more, the
+      share you finished ahead on. **Buy-in count, not money** — three $40
+      buy-ins is a rebuy night and one $120 buy-in is not, because the
+      question is about the decision to buy back in, and that decision is a
+      row in `buy_ins`. Strictly `netCents > 0`; breaking even after
+      rebuying is getting your money back. `null` rather than `0%` when
+      nothing qualifies, because 0% reads as "rebought and always lost".
+
+      `REBUY_MIN_BUY_INS = 2` is named because "rebought" is ambiguous in
+      English — Will's wording was "more than one rebuy", which literally
+      means three — and the stat is meaningless if the reader guesses wrong.
+
+      It carries a new `InfoTip`, which opens on hover **and focus and tap**.
+      A phone has no hover and this app is used at the table, so a
+      hover-only definition is invisible to the reader who most needs it.
+- [x] **The ledger says the date.** `nightNumber` is deleted, not left unused.
+- [x] **The page action is gone.** "Session detail view" linked to whichever
+      night happened to be most recent, which is not why anyone opens their
+      own profile, and the ledger links every night including that one.
+
+**And one thing that was not on the list.** The band printed the account's
+email, which for sixteen of seventeen accounts is a synthetic
+`@royal.gg.local` address — a lookup key for username login, not a way to
+reach anybody. It is no longer displayed. The data behind it is a separate
+piece of work and is written up in `WORKFLOW.md` → Open items, checked
+against the live database: four accounts can lose the fake address today
+because Google already holds a real one, eight cannot because for them it
+*is* the login, and four are dead test rows. Not a security item — `0015`
+dropped `is_admin()`, the one policy that keyed on `will@royal.gg.local`.
 
 ---
 
@@ -914,6 +1023,29 @@ Not blocking any stage. Recorded so they are not rediscovered.
 ## Change log
 
 Newest first. One line per meaningful change.
+
+- **2026-09-10** — **Stages 2, 3 and 4 merged** (`cf4d7b0` #7, `81fa783` #8,
+  `f740f02` #9), in that order, after a preview pass returned twelve items
+  that were all fixed first. `main` now carries every page of the redesign
+  except session detail. Every branch and worktree is deleted. **CI's ratchet
+  is `--max-warnings 0`** and `main` lints clean at it.
+
+  One conflict, between Stage 2 and Stage 4, both adding a block above
+  `currentPayoutPeriod`. Both kept — but it exposed that both had inserted
+  themselves *between that function's doc comment and the function*,
+  orphaning it. The same mistake on each branch, invisible until they met.
+  Anchoring an insertion on `export function foo(` puts it below `foo`'s
+  documentation.
+- **2026-09-10** — **Preview pass on all three stages at once.** Opening the
+  PRs before merging any gave three Vercel previews simultaneously, so one
+  reading covered League, Sessions and Profile instead of three separate
+  merge cycles. Worth repeating: the human read is the scarce step, and it
+  batches even when the merges cannot.
+- **2026-09-10** — The synthetic `@royal.gg.local` address stopped being
+  displayed on the profile, and the data behind it was written up in
+  `WORKFLOW.md` → Open items before hiding it made it easy to forget.
+  Sixteen of seventeen accounts still carry one; four could lose it today,
+  eight are gated on people rather than code.
 
 - **2026-09-10** — **Stage 2's two findings closed.** The rules band now says
   all five of the mock's rules, with `PAYOUT_REMINDER_AFTER_SESSIONS` named in
