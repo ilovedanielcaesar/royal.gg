@@ -35,17 +35,39 @@ the checkbox — a tick with no log entry is how this file rots.
 | **P** | Pre-flight: land `qol-small-items`, commit the mocks | no | `[x]` | 3/3 |
 | **0** | Foundation: tokens, felt, chrome, sheet primitives | no | `[x]` | 6/6 |
 | **1** | Dashboard | one route change | `[~]` | 7/7 |
-| **2** | League | lib + roster read | `[ ]` | 0/8 |
-| **3** | Sessions list | lib only | `[ ]` | 0/6 |
-| **4** | Profile (merged) | routing | `[ ]` | 0/6 |
+| **2** | League | lib + roster read | `[~]` | 7/7 · 1 moved |
+| **3** | Sessions list | lib only | `[~]` | 6/6 |
+| **4** | Profile (merged) | routing | `[~]` | 6/6 |
 | **5** | Session detail | **migration `0020`** | `[ ]` | 0/9 |
-| **A** | **Audit: every surface in the new style** | no | `[~]` | 0/23 confirmed · 2 built |
+| **A** | **Audit: every surface in the new style** | no | `[~]` | 0/23 confirmed · 5 built |
 
-**Current focus:** Stage 2, League. Stages 0 and 1 are merged (`7e22721` PR #4,
-`cc2bfe9` PR #5). `RecordsPage` was pulled forward out of Stage 2's tail and
-restyled early, which is what turned the mockless-pages note into **Stage A**
-below — a real stage with a real inventory, because "restyle the leftovers"
-was never going to be checked.
+**Current focus:** landing Stages 2, 3 and 4, which are **built and waiting**.
+Stages 0 and 1 are merged (`7e22721` PR #4, `cc2bfe9` PR #5). `RecordsPage` was
+pulled forward out of Stage 2's tail and restyled early, which is what turned
+the mockless-pages note into **Stage A** below — a real stage with a real
+inventory, because "restyle the leftovers" was never going to be checked.
+
+> **Three stages are finished code sitting on unmerged branches.** Each has one
+> commit, in its own git worktree, branched from `main` rather than from each
+> other:
+>
+> | Branch | Worktree | Commit | `tsc` | build | lint |
+> |---|---|---|:--:|:--:|:--:|
+> | `redesign-2-league` | `../royal-stage2` | `344c445` | clean | clean | 1 (baseline) |
+> | `redesign-3-sessions` | `../royal-stage3` | `16d1f68` | clean | clean | **0** |
+> | `redesign-4-profile` | `../royal-stage4` | `06b9b02` | clean | clean | 1 (baseline) |
+>
+> Gates re-run and confirmed 2026-09-10, not taken from the commit messages.
+> **None is pushed**, so none has been through CI or a PR, and `origin` has
+> never seen them. They are siblings, so nothing has been integration-tested
+> against anything else.
+>
+> **Merge order is `2 → 3 → 4`,** for one concrete reason: Stage 3 is the
+> branch that drops CI's ratchet to `--max-warnings 0`, because it is the
+> rewrite that clears the `SessionsListPage:98` warning. Land 3 before 2 and
+> Stage 2's PR fails CI on a warning it did not introduce and cannot fix.
+> Stage 4 is last because it is the largest and touches `CumulativeChart`,
+> which Stage 1 already moved.
 
 **Owed by Will:** Stage 0's four tabs, and a **re-check** of Stage 1 as a
 member. Stage 1's admin pass is **done** — 2026-09-09, and it found eight
@@ -55,6 +77,17 @@ list changed what a member sees on the settings page: the stakes card is
 read-only for them for the first time, and nobody has looked at it in a
 browser. Every machine gate is green — `tsc`, build, lint at baseline — but no
 machine can say the chrome looks right.
+
+Three more browser passes joined that queue on 2026-09-09 without anyone
+noting it: **League, Sessions and Profile are all built and none has been
+opened.** That is Stage A rows 3, 4 and 5, and it is why they are `[~]` and
+not `[x]`. Five of the twenty-three surfaces are now built-but-unseen, which
+is a bigger unseen surface than the redesign has ever had at once.
+
+**Two decisions are Will's, not the build's,** both from Stage 2's findings:
+whether the standings row keeps its gold `YOU` pill (the mock says yes, the
+dashboard already said no, and they cannot disagree), and whether the missing
+two rules-band facts are worth a follow-up commit before the PR.
 
 > ### ⚠ START HERE
 >
@@ -514,29 +547,40 @@ Bands in this order: settings button (admin only, in the heading, marked
 `ADMIN`) · all-time rankings · current payout period · guests · league rules ·
 export · leave league.
 
-- [ ] All-time rankings. Per row: player score, a five-night trajectory
+- [x] All-time rankings. Per row: player score, a five-night trajectory
       sparkline (sage if the five-night total is up, crimson if down), all-time
       P/L. **Column headers sit above their own columns** — cramming them over
       the player name was iteration 1's complaint.
-- [ ] Sort dropdown: P/L high→low, P/L low→high, player score, consistency
+- [x] Sort dropdown: P/L high→low, P/L low→high, player score, consistency
       score, most games played.
-- [ ] **`consistencyScore()` extracted into `src/lib/stats.ts`.** Consistency
+- [x] **`consistencyScore()` extracted into `src/lib/stats.ts`.** Consistency
       exists today only as a weighted subscore inside `playerRating()`; you
       cannot sort on something you cannot name. Extract it, and have
       `playerRating()` call the extracted version so there is one definition.
-- [ ] Rankings use the Stage 1 eligibility helper. Guests and under-3-game
+
+      **Done early**, `b1c55fa`, alongside `actionScore()` — see the change
+      log. `playerRating()` calls it. It takes the nets rather than a player
+      id, because every caller already has them.
+- [x] Rankings use the Stage 1 eligibility helper. Guests and under-3-game
       members do not appear here.
-- [ ] Current payout period: a button through to the payout page. Shows when
+- [x] Current payout period: a button through to the payout page. Shows when
       the period opened and how many sessions have run — it is **not** settled
       from this page. Past 8 sessions, a reminder to pay out appears.
-- [ ] Guests band: the players not registered to the league, each viewable,
+- [x] Guests band: the players not registered to the league, each viewable,
       plus a small add-guest button. Reuses `AddGuestForm`; the full form no
       longer sits at the bottom of the page.
-- [ ] Export league data as CSV or JSON — every game, buy-in, cash-out, date
+- [x] Export league data as CSV or JSON — every game, buy-in, cash-out, date
       and player, plus metadata. Client-side off `useLeagueData`, no backend.
       A browser cannot start a download from inside a published artifact, but
       this is the real app, so an `<a download>` blob is fine.
-- [ ] Leave league, red, with a confirmation step.
+- [-] ~~Leave league, red, with a confirmation step.~~ **Moved to Stage 4**,
+      which is the choice `_FEEDBACK_V2.md` asked someone to make ("Leave
+      league now appears on both League and Profile … Worth picking one") and
+      the one Stage 4 below already recommended: leaving is something you do
+      to your own membership, and the League page is about the league. Built
+      there as `features/profile/LeaveGroupBand.tsx`, on `ConfirmButton`
+      rather than `window.confirm`, which also retires the old
+      `LeaveGroupCard`.
 
 **Backend:** one read change. The former-member marker
 (`WORKFLOW.md` → Open Items 2) needs `group_members.status` joined into the
@@ -546,6 +590,52 @@ This is the natural stage for it.
 
 **Cut from iteration 1:** the huge payout display, the recent-form band, the
 bottom-of-page add-guest form.
+
+### What Stage 2 turned up
+
+Built on `redesign-2-league` as `344c445`. `PlayersPage` (348 lines) is
+deleted; the page is `LeaguePage` plus four band files and a data hook, every
+file under 200 lines. `/g/:slug/players` is a redirect and `players/:id` is
+declared separately so the redirect cannot swallow it.
+
+**1. The roster read needed no migration after all.** This file booked Stage 2
+for "lib + roster read" expecting to touch the backend. `group_members_select`
+is already `profile_id = auth.uid() or is_group_member(group_id) or
+is_app_owner()` (`0015_rls_isolation.sql:156`), so any member can read their
+own group's memberships. It landed as a separate `useGroupMemberStatus()` hook
+rather than a field on `useLeagueData`, which three pages depend on — a fourth
+read for one marker is cheaper than widening the shared one.
+
+**2. Both `left` and `removed` are marked, and neither is filtered out.** An
+admin removing you does not make you a current member, and leaving does not
+erase your results. The two words are kept apart because being removed and
+walking away are not the same fact.
+
+**3. Two open items against the mock, neither fixed.** Recorded rather than
+quietly shipped:
+
+- **The rules band shows three facts, the mock has five.** Stakes, default
+  buy-in and reconcile threshold are there; **Join policy** and **Payout
+  reminder — after 8 sessions** are missing. `join_policy` is already on the
+  `groups` row, so it is a display gap, not a data one. The reminder has no
+  column and no named constant — the 8 is written inline as
+  `periodSessionCount > 8` in `PayoutGuestsBand`, which is the second place
+  the same number would have to be edited. **Fix: one constant in
+  `stats.ts`, both facts added.**
+- **The standings row has a gold `YOU` pill, and the dashboard's deliberately
+  does not.** `TableBand.tsx` carries the reasoning in a comment — "a gold
+  YOU tag was louder than the sheet wants" — and settled on a faint tint
+  instead. Two standings lists, one league, two answers. The mock does draw
+  the pill, so the mock-wins rule points one way and a decision Will already
+  took in a browser pass points the other. **Will picks; the two must match.**
+
+**4. The five-night sparkline is the player's last five nights *played*,** not
+the league's last five nights with gaps for absence — `sessionNets.slice(-5)`.
+This matches how Stage 1's standings sparkline already works, and differs from
+the mock's `LAST_FIVE`, which carries `null` for a night a player sat out. The
+consistent-with-shipped-code reading was taken. Worth a look in the browser: a
+player who missed three of the last five gets a line drawn from older nights
+than the row beside it.
 
 **~~Open~~ Done, early.** `RecordsPage` had no v2 mock and is where the payout
 button lands. Settled the way the proposal suggested — structure kept, clothes
@@ -564,19 +654,19 @@ Branch: `redesign-3-sessions`. Spec: `_FEEDBACK_V2.md` → Sessions;
 
 Rewrites `SessionsListPage.tsx` (301 lines). No backend.
 
-- [ ] Four header figures: **Nights logged · Reconciled · Drafted and balanced
+- [x] Four header figures: **Nights logged · Reconciled · Drafted and balanced
       · Needs review.** Table volume is gone. "Drafted and balanced" and "needs
       review" both follow from a night's discrepancy against the group's
       threshold, which is already computable client-side.
-- [ ] Cut the commentary: the `Weekly. $0.25 / $0.50…` line under the title,
+- [x] Cut the commentary: the `Weekly. $0.25 / $0.50…` line under the title,
       and the whole "needs review" prose band.
-- [ ] **Keep the month divider between games** — it was the best part.
-- [ ] Row order: date · night · players · state · action score · your net. The
+- [x] **Keep the month divider between games** — it was the best part.
+- [x] Row order: date · night · players · state · action score · your net. The
       night's note appears as a caption under the night **only when that
       session has one**. Avatars: show all up to eight; above eight, the top
       five by lifetime net plus a `+n` overflow.
-- [ ] Sorts: latest, oldest, highest action score, individual highest win.
-- [ ] **`actionScore()` moved into `src/lib/stats.ts`.** It is computed inline
+- [x] Sorts: latest, oldest, highest action score, individual highest win.
+- [x] **`actionScore()` moved into `src/lib/stats.ts`.** It is computed inline
       in `SessionsListPage.tsx:74` today, and Stage 5's session page needs the
       same number. Note the real formula clamps at 10.0 and genuinely ties —
       three of the 24 sample nights hit it — so the "highest action score" sort
@@ -596,33 +686,33 @@ Merges `MyGroupProfilePage` (157 lines, per-group: card, display name) and
 `ProfilePage` (188 lines, account-level: email, sign-in methods, identity
 linking) into one page at `/g/:slug/profile`, per Decision 4.
 
-- [ ] Card picker: clicking a card selects it and **`Save` sits at the card**,
+- [x] Card picker: clicking a card selects it and **`Save` sits at the card**,
       not at the bottom of the page. Keep the caption; drop the player's name
       from it; write the card's full name — "Ace of Spades", not "A of spades".
-- [ ] Cut the "3 of your last 4 nights" streak line. Track record carries no
+- [x] Cut the "3 of your last 4 nights" streak line. Track record carries no
       commentary on its own stats — they are obvious.
-- [ ] Your nights graph: a toggle between the cumulative **line** and the
+- [x] Your nights graph: a toggle between the cumulative **line** and the
       per-night **bar** chart. `CumulativeChart.tsx` is 336 lines and gains a
       bar mode; no chart library.
-- [ ] Ledger rows show buy-ins and cash-out as **cash values**, not `4 × $40`.
+- [x] Ledger rows show buy-ins and cash-out as **cash values**, not `4 × $40`.
       The multiple lives on the session page.
-- [ ] **A band the mock does not have.** `profile_v2.html` has no email or
+- [x] **A band the mock does not have.** `profile_v2.html` has no email or
       sign-in section, because iteration 2 was drawn before the merge was
       decided. The merged page needs a `Your account` band — email, sign-in
       methods, Google linking — reusing `SignInMethodsCard`, placed above
       Leave league so the destructive control stays last. Draw it in the sheet
       language; it is the one piece of this stage with no mock to read.
-- [ ] Routing: `/profile` (account-level, group-independent) becomes a redirect
+- [x] Routing: `/profile` (account-level, group-independent) becomes a redirect
       into the current group's profile. **Do not lose the no-group case** — an
       account that belongs to no group still has to be able to manage its
       sign-in methods, or a half-signed-up user is stranded with no route to
       identity linking. Simplest answer is to keep `/profile` rendering the
       account band alone when there is no group to redirect into.
 
-**Open — pick one, do not ship both:** Leave league now appears on the League
-page (Stage 2, item 7) *and* here. `_FEEDBACK_V2.md` flags this and asks for a
-choice. Recommendation: keep it on Profile only. Leaving is something you do to
-your own membership, and the League page is about the league.
+**~~Open~~ Settled:** Leave league is **here only**, as the recommendation
+below said it should be. Stage 2 shipped without it and this stage shipped
+`LeaveGroupBand` on `ConfirmButton`, retiring `LeaveGroupCard` and its
+`window.confirm` — which is also Stage A row 5's rule 5, paid early.
 
 **Open:** `PlayerProfilePage` — viewing *someone else* — has no v2 mock, and
 `profile_v2.html` is the "You" page (it has the card picker, Save, and Leave).
@@ -754,9 +844,9 @@ even though both are merged and green. **A `[~]` row is not done.**
 |:--:|---|---|---|:--:|
 | 1 | `DashboardPage` | `/g/:slug` | Stage 1 | `[~]` |
 | 2 | `RecordsPage` | `/g/:slug/records` | pulled forward | `[~]` |
-| 3 | `PlayersPage` → League | `/g/:slug/league` | Stage 2 | `[ ]` |
-| 4 | `SessionsListPage` | `/g/:slug/sessions` | Stage 3 | `[ ]` |
-| 5 | `MyGroupProfilePage` + `ProfilePage` (merged) | `/g/:slug/profile`, `/profile` | Stage 4 | `[ ]` |
+| 3 | `PlayersPage` → League | `/g/:slug/league` | Stage 2 | `[~]` |
+| 4 | `SessionsListPage` | `/g/:slug/sessions` | Stage 3 | `[~]` |
+| 5 | `MyGroupProfilePage` + `ProfilePage` (merged) | `/g/:slug/profile`, `/profile` | Stage 4 | `[~]` |
 | 6 | `PlayerProfilePage` | `/g/:slug/players/:id` | Stage 4 tail | `[ ]` |
 | 7 | `PlayerRatingPage` | `/g/:slug/players/:id/rating` | Stage 4 tail | `[ ]` |
 | 8 | `SessionFormPage` | `/g/:slug/sessions/new`, `/sessions/:id` | Stage 5 | `[ ]` |
@@ -820,6 +910,73 @@ Not blocking any stage. Recorded so they are not rediscovered.
 
 Newest first. One line per meaningful change.
 
+- **2026-09-10** — **This file was three stages stale, and is now caught up.**
+  Stages 2, 3 and 4 were all built on 2026-09-09 and none of them was ever
+  written down here — the status table still read `0/8`, `0/6`, `0/6` while
+  three finished branches sat in worktrees. This is exactly the rot the
+  convention note at the top warns about, arrived at from the other end: not
+  a tick with no log entry, but a stage with neither. All three gates were
+  re-run per branch today rather than believed from the commit messages, and
+  the results are in the Status block. Stage 2 also picked up a findings
+  section it never got, carrying two unresolved gaps against the mock.
+- **2026-09-09** — **Stage 4 built** on `redesign-4-profile` (`06b9b02`).
+  `MyGroupProfilePage` and `ProfilePage` merge into one per-group page: six
+  band files, a `useProfileData` hook, and an account band drawn without a
+  mock. `CumulativeChart` gained a bar mode and was split four ways doing it
+  (`CumulativeLineSeries`, `CumulativeBarSeries`, `CumulativeChartAxes`,
+  `cumulativeChartTypes`), which is the 313-line file Stage 1 flagged and
+  handed forward. `cardFullName()` in `playerSuit.ts` so the caption reads
+  "Ace of Spades". Leave league is settled here and `LeaveGroupCard` is gone,
+  taking a `window.confirm` with it. `/profile` redirects into the current
+  group and still renders the account band alone when there is no group —
+  the stranded-user case the stage was told not to lose.
+- **2026-09-09** — **Stage 3 built** on `redesign-3-sessions` (`16d1f68`).
+  `SessionsListPage` 345 → ~44 lines behind nine feature files; it reads
+  through `useLeagueData` instead of its own fetch, which is what removes the
+  `set-state-in-effect` warning. **CI's ratchet comes down to
+  `--max-warnings 0` in the same commit**, as this file required — so this
+  branch is the one that has to land before the other two, or their PRs fail
+  on a warning they neither introduced nor can fix. `actionScore()` finally
+  has its caller, closing the duplication the extraction below opened.
+- **2026-09-09** — **Stage 2 built** on `redesign-2-league` (`344c445`).
+  `PlayersPage` (348 lines) deleted; `LeaguePage` plus four bands and a data
+  hook. `/g/:slug/players` redirects to `/league`. The former-member marker
+  needed **no migration** — `group_members_select` already lets a member read
+  their own group's memberships — and landed as its own hook rather than
+  widening `useLeagueData`, which three pages share. Export writes reported
+  *and* adjusted cash-outs so the archive keeps reconciliation reversible,
+  keeps every amount an integer `*_cents` column, and quotes cells beginning
+  `= + - @` against formula injection. Leave league was **not** built here;
+  see Stage 4. Two gaps recorded and not fixed: the rules band shows three of
+  the mock's five facts, and the standings `YOU` pill contradicts the
+  dashboard's.
+- **2026-09-09** — **`consistencyScore()` and `actionScore()` extracted** into
+  `src/lib/stats.ts` (`b1c55fa`), ahead of the stages that need them. Both are
+  prerequisites two stages would otherwise have added to the same file and
+  collided over: Stage 2's sort dropdown cannot sort on a subscore with no
+  name, and Stage 5's session page needs the same action figure Stage 3's list
+  computes. `playerRating()` now calls the extracted `consistencyScore()`, so
+  there is one definition. **`actionScore()` has no caller yet** —
+  `SessionsListPage.tsx:74` still computes it inline, which is the duplication
+  the extraction was meant to end; Stage 3 rewrites that page and owns
+  switching the call site over. Ticks Stage 2's third box before Stage 2
+  starts.
+- **2026-09-09** — **Stage 1's feedback round landed** (`3d5e6ab`): the eight
+  items from Will's admin browser pass, including the refocused-tab bug, which
+  was never a reload — `AuthProvider` was storing a fresh `user` object on
+  every catch-up refresh and six effects keyed on the object refired. Fixed at
+  both ends. Band 4 became `Standings` and now obeys `isRankingEligible()`,
+  reversing Stage 1's decision to list guests there.
+
+  **Process note, recorded because the convention says otherwise:** this and
+  the extraction above went **straight onto `main`**, with no PR and no CI run
+  — the branch `dashboard-feedback` is a local pointer at `main` that was
+  never pushed. `CLAUDE.md` → Branching says every phase goes through a PR,
+  "even working alone: it is where the diff gets read before it lands, where
+  CI runs, and where the reasoning is kept." Two of those three still happened
+  (a second agent reviewed the work, and the reasoning is in the commit
+  bodies). CI is the one that did not. The gates were run by hand instead and
+  were green. Stage 2 goes back through a PR.
 - **2026-09-09** — **`RecordsPage` restyled early**, out of Stage 2's tail,
   on `redesign-records-page`. Brought `ConfirmButton` (the last deferred
   Stage 0 shared piece) and a `subtle` `Button` variant — the existing `ghost`
