@@ -95,6 +95,13 @@ export default function RankingsBand({
                       row.totalNetCents
                     )}.`}
                     className={`${GRID} rounded-[10px] px-2.5 py-2.5 transition hover:bg-card-100/60 ${
+                      // Your own row is a faint tint and NO label, matching
+                      // the dashboard's standings exactly. Two lists ranking
+                      // one league cannot mark you two different ways. The
+                      // mock draws a gold YOU pill here; it predates the
+                      // Stage 1 browser pass that dropped the same pill from
+                      // TableBand for being louder than the sheet wants, and
+                      // Will re-confirmed that call for this page.
                       row.playerId === myPlayerId ? "bg-card-100/60" : ""
                     }`}
                   >
@@ -108,11 +115,6 @@ export default function RankingsBand({
                           <span className="truncate text-[13.5px] font-medium">
                             {name}
                           </span>
-                          {row.playerId === myPlayerId && (
-                            <span className="rounded-full bg-gold-500/[0.16] px-1.5 py-0.5 text-[9px] font-semibold text-gold-ink">
-                              YOU
-                            </span>
-                          )}
                           {formerMemberLabel(row.memberStatus) && (
                             <span className="text-[10px] font-medium text-ink-500">
                               {formerMemberLabel(row.memberStatus)}
