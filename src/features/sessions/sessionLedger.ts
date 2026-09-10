@@ -37,9 +37,18 @@ export function compareSessionRows(
     return b.actionScore - a.actionScore || -date || -id;
   }
   if (sort === "biggest-win") {
-    const aWin = a.biggestWinCents ?? Number.NEGATIVE_INFINITY;
-    const bWin = b.biggestWinCents ?? Number.NEGATIVE_INFINITY;
-    return bWin - aWin || -date || -id;
+    // YOUR net, not the night's best result. "Individual highest win" reads
+    // as a claim about the person reading it, and sorting by whoever happened
+    // to win that night answered a question nobody asked — every player saw
+    // the same order.
+    //
+    // Descending net puts your profitable nights first and your losses after
+    // them, worst last. A night you did not play sorts below every night you
+    // did, however badly it went: absence is not a result, and ranking it
+    // among them would put an empty row above a real one.
+    const aNet = a.yourNetCents ?? Number.NEGATIVE_INFINITY;
+    const bNet = b.yourNetCents ?? Number.NEGATIVE_INFINITY;
+    return bNet - aNet || -date || -id;
   }
   return -date || -id;
 }
