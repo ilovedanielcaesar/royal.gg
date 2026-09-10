@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Button from "./Button";
+import { publicAppUrl } from "../lib/appUrl";
 import type { Database } from "../types/database";
 
 type GroupInvite = Database["public"]["Tables"]["group_invites"]["Row"];
@@ -18,7 +19,7 @@ export default function InviteLinkRow({
   onRevoke,
 }: Props) {
   const [loadedAt] = useState(() => Date.now());
-  const inviteUrl = `${window.location.origin}/join/${invite.token}`;
+  const inviteUrl = publicAppUrl(`/join/${invite.token}`);
   const expired =
     invite.expires_at !== null &&
     new Date(invite.expires_at).getTime() <= loadedAt;

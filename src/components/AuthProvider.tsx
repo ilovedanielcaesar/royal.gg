@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import type { Session } from "@supabase/supabase-js";
 import {
   AuthContext,
@@ -15,6 +21,24 @@ const unconfiguredCurrentUser: CurrentUser = {
   isAppOwner: false,
   refresh: async () => {},
 };
+
+/**
+ * Whether two sessions are the same session as far as React state is
+ * concerned — same account, same access token.
+ *
+ * Compared by value rather than by object identity because supabase-js hands
+ * us a freshly built session object on events that changed nothing we read.
+ * The one that matters is the catch-up it runs when a hidden tab comes back
+ * to the front: it emits SIGNED_IN with the session it already had, and
+ * storing that object re-rendered every consumer and refired every effect
+ * keyed on the user. That is the whole "the page reloads when I switch tabs"
+ * bug — nothing reloaded, the app threw its data away and fetched it again.
+ */
+function sameSession(a: Session | null, b: Session | null): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return a.user.id === b.user.id && a.access_token === b.access_token;
+}
 
 export default function AuthProvider({ children }: { children: ReactNode }) {
   if (!isSupabaseConfigured) {
@@ -65,13 +89,17 @@ function ConfiguredAuthProvider({ children }: { children: ReactNode }) {
 
     void supabase.auth.getSession().then(({ data }) => {
       if (cancelled) return;
-      setSession(data.session);
+      setSession((prev) => (sameSession(prev, data.session) ? prev : data.session));
       setAuthReady(true);
     });
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
       if (cancelled) return;
-      setSession(s);
+      // Keep the object we already hold when nothing changed — see
+      // sameSession above. A real refresh does change the access token, and
+      // that new object is stored; consumers survive it by keying on the user
+      // id rather than on the session, which is the other half of the fix.
+      setSession((prev) => (sameSession(prev, s) ? prev : s));
       setAuthReady(true);
     });
 
@@ -124,7 +152,7 @@ function ConfiguredAuthProvider({ children }: { children: ReactNode }) {
     const supabase = requireSupabase();
     const { data } = await supabase.auth.getSession();
     const s = data.session;
-    setSession(s);
+    setSession((prev) => (sameSession(prev, s) ? prev : s));
     setAuthReady(true);
 
     if (!s?.user) {
@@ -149,14 +177,12 @@ function ConfiguredAuthProvider({ children }: { children: ReactNode }) {
   const loading =
     !authReady || (userId !== null && loaded.forUserId !== userId);
 
-  const currentUser: CurrentUser = {
-    loading,
-    session,
-    user,
-    profile,
-    isAppOwner,
-    refresh,
-  };
+  // Memoised so a re-render of this provider that changed none of these
+  // cannot invalidate every consumer's context value.
+  const currentUser = useMemo<CurrentUser>(
+    () => ({ loading, session, user, profile, isAppOwner, refresh }),
+    [loading, session, user, profile, isAppOwner, refresh]
+  );
 
   return (
     <AuthContext.Provider value={currentUser}>{children}</AuthContext.Provider>

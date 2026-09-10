@@ -38,6 +38,9 @@ export default function TrajectoryBand({
   legend,
 }: Props) {
   const [view, setView] = useState<View>("you");
+  const [emphasizedPlayerId, setEmphasizedPlayerId] = useState<string | null>(
+    null
+  );
 
   // ONE domain, computed across both views. Neither view narrows it to its
   // own data, so switching tabs leaves the gridlines, the zero line and the
@@ -54,6 +57,8 @@ export default function TrajectoryBand({
   );
 
   const active = view === "you" ? yourSeries : leagueSeries;
+  const activeColorOf =
+    view === "you" ? () => "var(--color-ink-900)" : colorOf;
   const hasAnything = yourSeries.length > 0 || leagueSeries.length > 0;
 
   return (
@@ -69,7 +74,10 @@ export default function TrajectoryBand({
           <Tab
             label="You"
             selected={view === "you"}
-            onSelect={() => setView("you")}
+            onSelect={() => {
+              setView("you");
+              setEmphasizedPlayerId(null);
+            }}
           />
           <Tab
             label="League"
@@ -88,12 +96,15 @@ export default function TrajectoryBand({
           <CumulativeChart
             series={active}
             sessions={sessions}
-            colorOf={colorOf}
+            colorOf={activeColorOf}
             domain={domain}
             tooltip={view === "you" ? "single" : "multi"}
             height={340}
+            emphasizedPlayerId={emphasizedPlayerId}
           />
-          {view === "league" && <Legend {...legend} />}
+          {view === "league" && (
+            <Legend {...legend} onEmphasize={setEmphasizedPlayerId} />
+          )}
         </div>
       )}
     </Band>
@@ -130,25 +141,33 @@ function Tab({
 function Legend({
   winners,
   losers,
+  onEmphasize,
 }: {
   winners: Array<{ player: Player; color: string }>;
   losers: Array<{ player: Player; color: string }>;
+  onEmphasize: (playerId: string | null) => void;
 }) {
   if (winners.length === 0 && losers.length === 0) return null;
   const all = [...winners, ...losers];
   return (
     <ul className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5">
       {all.map((entry) => (
-        <li
-          key={entry.player.id}
-          className="inline-flex items-center gap-1.5 text-xs text-ink-700"
-        >
-          <span
-            aria-hidden="true"
-            className="inline-block h-2 w-3.5 rounded-sm"
-            style={{ backgroundColor: entry.color }}
-          />
-          {entry.player.display_name ?? entry.player.name}
+        <li key={entry.player.id}>
+          <button
+            type="button"
+            onMouseEnter={() => onEmphasize(entry.player.id)}
+            onMouseLeave={() => onEmphasize(null)}
+            onFocus={() => onEmphasize(entry.player.id)}
+            onBlur={() => onEmphasize(null)}
+            className="inline-flex items-center gap-1.5 text-xs text-ink-700 hover:text-ink-900"
+          >
+            <span
+              aria-hidden="true"
+              className="inline-block h-2 w-3.5 rounded-sm"
+              style={{ backgroundColor: entry.color }}
+            />
+            {entry.player.display_name ?? entry.player.name}
+          </button>
         </li>
       ))}
     </ul>

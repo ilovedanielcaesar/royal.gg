@@ -36,6 +36,7 @@ type Props = {
    * before, and it is the thing you hover a point to find out.
    */
   tooltip?: "multi" | "single";
+  emphasizedPlayerId?: string | null;
 };
 
 const PAD_LEFT = 44;
@@ -50,6 +51,7 @@ export default function CumulativeChart({
   colorOf,
   domain,
   tooltip = "multi",
+  emphasizedPlayerId,
 }: Props) {
   const [hoverX, setHoverX] = useState<number | null>(null);
 
@@ -93,6 +95,14 @@ export default function CumulativeChart({
             Math.round(((hoverX - PAD_LEFT) / innerW) * xMax)
           )
         );
+
+  // Only dim the others when the emphasized series is actually on the chart.
+  // A legend can outlive its line — `leagueSeries` drops a player with no
+  // points and the legend does not — and without this an id that matches
+  // nothing would fade all six lines and highlight none.
+  const hasEmphasis = series.some(
+    (s) => s.playerId === emphasizedPlayerId && s.points.length > 0
+  );
 
   if (series.length === 0 || series.every((s) => s.points.length === 0)) {
     return (
@@ -207,6 +217,8 @@ export default function CumulativeChart({
         {/* Series */}
         {series.map((s) => {
           if (s.points.length === 0) return null;
+          const isEmphasized = emphasizedPlayerId === s.playerId;
+          const isDimmed = hasEmphasis && !isEmphasized;
           const overrideColor = colorOf ? colorOf(s.playerId) : null;
           let color: string;
           if (overrideColor) {
@@ -228,12 +240,12 @@ export default function CumulativeChart({
             .join(" ");
           const last = s.points[s.points.length - 1]!;
           return (
-            <g key={s.playerId}>
+            <g key={s.playerId} opacity={isDimmed ? 0.22 : 1}>
               <path
                 d={d}
                 fill="none"
                 stroke={color}
-                strokeWidth={2}
+                strokeWidth={isEmphasized ? 3 : 2}
                 strokeLinejoin="round"
                 strokeLinecap="round"
               />
