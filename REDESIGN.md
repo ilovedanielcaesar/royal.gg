@@ -35,7 +35,7 @@ the checkbox — a tick with no log entry is how this file rots.
 | **P** | Pre-flight: land `qol-small-items`, commit the mocks | no | `[x]` | 3/3 |
 | **0** | Foundation: tokens, felt, chrome, sheet primitives | no | `[x]` | 6/6 |
 | **1** | Dashboard | one route change | `[~]` | 7/7 |
-| **2** | League | lib + roster read | `[~]` | 7/7 · 1 moved |
+| **2** | League | **none needed** | `[~]` | 7/7 · 1 moved |
 | **3** | Sessions list | lib only | `[~]` | 6/6 |
 | **4** | Profile (merged) | routing | `[~]` | 6/6 |
 | **5** | Session detail | **migration `0020`** | `[ ]` | 0/9 |
@@ -53,7 +53,7 @@ inventory, because "restyle the leftovers" was never going to be checked.
 >
 > | Branch | Worktree | Commit | `tsc` | build | lint |
 > |---|---|---|:--:|:--:|:--:|
-> | `redesign-2-league` | `../royal-stage2` | `344c445` | clean | clean | 1 (baseline) |
+> | `redesign-2-league` | `../royal-stage2` | `c6806b8` | clean | clean | 1 (baseline) |
 > | `redesign-3-sessions` | `../royal-stage3` | `16d1f68` | clean | clean | **0** |
 > | `redesign-4-profile` | `../royal-stage4` | `06b9b02` | clean | clean | 1 (baseline) |
 >
@@ -84,10 +84,10 @@ opened.** That is Stage A rows 3, 4 and 5, and it is why they are `[~]` and
 not `[x]`. Five of the twenty-three surfaces are now built-but-unseen, which
 is a bigger unseen surface than the redesign has ever had at once.
 
-**Two decisions are Will's, not the build's,** both from Stage 2's findings:
-whether the standings row keeps its gold `YOU` pill (the mock says yes, the
-dashboard already said no, and they cannot disagree), and whether the missing
-two rules-band facts are worth a follow-up commit before the PR.
+Stage 2's two findings are **both closed** (`8034b75`, `c6806b8`) — the rules
+band says all five rules, and the `YOU` pill is gone in favour of the
+dashboard's faint tint. Nothing on Stage 2 waits on a decision now; it waits
+on a PR and a pair of eyes.
 
 > ### ⚠ START HERE
 >
@@ -611,23 +611,28 @@ admin removing you does not make you a current member, and leaving does not
 erase your results. The two words are kept apart because being removed and
 walking away are not the same fact.
 
-**3. Two open items against the mock, neither fixed.** Recorded rather than
-quietly shipped:
+**3. Two gaps against the mock, both found in review and both now fixed.**
+Recorded rather than quietly patched:
 
-- **The rules band shows three facts, the mock has five.** Stakes, default
-  buy-in and reconcile threshold are there; **Join policy** and **Payout
-  reminder — after 8 sessions** are missing. `join_policy` is already on the
-  `groups` row, so it is a display gap, not a data one. The reminder has no
-  column and no named constant — the 8 is written inline as
-  `periodSessionCount > 8` in `PayoutGuestsBand`, which is the second place
-  the same number would have to be edited. **Fix: one constant in
-  `stats.ts`, both facts added.**
-- **The standings row has a gold `YOU` pill, and the dashboard's deliberately
-  does not.** `TableBand.tsx` carries the reasoning in a comment — "a gold
-  YOU tag was louder than the sheet wants" — and settled on a faint tint
-  instead. Two standings lists, one league, two answers. The mock does draw
-  the pill, so the mock-wins rule points one way and a decision Will already
-  took in a browser pass points the other. **Will picks; the two must match.**
+- **The rules band showed three facts; the mock has five.** Join policy was
+  missing though `join_policy` is already on the `groups` row, and the payout
+  reminder was missing entirely — which left the number 8 living in exactly
+  one place, as an inline `periodSessionCount > 8` in the band directly above
+  it. Fixed in `8034b75`: `PAYOUT_REMINDER_AFTER_SESSIONS` in `stats.ts`,
+  read by both, and `join_policy` printed in English rather than as
+  `code_approve`. It is deliberately **not** a `groups` column — nothing can
+  set it, and a settings control nobody asked for is more than this stage
+  owns. The constant is the seam if it ever wants to be per-group.
+- **The standings row drew a gold `YOU` pill; the dashboard's deliberately
+  does not.** `TableBand.tsx` carries the reasoning — "a gold YOU tag was
+  louder than the sheet wants" — and settled on a faint tint. Two lists
+  ranking one league cannot mark you two different ways. The mock draws the
+  pill, so the mock-wins rule pointed one way and the Stage 1 browser pass
+  pointed the other. **Will chose the dashboard's answer, 2026-09-10**: pill
+  dropped in `c6806b8`, faint tint only, reasoning left at the call site
+  because the next person to read the mock will ask. A shipped decision beats
+  a drawing that predates it — worth remembering the next time the two
+  disagree.
 
 **4. The five-night sparkline is the player's last five nights *played*,** not
 the league's last five nights with gaps for absence — `sessionNets.slice(-5)`.
@@ -910,6 +915,13 @@ Not blocking any stage. Recorded so they are not rediscovered.
 
 Newest first. One line per meaningful change.
 
+- **2026-09-10** — **Stage 2's two findings closed.** The rules band now says
+  all five of the mock's rules, with `PAYOUT_REMINDER_AFTER_SESSIONS` named in
+  `stats.ts` so the reminder's `8` stops being an inline literal in one band
+  and absent from the next (`8034b75`). The standings `YOU` pill is dropped
+  for the dashboard's faint tint, on Will's call — a shipped decision beating
+  a mock that predates it (`c6806b8`). Stage 2 is now waiting only on a PR
+  and a browser pass.
 - **2026-09-10** — **This file was three stages stale, and is now caught up.**
   Stages 2, 3 and 4 were all built on 2026-09-09 and none of them was ever
   written down here — the status table still read `0/8`, `0/6`, `0/6` while
