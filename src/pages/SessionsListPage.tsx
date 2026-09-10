@@ -1,301 +1,64 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import Button from "../components/Button";
-import Card from "../components/Card";
-import SessionStatusBadge from "../components/SessionStatusBadge";
-import { useCurrentUser } from "../lib/authContext";
-import { describeError } from "../lib/errors";
-import { formatPlayedAt } from "../lib/format";
+import { useState } from "react";
+import Band from "../components/Band";
+import FeltButton from "../components/FeltButton";
+import PageHeading from "../components/PageHeading";
+import Sheet from "../components/Sheet";
+import SessionsLedgerBand from "../features/sessions/SessionsLedgerBand";
+import SessionsSummaryBand from "../features/sessions/SessionsSummaryBand";
+import {
+  useSessionsData,
+  type SessionFilter,
+} from "../features/sessions/useSessionsData";
 import { useGroup } from "../lib/groupContext";
-import { formatSignedCents } from "../lib/money";
-import { requireSupabase } from "../lib/supabase";
-import type { Database } from "../types/database";
 
-type Session = Database["public"]["Tables"]["sessions"]["Row"];
-
-type SessionWithStats = Session & {
-  player_count: number;
-  /** Action score 0–10 — how violently stacks moved this night. */
-  action_score: number;
-};
-
+/**
+ * The sessions ledger: one summary band and one list band inside a single
+ * cream sheet. All data shaping lives in `useSessionsData`.
+ */
 export default function SessionsListPage() {
-  const { isGroupAdmin, path, group } = useGroup();
-  const { user } = useCurrentUser();
-  const groupId = group?.id ?? "";
-  const [sessions, setSessions] = useState<SessionWithStats[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-
-  async function load() {
-    try {
-      const sb = requireSupabase();
-      const { data: rows, error } = await sb
-        .from("sessions")
-        .select(
-          "*, buy_ins(amount_cents, player_id), cash_outs(adjusted_amount_cents, player_id)"
-        )
-        .eq("group_id", groupId)
-        .order("played_at", { ascending: false });
-      if (error) throw error;
-
-      type Row = Session & {
-        buy_ins: { amount_cents: number; player_id: string }[];
-        cash_outs: { adjusted_amount_cents: number; player_id: string }[];
-      };
-      const enriched: SessionWithStats[] = (rows as unknown as Row[]).map(
-        (s) => {
-          const playerIds = new Set([
-            ...s.buy_ins.map((b) => b.player_id),
-            ...(s.cash_outs || []).map((c) => c.player_id),
-          ]);
-
-          // Action score: see sessionScore() in stats.ts. Three parts:
-          //   per-player swing + table-size bonus + rebuy bonus.
-          let totalAbsCents = 0;
-          let rebuyPlayerCount = 0;
-          playerIds.forEach((pid) => {
-            const playerBuys = s.buy_ins.filter((b) => b.player_id === pid);
-            const buy = playerBuys.reduce((sum, b) => sum + b.amount_cents, 0);
-            const cashOut =
-              (s.cash_outs || []).find((c) => c.player_id === pid)
-                ?.adjusted_amount_cents ?? 0;
-            totalAbsCents += Math.abs(cashOut - buy);
-            if (playerBuys.length > 1) rebuyPlayerCount += 1;
-          });
-          const perPlayerDollars =
-            playerIds.size > 0
-              ? totalAbsCents / playerIds.size / 100
-              : 0;
-          const swingScore = perPlayerDollars / 8;
-          const tableBonus = Math.max(0, playerIds.size - 4) * 0.3;
-          const rebuyBonus = rebuyPlayerCount * 0.4;
-          const totalScore = swingScore + tableBonus + rebuyBonus;
-          const actionScore = Math.max(
-            0,
-            Math.min(10, Math.round(totalScore * 10) / 10)
-          );
-
-          return {
-            ...s,
-            player_count: playerIds.size,
-            action_score: actionScore,
-          };
-        }
-      );
-      setSessions(enriched);
-    } catch (e) {
-      console.error(e);
-      setError(describeError(e));
-    }
-  }
-
-  useEffect(() => {
-    // groupId, not [] — React Router keeps this component mounted when only
-    // the :slug param changes, so an empty dep list would show the previous
-    // group's sessions after a switch.
-    if (!groupId) return;
-    void load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [groupId]);
-
-  async function handleDelete(id: string) {
-    if (
-      !confirm(
-        "Delete this session? Buy-ins and cash-outs will be removed too. This cannot be undone."
-      )
-    ) {
-      return;
-    }
-    setDeletingId(id);
-    setError(null);
-    try {
-      const sb = requireSupabase();
-      const { data, error } = await sb
-        .from("sessions")
-        .delete()
-        .eq("id", id)
-        .eq("group_id", groupId)
-        .select("id");
-      if (error) throw error;
-      if (!data || data.length === 0) {
-        throw new Error(
-          "That game log could not be deleted. Only a draft can be deleted, and only by its author or an admin."
-        );
-      }
-      setSessions((prev) => (prev ? prev.filter((s) => s.id !== id) : prev));
-    } catch (e) {
-      console.error(e);
-      setError(describeError(e));
-    } finally {
-      setDeletingId(null);
-    }
-  }
-
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="font-display text-4xl text-card-50">Sessions</h1>
-          <p className="mt-1 text-sm text-card-50/60">
-            Every night, in reverse-chronological order.
-          </p>
-        </div>
-        <Link to={path("/sessions/new")}>
-          <Button>+ New session</Button>
-        </Link>
-      </div>
-
-      {error && (
-        <Card accent="crimson">
-          <p className="p-4 text-sm text-crimson-700">{error}</p>
-        </Card>
-      )}
-
-      {sessions === null ? (
-        <p className="text-card-50/60">Dealing…</p>
-      ) : sessions.length === 0 ? (
-        <Card>
-          <p className="p-6 text-sm text-ink-500">
-            No sessions yet. Hit "New session" to log the first night.
-          </p>
-        </Card>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {sessions.map((s, idx) => (
-            <SessionCard
-              key={s.id}
-              session={s}
-              dealIn={idx * 60}
-              canDelete={
-                s.status === "draft" &&
-                (isGroupAdmin || s.created_by === user?.id)
-              }
-              deleting={deletingId === s.id}
-              onDelete={() => void handleDelete(s.id)}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function SessionCard({
-  session,
-  dealIn,
-  canDelete,
-  deleting,
-  onDelete,
-}: {
-  session: SessionWithStats;
-  dealIn: number;
-  canDelete: boolean;
-  deleting: boolean;
-  onDelete: () => void;
-}) {
   const { path } = useGroup();
-  const accent = session.needs_review
-    ? "crimson"
-    : session.reconciled
-      ? "sage"
-      : "gold";
-  const date = parseLocalDate(session.played_at);
-  const day = date.getDate();
-  const monthShort = date.toLocaleString(undefined, { month: "short" });
+  const { data, error } = useSessionsData();
+  const [filter, setFilter] = useState<SessionFilter>("all");
 
   return (
-    <div className="relative">
-      <Link to={path(`/sessions/${session.id}`)}>
-        <Card
-          as="article"
-          accent={accent}
-          interactive
-          watermarkSuit={(["spade", "heart", "diamond", "club"] as const)[
-            day % 4
-          ]}
-          rankLabel={`${monthShort} ${day}`}
-          dealIn={dealIn}
-        >
-          <div className="flex h-44 flex-col justify-between p-5">
-            <div className="pl-10 sm:pl-14">
-              <div className="font-display text-2xl text-ink-900">
-                {formatPlayedAt(session.played_at)}
-              </div>
-              {session.notes && (
-                <div className="mt-1 line-clamp-1 text-xs text-ink-500">
-                  {session.notes}
-                </div>
-              )}
-            </div>
-            <div className="flex items-end justify-between">
-              <div>
-                <div className="text-xs uppercase tracking-wide text-ink-500">
-                  Action
-                </div>
-                <div className="tabular font-display text-3xl text-ink-900">
-                  {session.action_score.toFixed(1)}
-                  <span className="text-base text-ink-500">/10</span>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-xs uppercase tracking-wide text-ink-500">
-                  Players
-                </div>
-                <div className="font-display text-3xl text-ink-900">
-                  {session.player_count}
-                </div>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <SessionStatusBadge status={session.status} />
-              <StatusPill session={session} />
-            </div>
-          </div>
-        </Card>
-      </Link>
-      {canDelete && (
-        <button
-          type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onDelete();
-          }}
-          disabled={deleting}
-          className="absolute right-3 top-3 rounded-md bg-card-50/90 px-2 py-1 text-xs text-ink-500 ring-1 ring-card-200 transition hover:bg-crimson-500/10 hover:text-crimson-700 disabled:opacity-50"
-          aria-label="Delete session"
-        >
-          {deleting ? "…" : "Delete"}
-        </button>
+    <>
+      <PageHeading
+        title="Sessions"
+        subtitle={data?.subtitle}
+        actions={
+          <FeltButton to={path("/sessions/new")}>+ New session</FeltButton>
+        }
+      />
+
+      {error && !data ? (
+        <Sheet>
+          <Band>
+            <p className="text-sm text-crimson-700">{error}</p>
+          </Band>
+        </Sheet>
+      ) : !data ? (
+        <p className="text-card-50/60">Dealing…</p>
+      ) : (
+        <Sheet>
+          {error && (
+            <Band>
+              <p className="text-sm text-crimson-700">{error}</p>
+            </Band>
+          )}
+          <SessionsSummaryBand
+            summary={data.summary}
+            activeFilter={filter}
+            onFilter={setFilter}
+          />
+          <SessionsLedgerBand
+            rows={data.rows}
+            counts={data.summary}
+            activeFilter={filter}
+            onFilter={setFilter}
+            sessionHref={(id) => path(`/sessions/${id}`)}
+          />
+        </Sheet>
       )}
-    </div>
+    </>
   );
-}
-
-function StatusPill({ session }: { session: SessionWithStats }) {
-  if (session.needs_review) {
-    return (
-      <div className="inline-flex w-max items-center gap-1 rounded-full bg-crimson-600/10 px-2 py-0.5 text-xs text-crimson-700">
-        Needs review · {formatSignedCents(session.discrepancy_cents)}
-      </div>
-    );
-  }
-  if (session.reconciled) {
-    return (
-      <div className="inline-flex w-max items-center gap-1 rounded-full bg-sage-600/15 px-2 py-0.5 text-xs text-sage-700">
-        Reconciled
-      </div>
-    );
-  }
-  return (
-    <div className="inline-flex w-max items-center gap-1 rounded-full bg-card-200/50 px-2 py-0.5 text-xs text-ink-500">
-      In progress
-    </div>
-  );
-}
-
-function parseLocalDate(s: string): Date {
-  const [y, m, d] = s.split("-").map(Number);
-  return new Date(y, m - 1, d);
 }
