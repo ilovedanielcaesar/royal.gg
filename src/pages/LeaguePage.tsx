@@ -25,11 +25,13 @@ export default function LeaguePage() {
         subtitle={subtitle}
         actions={
           isGroupAdmin && (
+            /* No ADMIN pill on the button. A member never sees this link at
+               all, so the marker told the one person who could not act on it
+               nothing, and told the admin something they already knew. The
+               pill belongs where the privilege is exercised — beside the
+               heading on the settings page itself. */
             <FeltButton variant="ghost" to={path("/settings")}>
               Settings
-              <span className="ml-2 rounded bg-gold-500/20 px-1.5 py-0.5 text-[10px] font-bold tracking-[0.08em] text-gold-ink">
-                ADMIN
-              </span>
             </FeltButton>
           )
         }
