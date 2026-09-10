@@ -44,7 +44,7 @@ export default function GroupNav() {
       <NavLink to={`/g/${slug}/sessions`} className={navLinkClass}>
         Sessions
       </NavLink>
-      <NavLink to={`/g/${slug}/players`} className={navLinkClass}>
+      <NavLink to={`/g/${slug}/league`} className={navLinkClass}>
         League
       </NavLink>
       {/* Your card, your stats in this group, and Leave. Needs no role, so
