@@ -1,7 +1,15 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import Band from "../components/Band";
 import Button from "../components/Button";
 import Card from "../components/Card";
+import ErrorNote from "../components/ErrorNote";
+import FeltButton from "../components/FeltButton";
+import Field from "../components/Field";
+import LoadingState from "../components/LoadingState";
+import PageHeading from "../components/PageHeading";
+import Sheet from "../components/Sheet";
+import TextInput from "../components/TextInput";
 import { useCurrentUser } from "../lib/auth";
 import { describeError } from "../lib/errors";
 import { requireSupabase } from "../lib/supabase";
@@ -72,73 +80,64 @@ export default function GroupsPage() {
   const loading = !user || !state || state.userId !== user.id;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="font-display text-4xl text-card-50">Your groups</h1>
-          <p className="mt-1 text-sm text-card-50/60">
-            Choose a table or start a new one.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link to="/join">
-            <Button variant="ghost">Join with a code</Button>
-          </Link>
-          <Link to="/groups/new">
-            <Button>Create group</Button>
-          </Link>
-        </div>
-      </div>
+    <>
+      <PageHeading
+        title="Your groups"
+        subtitle="Choose a table or start a new one."
+        actions={
+          <>
+            <FeltButton variant="ghost" to="/join">
+              Join with a code
+            </FeltButton>
+            <FeltButton to="/groups/new">Create group</FeltButton>
+          </>
+        }
+      />
 
       {state?.error && (
-        <Card accent="crimson">
-          <p className="p-4 text-sm text-crimson-700">{state.error}</p>
-        </Card>
+        <ErrorNote tone="felt" className="mb-4">
+          {state.error}
+        </ErrorNote>
       )}
 
       {loading ? (
-        <p className="text-sm text-card-50/60">Dealing in…</p>
+        <LoadingState tone="felt" label="Dealing in…" full />
       ) : state.groups.length === 0 ? (
-        <Card watermarkSuit="club" accent="gold">
-          <div className="p-6">
-            <h2 className="font-display text-2xl text-ink-900">
-              No groups yet
-            </h2>
-            <p className="mt-2 max-w-xl text-sm text-ink-500">
-              Create a group to start your own table, or ask a group admin for
-              a join code.
-            </p>
+        // The empty state is the onboarding for a brand-new account, so it is
+        // a page body — a sheet — rather than one lonely card in a grid of one.
+        <Sheet>
+          <Band
+            kicker="Nothing dealt yet"
+            title="No groups yet"
+            caption="Create a group to start your own table, or ask a group admin for a join code."
+          >
             <form
-              className="mt-5 flex max-w-md flex-col gap-3 sm:flex-row"
+              className="mt-5 flex max-w-md flex-col gap-3 sm:flex-row sm:items-end"
               onSubmit={(event) => {
                 event.preventDefault();
                 const code = joinCode.trim();
                 navigate(code ? `/join/${encodeURIComponent(code)}` : "/join");
               }}
             >
-              <label className="flex-1">
-                <span className="sr-only">Join code</span>
-                <input
+              <Field label="Join code" className="flex-1">
+                <TextInput
                   value={joinCode}
                   onChange={(event) => setJoinCode(event.target.value)}
                   placeholder="Join code"
                   autoComplete="off"
-                  className="w-full rounded-md bg-card-50 px-3 py-2 text-sm text-ink-900 ring-1 ring-card-200"
                 />
-              </label>
+              </Field>
               <Button type="submit" variant="secondary">
                 Join group
               </Button>
             </form>
-            <Link
-              to="/join"
-              className="mt-3 inline-block text-xs text-sage-700 underline"
-            >
-              Enter a code on the join page
-            </Link>
-          </div>
-        </Card>
+          </Band>
+        </Sheet>
       ) : (
+        // A grid of tiles is the one page body that is NOT a sheet: `Card` is
+        // exactly the primitive for several small standalone tiles side by
+        // side, and folding these into bands would lose the deal-in stagger
+        // and the hover lift that make a table feel pickable.
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {state.groups.map((group, index) => (
             <Link key={group.slug} to={`/g/${group.slug}`}>
@@ -158,7 +157,7 @@ export default function GroupsPage() {
                       {group.stakes_label}
                     </p>
                   )}
-                  <span className="mt-4 inline-block text-xs font-medium text-sage-700">
+                  <span className="mt-4 inline-block text-xs font-medium text-ink-500">
                     Open group →
                   </span>
                 </div>
@@ -167,6 +166,6 @@ export default function GroupsPage() {
           ))}
         </div>
       )}
-    </div>
+    </>
   );
 }

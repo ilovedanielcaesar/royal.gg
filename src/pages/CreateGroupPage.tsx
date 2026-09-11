@@ -1,8 +1,14 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import Band from "../components/Band";
 import Button from "../components/Button";
-import Card from "../components/Card";
 import CurrencyInput from "../components/CurrencyInput";
+import ErrorNote from "../components/ErrorNote";
+import FeltButton from "../components/FeltButton";
+import Field from "../components/Field";
+import PageHeading from "../components/PageHeading";
+import Sheet from "../components/Sheet";
+import TextInput from "../components/TextInput";
 import { useCurrentUser } from "../lib/auth";
 import { describeError } from "../lib/errors";
 import { generateJoinCode } from "../lib/joinCode";
@@ -111,79 +117,69 @@ export default function CreateGroupPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <div>
-        <h1 className="font-display text-4xl text-card-50">Create a group</h1>
-        <p className="mt-1 text-sm text-card-50/60">
-          Set the defaults for your table. You can change them later.
-        </p>
-      </div>
+    <div className="mx-auto max-w-2xl">
+      <PageHeading
+        title="Create a group"
+        subtitle="Set the defaults for your table. You can change them later."
+        actions={
+          <FeltButton variant="ghost" to="/groups">
+            ← Your groups
+          </FeltButton>
+        }
+      />
 
       {error && (
-        <Card accent="crimson">
-          <p className="p-4 text-sm text-crimson-700">{error}</p>
-        </Card>
+        <ErrorNote tone="felt" className="mb-4">
+          {error}
+        </ErrorNote>
       )}
 
-      <Card watermarkSuit="diamond" accent="gold">
-        <form className="space-y-5 p-6" onSubmit={handleSubmit}>
-          <label className="block">
-            <span className="text-xs font-medium text-ink-700">Group name</span>
-            <input
-              required
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              placeholder="Friday Night Poker"
-              className="mt-1 w-full rounded-md bg-card-50 px-3 py-2 text-sm text-ink-900 ring-1 ring-card-200"
-            />
-            <span className="mt-1.5 block text-xs text-ink-500">
-              URL: /g/{slug || "your-group"}
-            </span>
-          </label>
-
-          <label className="block">
-            <span className="text-xs font-medium text-ink-700">
-              Stakes label
-              <span className="font-normal text-ink-500"> (optional)</span>
-            </span>
-            <input
-              value={stakesLabel}
-              onChange={(event) => setStakesLabel(event.target.value)}
-              placeholder="$0.25 / $0.50"
-              className="mt-1 w-full rounded-md bg-card-50 px-3 py-2 text-sm text-ink-900 ring-1 ring-card-200"
-            />
-          </label>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block">
-              <span className="text-xs font-medium text-ink-700">
-                Default buy-in
-              </span>
-              <CurrencyInput
+      <Sheet>
+        <Band>
+          <form className="space-y-5" onSubmit={handleSubmit}>
+            <Field label="Group name" hint={`URL: /g/${slug || "your-group"}`}>
+              <TextInput
                 required
-                value={defaultBuyIn}
-                onChange={setDefaultBuyIn}
-                className="mt-1"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                placeholder="Friday Night Poker"
               />
-            </label>
-            <label className="block">
-              <span className="text-xs font-medium text-ink-700">
-                Reconcile threshold
-              </span>
-              <CurrencyInput
-                required
-                value={reconcileThreshold}
-                onChange={setReconcileThreshold}
-                className="mt-1"
-              />
-            </label>
-          </div>
+            </Field>
 
-          <Button type="submit" disabled={submitting}>
-            {submitting ? "Creating…" : "Create group"}
-          </Button>
-        </form>
-      </Card>
+            <Field label="Stakes label" optional>
+              <TextInput
+                value={stakesLabel}
+                onChange={(event) => setStakesLabel(event.target.value)}
+                placeholder="$0.25 / $0.50"
+              />
+            </Field>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Default buy-in">
+                <CurrencyInput
+                  required
+                  value={defaultBuyIn}
+                  onChange={setDefaultBuyIn}
+                />
+              </Field>
+              <Field
+                label="Reconcile threshold"
+                hint="A discrepancy up to this is split among the winners automatically; anything over it flags the night for review."
+              >
+                <CurrencyInput
+                  required
+                  value={reconcileThreshold}
+                  onChange={setReconcileThreshold}
+                />
+              </Field>
+            </div>
+
+            <Button type="submit" disabled={submitting}>
+              {submitting ? "Creating…" : "Create group"}
+            </Button>
+          </form>
+        </Band>
+      </Sheet>
     </div>
   );
 }
