@@ -57,7 +57,9 @@ export default function SettledLedgerBand({
           <span className="text-right">
             {adjusted ? "Adjusted out" : "Cash-out"}
           </span>
-          <span className="hidden text-right min-[721px]:block">Net</span>
+          <span className="hidden text-right min-[721px]:block">
+            {adjusted ? "Net · reconciled" : "Net"}
+          </span>
         </div>
 
         <div className="divide-y divide-card-100">
@@ -65,6 +67,8 @@ export default function SettledLedgerBand({
             const player = playersById.get(result.playerId);
             const delta =
               result.adjustedCashOutCents - result.reportedCashOutCents;
+            const rawNetCents =
+              result.reportedCashOutCents - result.buyInCents;
             return (
               <div
                 key={result.playerId}
@@ -97,12 +101,28 @@ export default function SettledLedgerBand({
                   {formatCents(result.adjustedCashOutCents)}
                 </span>
 
-                <span
-                  className={`tabular hidden text-right font-display text-base min-[721px]:block ${moneyToneClass(
-                    result.netCents
-                  )}`}
-                >
-                  {formatSignedCents(result.netCents)}
+                {/* Both nets, for the same reason the editor shows both:
+                    what this player counted, and what the shared-out
+                    miscount left them with. `netCents` is the adjusted one.
+                    See LedgerStepperRow. */}
+                <span className="hidden flex-col items-end leading-tight min-[721px]:flex">
+                  <span
+                    className={`tabular font-display text-base ${moneyToneClass(
+                      delta === 0 ? result.netCents : rawNetCents
+                    )}`}
+                  >
+                    {formatSignedCents(
+                      delta === 0 ? result.netCents : rawNetCents
+                    )}
+                  </span>
+                  {delta !== 0 && (
+                    <span
+                      title="Net after the table's miscount was shared out among the winners."
+                      className="tabular text-[11px] font-semibold text-gold-ink"
+                    >
+                      → {formatSignedCents(result.netCents)}
+                    </span>
+                  )}
                 </span>
               </div>
             );

@@ -1,6 +1,7 @@
 import PlayerAvatar from "../../components/PlayerAvatar";
 import { formatCents, formatSignedCents } from "../../lib/money";
 import { moneyToneClass } from "../../lib/moneyTone";
+import type { ReconcileResult } from "../../lib/reconcile";
 import {
   parseCount,
   parseDraftCents,
@@ -12,6 +13,11 @@ type Props = {
   row: SessionFormRow;
   player: SessionFormPlayer | undefined;
   buyInCents: number;
+  /**
+   * This player's line out of the live `reconcile()` run, when there is one.
+   * Absent while the group or the summary has not resolved.
+   */
+  result: ReconcileResult | undefined;
   onChange: (patch: Partial<SessionFormRow>) => void;
   onRemove: () => void;
 };
@@ -43,6 +49,7 @@ export default function LedgerStepperRow({
   row,
   player,
   buyInCents,
+  result,
   onChange,
   onRemove,
 }: Props) {
@@ -57,13 +64,48 @@ export default function LedgerStepperRow({
     onChange({ cashOut: centsToField(Math.max(0, from + delta)) });
   }
 
+  // Two nets, when the miscount was small enough to distribute.
+  //
+  // The first is what this player counted: cash-out minus buy-ins, the
+  // number they can check against the chips in front of them. The second is
+  // what they actually walk away with once the table's discrepancy has been
+  // shared out among the winners. Showing only the first hides the
+  // adjustment until after saving; showing only the second makes their own
+  // arithmetic look wrong. Both, or neither is trustworthy.
+  //
+  // `result.netCents` is already the adjusted net — see reconcile().
+  const adjustedNetCents =
+    result && result.adjustedCashOutCents !== result.reportedCashOutCents
+      ? result.netCents
+      : null;
+
   const net = (
     <span
-      className={`tabular text-right font-display text-base ${
-        netCents === null ? "text-ink-500" : moneyToneClass(netCents)
-      }`}
+      className="flex flex-col items-end leading-tight"
+      aria-label={
+        netCents === null
+          ? `Net for ${name}: not entered`
+          : adjustedNetCents === null
+            ? `Net for ${name}: ${formatSignedCents(netCents)}`
+            : `Net for ${name}: ${formatSignedCents(netCents)} as counted, ${formatSignedCents(adjustedNetCents)} after the miscount is shared out`
+      }
     >
-      {netCents === null ? "—" : formatSignedCents(netCents)}
+      <span
+        className={`tabular font-display text-base ${
+          netCents === null ? "text-ink-500" : moneyToneClass(netCents)
+        }`}
+      >
+        {netCents === null ? "—" : formatSignedCents(netCents)}
+      </span>
+      {netCents !== null && adjustedNetCents !== null && (
+        <span
+          aria-hidden="true"
+          title="Net after the table's miscount is shared out among the winners."
+          className="tabular text-[11px] font-semibold text-gold-ink"
+        >
+          → {formatSignedCents(adjustedNetCents)}
+        </span>
+      )}
     </span>
   );
 
@@ -115,7 +157,7 @@ export default function LedgerStepperRow({
   );
 
   return (
-    <div className="rounded-lg px-2.5 py-2 transition hover:bg-card-100/60 min-[721px]:grid min-[721px]:min-h-[52px] min-[721px]:grid-cols-[minmax(150px,1.8fr)_170px_180px_100px_42px] min-[721px]:items-center min-[721px]:gap-3">
+    <div className="rounded-lg px-2.5 py-2 transition hover:bg-card-100/60 min-[721px]:grid min-[721px]:min-h-[52px] min-[721px]:grid-cols-[minmax(150px,1.8fr)_170px_180px_128px_42px] min-[721px]:items-center min-[721px]:gap-3">
       <span className="flex items-center justify-between gap-2 min-[721px]:justify-start">
         <span className="flex min-w-0 items-center gap-2">
           {player && <PlayerAvatar player={player} size="sm" />}

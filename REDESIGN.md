@@ -918,6 +918,31 @@ admin-only write left is reopening an approved night, and
       199 again, behind eleven feature files, and eight old `Session*Card`
       components are deleted rather than restyled.
 
+### Feedback round — 2026-09-11
+
+One item, from Will's preview pass. Everything else on the page passed.
+
+- [x] **Show both nets while a discrepancy is being distributed.** The editor
+      showed only `cash-out − buy-ins`, so a distribution under the threshold
+      was invisible until after saving: a player up $30 on a table $3 over
+      read `+$30.00` right up to the moment the record said `+$27.00`. Each
+      winner's line now carries both — the counted net as the display figure,
+      and the reconciled net under it in `gold-ink`, which is already the
+      adjustment colour on the settled band. A loser's line is unchanged,
+      because the discrepancy goes to winners only and there is no second
+      number to show.
+
+      Applied to the approved record too, for the same reason and so the two
+      views do not disagree about what "Net" means. The column header becomes
+      `Net · reconciled` when a distribution is live, and the band caption
+      says how much is being shared and on what basis. Checked against the
+      real `reconcile()`: on a $3.00-over table, one winner takes the whole
+      −$3.00; two winners up $30 and $10 take −$2.25 and −$0.75.
+
+      The state pill's wording changed with it — `$3.00 shared among the
+      winners` rather than `+$3.00 to distribute`, and a night with no row
+      behind it yet stops calling itself a draft.
+
 ### Findings
 
 Nine, and the first is the one worth remembering.

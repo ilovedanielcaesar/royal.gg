@@ -1,4 +1,4 @@
-import { formatCents, formatSignedCents } from "../../lib/money";
+import { formatCents } from "../../lib/money";
 
 /**
  * The four conditions the session page renders under.
@@ -56,6 +56,7 @@ export function statePill(
       classes: crimson,
     };
   }
+  const prefix = state === "new" ? "" : "Draft · ";
   if (discrepancyCents === 0) {
     return {
       label: state === "new" ? "Balanced · $0.00" : "Draft · balanced",
@@ -63,7 +64,9 @@ export function statePill(
     };
   }
   return {
-    label: `Draft · ${formatSignedCents(-discrepancyCents)} to distribute`,
+    label: `${prefix}${formatCents(
+      Math.abs(discrepancyCents)
+    )} shared among the winners`,
     classes: gold,
   };
 }
