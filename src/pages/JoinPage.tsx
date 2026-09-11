@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import Band from "../components/Band";
 import Button from "../components/Button";
-import Card from "../components/Card";
+import ErrorNote from "../components/ErrorNote";
+import FeltButton from "../components/FeltButton";
+import Field from "../components/Field";
+import PageHeading from "../components/PageHeading";
+import Sheet from "../components/Sheet";
+import TextInput from "../components/TextInput";
 import { describeError } from "../lib/errors";
 import { joinGroup, type JoinGroupResult } from "../lib/joinGroup";
 
@@ -54,21 +60,20 @@ export default function JoinPage() {
   if (pending) {
     return (
       <div className="mx-auto max-w-md">
-        <Card className="p-6" accent="gold" watermarkSuit="diamond">
-          <h1 className="font-display text-2xl text-ink-900">
-            Approval needed
-          </h1>
-          <p className="mt-2 text-sm text-ink-500">
-            Your request to join {pending.groupName} is waiting. The host has
-            to approve you before you can enter the table.
-          </p>
-          <Link
-            to="/groups"
-            className="mt-5 inline-block text-sm text-sage-700 underline"
-          >
-            Back to your groups
-          </Link>
-        </Card>
+        <PageHeading
+          title="Approval needed"
+          subtitle={`Your request to join ${pending.groupName} is waiting.`}
+          actions={<FeltButton to="/groups">← Your groups</FeltButton>}
+        />
+        <Sheet>
+          <Band kicker="Pending" title="With the host">
+            <p className="mt-2 text-sm text-ink-500">
+              The host has to approve you before you can enter the table. You
+              do not need to redeem the code again — once they approve, the
+              group appears under your groups.
+            </p>
+          </Band>
+        </Sheet>
       </div>
     );
   }
@@ -80,32 +85,29 @@ export default function JoinPage() {
 
   return (
     <div className="mx-auto max-w-md">
-      <Card className="p-6" accent="gold">
-        <h1 className="font-display text-2xl text-ink-900">Join a group</h1>
-        <p className="mt-1 text-sm text-ink-500">
-          Enter the code shared by your group host.
-        </p>
-        <form className="mt-5 space-y-4" onSubmit={handleSubmit}>
-          <label className="block">
-            <span className="text-xs font-medium text-ink-700">Join code</span>
-            <input
-              autoFocus={!routeCode}
-              autoComplete="off"
-              value={code}
-              onChange={(event) => setCode(event.target.value)}
-              className="mt-1 w-full rounded-md border border-card-200 bg-card-50 px-3 py-2 text-sm focus:border-sage-600 focus:outline-none"
-            />
-          </label>
-          {error && (
-            <div className="rounded-md bg-crimson-500/10 px-3 py-2 text-xs text-crimson-700">
-              {error}
-            </div>
-          )}
-          <Button type="submit" disabled={busy} className="w-full">
-            {busy ? "Joining…" : "Join group"}
-          </Button>
-        </form>
-      </Card>
+      <PageHeading
+        title="Join a group"
+        subtitle="Enter the code shared by your group host."
+        actions={<FeltButton variant="ghost" to="/groups">← Your groups</FeltButton>}
+      />
+      <Sheet>
+        <Band>
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            <Field label="Join code">
+              <TextInput
+                autoFocus={!routeCode}
+                autoComplete="off"
+                value={code}
+                onChange={(event) => setCode(event.target.value)}
+              />
+            </Field>
+            {error && <ErrorNote>{error}</ErrorNote>}
+            <Button type="submit" disabled={busy} className="w-full">
+              {busy ? "Joining…" : "Join group"}
+            </Button>
+          </form>
+        </Band>
+      </Sheet>
     </div>
   );
 }
