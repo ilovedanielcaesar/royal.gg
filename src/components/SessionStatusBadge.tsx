@@ -10,10 +10,6 @@ const STATUS_DETAILS: Record<string, { label: string; colors: string }> = {
     label: "Draft",
     colors: "bg-card-200/50 text-ink-500",
   },
-  submitted: {
-    label: "Waiting on admin",
-    colors: "bg-gold-500/15 text-gold-700",
-  },
   approved: {
     label: "Approved",
     colors: "bg-sage-600/15 text-sage-700",

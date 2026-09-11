@@ -1,25 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
 import { describeError } from "./errors";
+import fetchSessionFormData, {
+  type LoadedSessionForm,
+  type SettledRow,
+} from "./fetchSessionFormData";
 import { todayIsoDate } from "./format";
 import {
-  parseCount,
   type SessionFormPlayer,
   type SessionFormRow,
   type SessionFormSession,
 } from "./sessionForm";
-import { requireSupabase } from "./supabase";
-import type { Database } from "../types/database";
 
-type BuyIn = Database["public"]["Tables"]["buy_ins"]["Row"];
-type CashOut = Database["public"]["Tables"]["cash_outs"]["Row"];
-
-type LoadedData = {
-  players: SessionFormPlayer[];
-  session: SessionFormSession | null;
-  playedAt: string;
-  notes: string;
-  rows: SessionFormRow[];
-};
+export type { SettledRow };
 
 export default function useSessionFormData(groupId: string, id?: string) {
   const requestKey = `${groupId}:${id ?? "new"}`;
@@ -28,18 +20,20 @@ export default function useSessionFormData(groupId: string, id?: string) {
   const [playedAt, setPlayedAt] = useState(todayIsoDate());
   const [notes, setNotes] = useState("");
   const [rows, setRows] = useState<SessionFormRow[]>([]);
+  const [settled, setSettled] = useState<SettledRow[]>([]);
   const [loading, setLoading] = useState(Boolean(id));
   const [loadedKey, setLoadedKey] = useState<string | null>(
     id ? null : requestKey
   );
   const [error, setError] = useState<string | null>(null);
 
-  const applyLoadedData = useCallback((data: LoadedData, key: string) => {
+  const applyLoadedData = useCallback((data: LoadedSessionForm, key: string) => {
     setAllPlayers(data.players);
     setSession(data.session);
     setPlayedAt(data.playedAt);
     setNotes(data.notes);
     setRows(data.rows);
+    setSettled(data.settled);
     setLoadedKey(key);
   }, []);
 
@@ -81,14 +75,10 @@ export default function useSessionFormData(groupId: string, id?: string) {
       if (!existing) {
         return [...prev, { playerId, buyInCount: "1", cashOut: "" }];
       }
-      const hasData =
-        existing.cashOut.trim() !== "" || parseCount(existing.buyInCount) > 1;
-      if (
-        hasData &&
-        !confirm("Remove this player and discard their entered amounts?")
-      ) {
-        return prev;
-      }
+      // No confirm. Nothing has been written yet — the page saves as a whole
+      // — and re-seating a player is one click that restores the balanced
+      // default. A modal for an undoable in-memory edit is the kind of
+      // friction that gets clicked through without reading.
       return prev.filter((r) => r.playerId !== playerId);
     });
   }
@@ -119,6 +109,7 @@ export default function useSessionFormData(groupId: string, id?: string) {
     notes,
     setNotes,
     rows,
+    settled,
     loading: loading || loadedKey !== requestKey,
     error,
     setError,
@@ -126,72 +117,5 @@ export default function useSessionFormData(groupId: string, id?: string) {
     togglePlayer,
     updateRow,
     addPlayer,
-  };
-}
-
-async function fetchSessionFormData(
-  groupId: string,
-  id?: string
-): Promise<LoadedData> {
-  const sb = requireSupabase();
-  const { data: players, error: playerError } = await sb
-    .from("players")
-    .select("*")
-    .eq("group_id", groupId)
-    .neq("status", "rejected")
-    .order("name");
-  if (playerError) throw playerError;
-
-  if (!id) {
-    return {
-      players: players ?? [],
-      session: null,
-      playedAt: todayIsoDate(),
-      notes: "",
-      rows: [],
-    };
-  }
-
-  const [
-    { data: session, error: sessionError },
-    { data: buyIns, error: buyInError },
-    { data: cashOuts, error: cashOutError },
-  ] = await Promise.all([
-    sb.from("sessions").select("*").eq("id", id).eq("group_id", groupId).single(),
-    sb.from("buy_ins").select("*").eq("session_id", id),
-    sb.from("cash_outs").select("*").eq("session_id", id),
-  ]);
-  if (sessionError) throw sessionError;
-  if (buyInError) throw buyInError;
-  if (cashOutError) throw cashOutError;
-
-  const playerIds = Array.from(
-    new Set([
-      ...(buyIns ?? []).map((buyIn: BuyIn) => buyIn.player_id),
-      ...(cashOuts ?? []).map((cashOut: CashOut) => cashOut.player_id),
-    ])
-  );
-  const rows = playerIds.map((playerId) => {
-    const count = (buyIns ?? []).filter(
-      (buyIn: BuyIn) => buyIn.player_id === playerId
-    ).length;
-    const cashOut = (cashOuts ?? []).find(
-      (row: CashOut) => row.player_id === playerId
-    );
-    return {
-      playerId,
-      buyInCount: String(count || 1),
-      cashOut: cashOut
-        ? (cashOut.reported_amount_cents / 100).toFixed(2)
-        : "",
-    };
-  });
-
-  return {
-    players: players ?? [],
-    session,
-    playedAt: session.played_at,
-    notes: session.notes ?? "",
-    rows,
   };
 }

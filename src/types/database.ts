@@ -71,8 +71,13 @@ export type Database = {
         Row: {
           id: string;
           group_id: string;
-          status: "draft" | "submitted" | "approved";
+          status: "draft" | "approved";
           created_by: string | null;
+          /**
+           * Vestigial since 0020, which removed the `submitted` state. Kept
+           * as nullable columns rather than dropped — dropping columns off
+           * live data is destructive and buys nothing. Nothing reads them.
+           */
           submitted_at: string | null;
           submitted_by: string | null;
           approved_at: string | null;
@@ -95,7 +100,7 @@ export type Database = {
         Insert: {
           id?: string;
           group_id?: string;
-          status?: "draft" | "submitted" | "approved";
+          status?: "draft" | "approved";
           created_by?: string | null;
           submitted_at?: string | null;
           submitted_by?: string | null;

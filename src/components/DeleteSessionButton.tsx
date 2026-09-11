@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { describeError } from "../lib/errors";
 import { useGroup } from "../lib/groupContext";
 import { requireSupabase } from "../lib/supabase";
-import Button from "./Button";
+import ConfirmButton from "./ConfirmButton";
 
 type Props = {
   sessionId: string;
@@ -21,13 +21,6 @@ export default function DeleteSessionButton({
   const [busy, setBusy] = useState(false);
 
   async function deleteSession() {
-    if (
-      !confirm(
-        "Are you sure you want to delete this session? This will permanently wipe all buy-in and cash-out records for this date."
-      )
-    ) {
-      return;
-    }
     setBusy(true);
     try {
       const sb = requireSupabase();
@@ -53,14 +46,18 @@ export default function DeleteSessionButton({
     }
   }
 
+  // Arming in place rather than window.confirm: the native dialog is the one
+  // piece of chrome the redesign cannot style, and it is the only place the
+  // consequence was ever explained. See ConfirmButton.
   return (
-    <Button
-      type="button"
-      variant="danger"
-      disabled={busy}
-      onClick={() => void deleteSession()}
-    >
-      Delete session
-    </Button>
+    <ConfirmButton
+      label="Delete"
+      confirmLabel="Delete this night"
+      consequence="Every buy-in and cash-out on it goes too."
+      busy={busy}
+      busyLabel="Deleting…"
+      size="md"
+      onConfirm={() => void deleteSession()}
+    />
   );
 }
