@@ -1,6 +1,11 @@
-import { Link, useParams } from "react-router-dom";
-import Card from "../components/Card";
+import { useParams } from "react-router-dom";
+import Band from "../components/Band";
+import FeltButton from "../components/FeltButton";
+import LoadingState from "../components/LoadingState";
+import PageHeading from "../components/PageHeading";
 import PlayerAvatar from "../components/PlayerAvatar";
+import Sheet from "../components/Sheet";
+import StatFigure from "../components/StatFigure";
 import { useGroup } from "../lib/groupContext";
 import { formatSignedCents } from "../lib/money";
 import { playerRating } from "../lib/stats";
@@ -13,14 +18,24 @@ export default function PlayerRatingPage() {
   const { players, sessions, buyIns, cashOuts } = data ?? EMPTY_LEAGUE_DATA;
   const player = players.find((candidate) => candidate.id === id) ?? null;
 
-  if (loading) return <div className="text-sm text-card-50/60">Dealing in…</div>;
+  if (loading) return <LoadingState tone="felt" full />;
+
   if (error || !player) {
     return (
-      <Card className="p-6">
-        <p className="text-sm text-crimson-700">
-          {error ?? "Player not found."}
-        </p>
-      </Card>
+      <>
+        <PageHeading
+          title="No such player"
+          subtitle={error ?? "Nobody on this roster has that id."}
+          actions={<FeltButton to={path("/league")}>← League</FeltButton>}
+        />
+        <Sheet>
+          <Band title="Try the league table">
+            <p className="mt-2 max-w-[60ch] text-sm text-ink-500">
+              Every player with a roster row is listed there, guests included.
+            </p>
+          </Band>
+        </Sheet>
+      </>
     );
   }
 
@@ -29,150 +44,140 @@ export default function PlayerRatingPage() {
   const display = player.display_name ?? player.name;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <Link
-          to={path(`/players/${player.id}`)}
-          className="text-xs text-card-50/60 hover:text-card-50"
-        >
-          ← Back to {display}
-        </Link>
-        <h1 className="mt-1 font-display text-4xl text-card-50">
-          Player rating
-        </h1>
-        <p className="mt-1 text-sm text-card-50/70">
-          A 1–10 score combining four signals to summarize how a player is
-          doing right now.
-        </p>
-      </div>
+    <>
+      <PageHeading
+        title="Player rating"
+        subtitle={`A 1–10 score combining four signals into how ${display} is doing right now.`}
+        actions={
+          <FeltButton variant="ghost" to={path(`/players/${player.id}`)}>
+            ← {display}
+          </FeltButton>
+        }
+      />
 
-      <Card className="p-5" accent="gold">
-        <div className="flex items-center gap-4">
-          <PlayerAvatar player={player} size="lg" />
-          <div className="flex-1">
-            <div className="font-display text-2xl text-ink-900">
-              {display}'s rating
-            </div>
-            <div className="text-xs text-ink-500">
-              Based on {rating.sessionsPlayed} session
-              {rating.sessionsPlayed === 1 ? "" : "s"} played.
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="font-display text-6xl tabular text-ink-900">
-              {rating.rating == null ? "—" : rating.rating.toFixed(1)}
-              {rating.rating != null && (
-                <span className="text-2xl text-ink-500">/10</span>
-              )}
-            </div>
-            {rating.rating == null && (
-              <div className="text-xs text-ink-500">
-                Need 3+ sessions for a rating.
+      <Sheet>
+        <Band>
+          <div className="flex flex-wrap items-end justify-between gap-8">
+            <div className="flex items-center gap-4">
+              <PlayerAvatar player={player} size="lg" />
+              <div>
+                <p className="font-display text-2xl leading-tight text-ink-900">
+                  {display}
+                </p>
+                <p className="text-xs text-ink-500">
+                  Based on {rating.sessionsPlayed} session
+                  {rating.sessionsPlayed === 1 ? "" : "s"} played.
+                </p>
               </div>
-            )}
+            </div>
+            {/* A rating is not money, so no tone — StatFigure defaults to
+                ink-900 for exactly this case. */}
+            <StatFigure
+              label="Rating"
+              value={rating.rating == null ? "—" : rating.rating.toFixed(1)}
+              suffix={rating.rating == null ? undefined : "/10"}
+              caption={
+                rating.rating == null
+                  ? "Needs 3 or more nights before a rating means anything."
+                  : undefined
+              }
+            />
           </div>
-        </div>
-      </Card>
+        </Band>
 
-      <Card className="p-5">
-        <h2 className="font-display text-xl text-ink-900">
-          What it represents
-        </h2>
-        <p className="mt-2 text-sm text-ink-700">
-          A rating combines four ingredients, each scored 0–1 and weighted.
-          The weighted total is rescaled to 1–10 (so 5 ≈ "fully average").
-        </p>
-        <ul className="mt-3 space-y-2 text-sm text-ink-700">
-          <li>
-            <strong>Win rate (25%)</strong> — how often the player books a
-            winning session.
-          </li>
-          <li>
-            <strong>Consistency (20%)</strong> — lower session-to-session
-            standard deviation is better. A player who's always close to flat
-            scores higher than one who oscillates wildly.
-          </li>
-          <li>
-            <strong>Recent trend (20%)</strong> — net P/L over the last 6
-            sessions. Rewards momentum.
-          </li>
-          <li>
-            <strong>Lifetime winnings (35%)</strong> — career net. The
-            heaviest weight because it's the most stable signal of skill.
-          </li>
-        </ul>
-      </Card>
+        <Band
+          kicker="Method"
+          title="What it represents"
+          caption="Four ingredients, each scored 0–1 and weighted. The weighted total is rescaled to 1–10, so 5 is roughly average."
+        >
+          <ul className="mt-4 max-w-[74ch] space-y-2 text-sm text-ink-700">
+            <li>
+              <strong>Win rate (25%)</strong> — how often the player books a
+              winning session.
+            </li>
+            <li>
+              <strong>Consistency (20%)</strong> — lower session-to-session
+              standard deviation is better. A player who's always close to flat
+              scores higher than one who oscillates wildly.
+            </li>
+            <li>
+              <strong>Recent trend (20%)</strong> — net P/L over the last 6
+              sessions. Rewards momentum.
+            </li>
+            <li>
+              <strong>Lifetime winnings (35%)</strong> — career net. The
+              heaviest weight because it's the most stable signal of skill.
+            </li>
+          </ul>
+        </Band>
 
-      <Card className="p-5">
-        <h2 className="font-display text-xl text-ink-900">
-          {display}'s breakdown
-        </h2>
-        {rating.rating == null ? (
-          <p className="mt-2 text-sm text-ink-500">
-            Not enough data yet — a rating shows up after 3 sessions.
-          </p>
-        ) : (
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-xs uppercase tracking-wide text-ink-500">
-                  <th className="pb-2 pr-3">Component</th>
-                  <th className="pb-2 pr-3 text-right">Raw value</th>
-                  <th className="pb-2 pr-3 text-right">Sub-score</th>
-                  <th className="pb-2 pr-3 text-right">Weight</th>
-                  <th className="pb-2 text-right">Contribution</th>
-                </tr>
-              </thead>
-              <tbody>
-                <Row
-                  label="Win rate"
-                  raw={`${(c.winRate.value * 100).toFixed(0)}%`}
-                  sub={c.winRate.subscore}
-                  weight={c.winRate.weight}
-                />
-                <Row
-                  label="Consistency"
-                  raw={
-                    c.consistency.stdevCents == null
-                      ? "—"
-                      : `σ ${formatSignedCents(
-                          Math.round(c.consistency.stdevCents)
-                        )}`
-                  }
-                  sub={c.consistency.subscore}
-                  weight={c.consistency.weight}
-                />
-                <Row
-                  label="Recent trend (last 6)"
-                  raw={formatSignedCents(c.trend.last6NetCents)}
-                  sub={c.trend.subscore}
-                  weight={c.trend.weight}
-                />
-                <Row
-                  label="Lifetime winnings"
-                  raw={formatSignedCents(c.lifetime.totalNetCents)}
-                  sub={c.lifetime.subscore}
-                  weight={c.lifetime.weight}
-                />
-                <tr className="border-t-2 border-ink-900/20">
-                  <td className="py-3 font-medium text-ink-900">
-                    Final
-                  </td>
-                  <td />
-                  <td />
-                  <td className="py-3 text-right text-xs text-ink-500">
-                    raw {rating.rawScore.toFixed(2)} → 1 + 9 × {rating.rawScore.toFixed(2)}
-                  </td>
-                  <td className="py-3 text-right font-display text-2xl tabular text-ink-900">
-                    {rating.rating!.toFixed(1)}/10
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Card>
-    </div>
+        <Band kicker="Arithmetic" title={`${display}'s breakdown`}>
+          {rating.rating == null ? (
+            <p className="mt-2 text-sm text-ink-500">
+              Not enough data yet — a rating shows up after 3 sessions.
+            </p>
+          ) : (
+            <div className="mt-5 overflow-x-auto">
+              <table className="w-full min-w-[560px] text-sm">
+                <thead>
+                  <tr className="text-left text-[10px] font-semibold tracking-[0.13em] text-ink-500 uppercase">
+                    <th className="pb-2 pr-3">Component</th>
+                    <th className="pb-2 pr-3 text-right">Raw value</th>
+                    <th className="pb-2 pr-3 text-right">Sub-score</th>
+                    <th className="pb-2 pr-3 text-right">Weight</th>
+                    <th className="pb-2 text-right">Contribution</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <Row
+                    label="Win rate"
+                    raw={`${(c.winRate.value * 100).toFixed(0)}%`}
+                    sub={c.winRate.subscore}
+                    weight={c.winRate.weight}
+                  />
+                  <Row
+                    label="Consistency"
+                    raw={
+                      c.consistency.stdevCents == null
+                        ? "—"
+                        : `σ ${formatSignedCents(
+                            Math.round(c.consistency.stdevCents)
+                          )}`
+                    }
+                    sub={c.consistency.subscore}
+                    weight={c.consistency.weight}
+                  />
+                  <Row
+                    label="Recent trend (last 6)"
+                    raw={formatSignedCents(c.trend.last6NetCents)}
+                    sub={c.trend.subscore}
+                    weight={c.trend.weight}
+                  />
+                  <Row
+                    label="Lifetime winnings"
+                    raw={formatSignedCents(c.lifetime.totalNetCents)}
+                    sub={c.lifetime.subscore}
+                    weight={c.lifetime.weight}
+                  />
+                  <tr className="border-t-2 border-card-200">
+                    <td className="py-3 font-medium text-ink-900">Final</td>
+                    <td />
+                    <td />
+                    <td className="py-3 text-right text-xs text-ink-500">
+                      raw {rating.rawScore.toFixed(2)} → 1 + 9 ×{" "}
+                      {rating.rawScore.toFixed(2)}
+                    </td>
+                    <td className="tabular py-3 text-right font-display text-2xl text-ink-900">
+                      {rating.rating.toFixed(1)}/10
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Band>
+      </Sheet>
+    </>
   );
 }
 
@@ -191,14 +196,14 @@ function Row({
   return (
     <tr className="border-t border-card-100">
       <td className="py-3 pr-3 font-medium text-ink-900">{label}</td>
-      <td className="py-3 pr-3 text-right tabular text-ink-700">{raw}</td>
-      <td className="py-3 pr-3 text-right tabular text-ink-700">
+      <td className="tabular py-3 pr-3 text-right text-ink-700">{raw}</td>
+      <td className="tabular py-3 pr-3 text-right text-ink-700">
         {sub.toFixed(2)}
       </td>
-      <td className="py-3 pr-3 text-right tabular text-ink-500">
+      <td className="tabular py-3 pr-3 text-right text-ink-500">
         {(weight * 100).toFixed(0)}%
       </td>
-      <td className="py-3 text-right tabular text-ink-900">
+      <td className="tabular py-3 text-right text-ink-900">
         {contribution.toFixed(2)}
       </td>
     </tr>
