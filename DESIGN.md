@@ -728,51 +728,48 @@ green.
 
 ## Per-page audit — 2026-09-11
 
-Every surface in the app, read against the rules above. **This is the finding
-list, not the tick list** — `REDESIGN.md` → Stage A owns which rows are done,
-and duplicating its state here is how two tables start disagreeing.
+Every surface in the app, read against the rules above, and then aligned to
+them. **This is the finding list, not the tick list** — `REDESIGN.md` → Stage A
+owns which rows a human has actually opened, and duplicating its state here is
+how two tables start disagreeing.
 
-The split is clean: the seven pages built in Stages 1–5 conform; **every other
-page is `<h1>` + a stack of `Card`s**, which is the pre-redesign shape.
+The split before this pass was clean: the seven pages built in Stages 1–5
+conformed, and **every other page was `<h1>` + a stack of `Card`s** — the
+pre-redesign shape. All of them are now the anatomy above.
 
-### Conforming
+### What the audit found, beyond the shape
 
-`DashboardPage` · `RecordsPage` · `LeaguePage` · `SessionsListPage` ·
-`MyGroupProfilePage` · `ProfilePage` · `SessionFormPage`.
+Four defects were real bugs rather than styling, and all four were invisible
+from a screenshot:
 
-All seven: `PageHeading` on felt, one `Sheet`, `FeltButton` actions,
-`formatCents` + `moneyToneClass`, no `window.confirm`.
+1. **The error banner on the felt was 1.5:1.** `GroupSettingsPage` and
+   `GroupMembersPage` rendered `crimson-700` on `crimson-500/10` outside any
+   card. On members that is the banner carrying the last-admin trigger's
+   message, which is written to be read and could not be. `ErrorNote`'s felt
+   tone fixes it.
+2. **Keyboard focus was invisible on 17 inputs.** Eleven set
+   `focus:ring-gold-500` on cream (~2.1:1 — the exact pairing `index.css`
+   swaps away from); six replaced the outline with a sage border tint, which
+   is no ring at all. `TextInput` sets none and lets the global rule through.
+3. **Three `window.confirm()`s survived.** Regenerate join code, remove a
+   member, revoke an invite link. The last one asked "Revoke this invite
+   link?" on a page listing several and never said which.
+4. **`PlayerStatsCard` tinted counts as money.** Wins sage, losses crimson —
+   rule 2 exists because a sage-tinted number reads as dollars. Its whole
+   compact layout also had no callers left.
 
-### Not yet aligned
-
-| Surface | What is wrong |
-|---|---|
-| `PlayerProfilePage` | `<h1 text-3xl>` in a hand-rolled header → `PageHeading`. Body is one `PlayerStatsCard` → `Sheet` + bands. `PlayerStatsCard` hand-rolls the money ternary at 4 spots → `moneyToneClass`, and links in sage at `:83`. Refusal is a bare `Card`. Back-link points at `/players`, which now redirects |
-| `PlayerRatingPage` | `<h1 text-4xl>` + hand-rolled back-link → `PageHeading` + `FeltButton variant="ghost"`. Three `Card`s → one `Sheet`. `font-display text-6xl` rating → `StatFigure` with a `/10` suffix (and it correctly stays `ink-900` — a rating is not money) |
-| `GroupSettingsPage` | `<h1 text-4xl>` → `PageHeading` (keep the `ADMIN` `GoldPill` in it). Five `Card`s → one `Sheet`. **`confirm()` at `:72`** → `ConfirmButton`. **Error banner at `:110` is crimson-on-felt, 1.5:1 — unreadable.** Sage link at `:209`. The `:178` link is already correct |
-| `GroupMembersPage` | `<h1 text-4xl>` + a text "Dashboard →" → `PageHeading` + `FeltButton`. Three felt-level `<h2>`s each wrapping a `Card` → one `Sheet`, three `Band`s. **Error banner on felt — unreadable.** `confirm()` in `MemberRow:129` |
-| `GroupsPage` | `<h1 text-4xl>` + two `Button`s (one `ghost`) → `PageHeading` + `FeltButton`. **The group grid correctly keeps `Card`** — it is a grid of tiles, which is what `Card` is for. The empty state is a lone `Card` and should be a `Sheet`. Raw `<input>`, sage link |
-| `CreateGroupPage` | `<h1 text-4xl>` → `PageHeading`. Form `Card` → `Sheet` + `Band`. Two raw `<input>`s → `Field` + `TextInput`. Error `Card` → `ErrorNote` |
-| `JoinPage` | Both states put `<h1 text-2xl>` *inside* a `Card` → `PageHeading` + `Sheet`. Raw input with a dead focus ring. Sage link |
-| `LoginPage` | `<h1 text-2xl>` inside a `Card` → `PageHeading` + `Sheet`. Two raw inputs, dead focus rings, sage links. **First page a stranger sees** |
-| `SignupPage` | As `LoginPage`, with three inputs |
-| `AdminOverviewPage` | `<h1 text-4xl>` → `PageHeading`. Two felt `<h2>`s + two `Card`s → one `Sheet`, two `Band`s. Hand-rolled gold pill at `:145` → `GoldPill` |
-| `SetupNotice` | A full-screen state dressed as a `Card` → `PageHeading` + `Sheet` |
-| `IndexRoute` | Two bare loading `div`s → `LoadingState tone="felt" full` |
-| `RequireAuth` · `RequireGroupAdmin` · `RequireAppOwner` | Bare loading `div` each → `LoadingState tone="felt" label="Dealing in…" full` |
-| `RequireGroupMember` | As above, plus its "Group not found" refusal is a bare `Card` with a sage link → a refusal page |
-| `ErrorBoundary` | **Exempt, deliberately.** Plain markup on purpose — see Component inventory |
-
-### Cross-cutting
+### Still open
 
 - **`formatCents` does not group thousands.** It emits `$26840.00` where the
   contract's own sample writes `$26,840`. Affects any four-figure total —
   table volume, a lifetime net, a payout period. One function, 39 call sites
-  downstream; worth fixing, and it is a behaviour change rather than a restyle
-  so it is logged rather than folded into a page.
-- **`Card` is not being retired.** `GroupsPage`'s grid is the shape it is for,
-  and the accent bar is still the fastest read of a session's state. The rule
-  is about page *bodies*.
+  downstream; it is a behaviour change rather than a restyle, so it is logged
+  rather than folded into a page.
+- **`Card` is not retired.** `GroupsPage`'s tile grid is the shape it is for,
+  and it is the only `Card` import left in the app. The rule is about page
+  *bodies*.
+- **`ErrorBoundary` stays plain markup.** Deliberate — see Component
+  inventory.
 
 ## What's intentionally NOT here
 
