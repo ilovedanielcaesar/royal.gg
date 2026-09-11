@@ -38,13 +38,17 @@ the checkbox — a tick with no log entry is how this file rots.
 | **2** | League | **none needed** | `[~]` | 7/7 · 1 moved |
 | **3** | Sessions list | lib only | `[~]` | 6/6 |
 | **4** | Profile (merged) | routing | `[~]` | 6/6 |
-| **5** | Session detail | **migration `0020`** | `[~]` | 9/9 · unpushed |
+| **5** | Session detail | **migration `0020`** | `[~]` | 9/9 · `0020` pushed |
 | **A** | **Audit: every surface in the new style** | no | `[~]` | 0/23 confirmed · 6 built |
 
-**Current focus:** two things, both owed by Will and neither doable by a
-machine. `0020` is **written, rehearsed 37/37 and not pushed** — a backup and
-`npx supabase db push` are his. And the browser passes are now **six**, not
-five: the session page joins the queue.
+**Current focus:** the browser passes. **Six** are owed, and they are all
+that stands between here and `v1.2.0` — no code is waiting on anything.
+
+**`0020` is pushed** (Will, 2026-09-11) and the whole gate is green against
+the pushed schema: 301 checks, 0 failures, and no script needs `--rehearse`
+any more. 2026-08-30 collapsed to a draft as designed and Will then approved
+it through the new one-step flow, which is the first real exercise of
+`draft → approved`.
 
 **Stages 0 through 4 are all merged. Stage 5 is built on
 `redesign-5-session`** and does not merge until `0020` is pushed and the four
@@ -1031,17 +1035,20 @@ struck rather than ticked.
 
 - [x] The full smoke gate green. All eleven scripts, counts under finding 5.
 - [x] `0020` rehearsed in a rolled-back transaction against live data. 37/37.
-- [ ] **`node scripts/db-backup.mjs`, then `npx supabase db push`.** Will's,
-      and nothing below can happen first.
-- [ ] After the push: `node scripts/smoke-0020.mjs` with no flag, and
-      `smoke-phase4` and `smoke-0017` likewise, all three against the pushed
-      schema rather than a rehearsal.
-- [ ] The money is unmoved: Royal's buy-in, reported and adjusted totals are
-      identical before and after. `smoke-0020` asserts this inside its
-      transaction; confirm it once more against the real push.
-- [ ] ~~the two open drafts of 2026-08-30 and 2026-08-26~~ **2026-09-07 and
-      2026-09-08**, the two real drafts, still reconcile to the cent and
-      still open, edit and save.
+- [x] **`node scripts/db-backup.mjs`, then `npx supabase db push`.** Done by
+      Will, 2026-09-11.
+- [x] After the push: all eleven scripts re-run against the pushed schema
+      rather than a rehearsal. **301 checks, 0 failures**, and `--rehearse`
+      is no longer needed by any of them.
+- [x] The money is unmoved. Royal reads $7,280.00 in and $7,280.00 adjusted
+      out against $7,286.25 reported — the miscounts, distributed — and
+      **zero approved nights are out of balance**.
+- [x] `enforce_session_state()` in the live schema still carries 0017's
+      buy-in stamp and re-stake guard, and no longer holds the `'submitted'`
+      status literal. Checked against the pushed function, not the file.
+      Finding 1 is the reason this is its own line.
+- [ ] **2026-09-07 and 2026-09-08**, the two real drafts, still open, edit
+      and save in the browser. Both reconcile to the cent at $80.00.
 - [ ] A browser pass through all four states by Will. **Needs review has no
       live example any more** (finding 2) — provoke it by mistyping a
       cash-out by more than the group's threshold on a draft, and check the
