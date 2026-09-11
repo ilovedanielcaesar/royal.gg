@@ -34,15 +34,18 @@ the checkbox — a tick with no log entry is how this file rots.
 |:--:|---|:--:|---|:--:|
 | **P** | Pre-flight: land `qol-small-items`, commit the mocks | no | `[x]` | 3/3 |
 | **0** | Foundation: tokens, felt, chrome, sheet primitives | no | `[x]` | 6/6 |
-| **1** | Dashboard | one route change | `[~]` | 7/7 |
-| **2** | League | **none needed** | `[~]` | 7/7 · 1 moved |
-| **3** | Sessions list | lib only | `[~]` | 6/6 |
-| **4** | Profile (merged) | routing | `[~]` | 6/6 |
-| **5** | Session detail | **migration `0020`** | `[~]` | 9/9 · `0020` pushed |
-| **A** | **Audit: every surface in the new style** | no | `[~]` | 0/23 confirmed · 6 built |
+| **1** | Dashboard | one route change | `[x]` | 7/7 |
+| **2** | League | **none needed** | `[x]` | 7/7 · 1 moved |
+| **3** | Sessions list | lib only | `[x]` | 6/6 |
+| **4** | Profile (merged) | routing | `[x]` | 6/6 |
+| **5** | Session detail | **migration `0020`** | `[x]` | 9/9 · merged |
+| **A** | **Audit: every surface in the new style** | no | `[~]` | 6/23 confirmed |
 
-**Current focus:** the browser passes. **Six** are owed, and they are all
-that stands between here and `v1.2.0` — no code is waiting on anything.
+**Current focus:** **Stage A, rows 6, 7 and 9–22.** Every stage is built and
+merged, `0020` is pushed, and the six mocked surfaces have been through the
+five-point check. What is left is the seventeen surfaces nobody designed a
+mock for — two player pages, eight pages, and six full-screen states that
+are not pages at all. `v1.2.0` is not tagged until they are ticked.
 
 **`0020` is pushed** (Will, 2026-09-11) and the whole gate is green against
 the pushed schema: 301 checks, 0 failures, and no script needs `--rehearse`
@@ -50,9 +53,12 @@ any more. 2026-08-30 collapsed to a draft as designed and Will then approved
 it through the new one-step flow, which is the first real exercise of
 `draft → approved`.
 
-**Stages 0 through 4 are all merged. Stage 5 is built on
-`redesign-5-session`** and does not merge until `0020` is pushed and the four
-states have been looked at.
+**The six built-but-unseen surfaces are now seen.** Will ran the five-point
+check on Dashboard, Records, League, Sessions and Profile — owed since
+2026-09-09 — and on the session page, on 2026-09-11. Rows 1–5 and 8 are
+`[x]`. That clears the largest backlog the redesign has carried.
+
+**Every stage is merged.** `main` carries the whole redesign.
 
 | Stage | PR | Merge | Feedback round |
 |:--:|:--:|---|---|
@@ -61,7 +67,7 @@ states have been looked at.
 | 2 | #7 | `cf4d7b0` | 3 items |
 | 3 | #8 | `81fa783` | 2 items |
 | 4 | #9 | `f740f02` | 7 items |
-| 5 | — | built `7d5f487`, unmerged | — |
+| 5 | #12 | see change log | 1 item |
 
 All merged 2026-09-10 in the order `2 → 3 → 4`, which mattered: Stage 3 is the
 branch that dropped CI's ratchet to `--max-warnings 0`, so landing it first
@@ -87,24 +93,27 @@ which is what turned the mockless-pages note into **Stage A** below — a real
 stage with a real inventory, because "restyle the leftovers" was never going
 to be checked.
 
-**Owed by Will:** Stage 0's four tabs, and a **re-check** of Stage 1 as a
-member. Stage 1's admin pass is **done** — 2026-09-09, and it found eight
-things, all of them now fixed on `dashboard-feedback` (the round below). The
-member half is still owed and now matters more than it did, because the fix
-list changed what a member sees on the settings page: the stakes card is
-read-only for them for the first time, and nobody has looked at it in a
-browser. Every machine gate is green — `tsc`, build, lint at baseline — but no
-machine can say the chrome looks right.
+**Still owed by Will, and narrower than it was:** the settings page **as a
+member**. Stage 1's admin pass was done 2026-09-09 and found eight things,
+all fixed on `dashboard-feedback`; the 2026-09-11 five-point pass covered
+rows 1–5 and 8 as an admin. What no one has opened is `/g/:slug/settings`
+signed in as a plain member — the fix list made the stakes card read-only
+for them for the first time, and that view has never been seen. It is
+**Stage A row 9**, and it is the one row on that list with a known reason to
+look rather than a routine one.
+
+Stage 0's four tabs went with the five-point pass: the chrome is on every
+one of the six routes that were checked.
 
 **League, Sessions and Profile have now been through a preview pass** — Will
 read all three on their Vercel previews on 2026-09-10 and returned twelve
 items, all of them fixed before merge and all recorded under their stages
 below. That is not the same as a Stage A tick: the pass was a read of the
 design, not the five-point check, and it happened before the fixes landed.
-Rows 3, 4 and 5 stay `[~]` until someone opens the merged pages and runs the
-list. **Six** of the twenty-three surfaces are now built-but-unseen — row 8,
-the session page, joined them on 2026-09-11 — the most the redesign has had
-at once.
+~~Rows 3, 4 and 5 stay `[~]` until someone opens the merged pages~~ **Done
+2026-09-11.** All six mocked surfaces went through the five-point check in
+one sitting. Nothing is built-but-unseen any more; every remaining row is
+unbuilt.
 
 Nothing in Stages 0–4 waits on a decision. Everything below waits on eyes.
 
@@ -1047,12 +1056,12 @@ struck rather than ticked.
       buy-in stamp and re-stake guard, and no longer holds the `'submitted'`
       status literal. Checked against the pushed function, not the file.
       Finding 1 is the reason this is its own line.
-- [ ] **2026-09-07 and 2026-09-08**, the two real drafts, still open, edit
+- [x] **2026-09-07 and 2026-09-08**, the two real drafts, still open, edit
       and save in the browser. Both reconcile to the cent at $80.00.
-- [ ] A browser pass through all four states by Will. **Needs review has no
-      live example any more** (finding 2) — provoke it by mistyping a
-      cash-out by more than the group's threshold on a draft, and check the
-      night refuses to approve.
+- [x] A browser pass through all four states by Will, 2026-09-11. It
+      returned one item, the feedback round above.
+      **Needs review still has no live example** (finding 2), so that state
+      was provoked by hand rather than found.
 
 When this lands: **Stage A runs, and only then** is `main` tagged `v1.2.0`.
 Stage 5 finishing is not the release; a redesign with six pages still in the
@@ -1097,14 +1106,14 @@ even though both are merged and green. **A `[~]` row is not done.**
 
 | # | Surface | Route | Owner | State |
 |:--:|---|---|---|:--:|
-| 1 | `DashboardPage` | `/g/:slug` | Stage 1 | `[~]` |
-| 2 | `RecordsPage` | `/g/:slug/records` | pulled forward | `[~]` |
-| 3 | `PlayersPage` → League | `/g/:slug/league` | Stage 2 | `[~]` |
-| 4 | `SessionsListPage` | `/g/:slug/sessions` | Stage 3 | `[~]` |
-| 5 | `MyGroupProfilePage` + `ProfilePage` (merged) | `/g/:slug/profile`, `/profile` | Stage 4 | `[~]` |
+| 1 | `DashboardPage` | `/g/:slug` | Stage 1 | `[x]` |
+| 2 | `RecordsPage` | `/g/:slug/records` | pulled forward | `[x]` |
+| 3 | `PlayersPage` → League | `/g/:slug/league` | Stage 2 | `[x]` |
+| 4 | `SessionsListPage` | `/g/:slug/sessions` | Stage 3 | `[x]` |
+| 5 | `MyGroupProfilePage` + `ProfilePage` (merged) | `/g/:slug/profile`, `/profile` | Stage 4 | `[x]` |
 | 6 | `PlayerProfilePage` | `/g/:slug/players/:id` | Stage 4 tail | `[ ]` |
 | 7 | `PlayerRatingPage` | `/g/:slug/players/:id/rating` | Stage 4 tail | `[ ]` |
-| 8 | `SessionFormPage` | `/g/:slug/sessions/new`, `/sessions/:id` | Stage 5 | `[~]` |
+| 8 | `SessionFormPage` | `/g/:slug/sessions/new`, `/sessions/:id` | Stage 5 | `[x]` |
 | 9 | `GroupSettingsPage` | `/g/:slug/settings` | **Stage A** | `[ ]` |
 | 10 | `GroupMembersPage` | `/g/:slug/members` | **Stage A** | `[ ]` |
 | 11 | `GroupsPage` | `/groups` | **Stage A** | `[ ]` |
@@ -1165,6 +1174,30 @@ Not blocking any stage. Recorded so they are not rediscovered.
 
 Newest first. One line per meaningful change.
 
+- **2026-09-11** — **Stage 5 merged as PR #12, and the built-but-unseen
+  backlog is cleared.** `0020` was pushed first, in that order, because the
+  page's approve button is a no-op against the old trigger and merging a
+  page that cannot do its main job is how a seam ships. The whole gate was
+  re-run against the pushed schema rather than a rehearsal: **301 checks, 0
+  failures**, and no script needs `--rehearse` any more.
+
+  Will then ran the five-point check on all six mocked surfaces in one
+  sitting — Dashboard, Records, League, Sessions and Profile, owed since
+  2026-09-09, plus the session page. **Stage A rows 1–5 and 8 are `[x]`.**
+  Batching the human read again, as on 2026-09-10: it remains the scarce
+  step and it remains the one that batches.
+
+  The preview pass returned one item — a distribution under the threshold
+  was invisible in the editor, so a winner's line read `+$30.00` until the
+  saved record said `+$27.00`. Both nets are shown now, on the editor and on
+  the approved record.
+
+  **`main` carries the entire redesign.** What stands between here and
+  `v1.2.0` is Stage A's other seventeen rows: two player pages, eight pages
+  nobody drew a mock for, and six full-screen states that are not pages at
+  all. Row 9 is the one to do first — the settings page has never been
+  opened by a plain member, and the fix list made the stakes card read-only
+  for them.
 - **2026-09-11** — **Stage 5 built** on `redesign-5-session` (`f31db88`
   migration, `7d5f487` page). `0020` removes the `submitted` state: five
   transition legs become two, the one live row in it (2026-08-30) collapses
