@@ -1,6 +1,25 @@
 # DESIGN.md
 
-Visual + interaction spec for royal.gg. The current frontend is built against this doc — keep it in sync when you change either.
+Visual + interaction spec for royal.gg, and **the binding style guide every
+page follows**. The frontend is built against this doc — keep it in sync when
+you change either.
+
+Three documents, and they do not overlap:
+
+- **This file** is the app-level guide. Which React primitive goes on which
+  surface, what a page is made of, and the per-page conformance table. It is
+  what you read before touching a page.
+- **`design_archetypes/_STYLE_CONTRACT.md`** is the mock-level contract: the
+  hexes, the raw CSS, the sample league. It is the source of truth for any
+  *value*. Copy tokens from it verbatim; never hand-pick a hex. This file
+  never contradicts it — where a rule here looks new, it is that contract's
+  rule expressed in components.
+- **`design_archetypes_v2/_FEEDBACK_V2.md`** is the band-by-band brief for
+  League, Sessions, Profile and Session detail.
+
+`REDESIGN.md` is the *state* — where the work has got to. If it disagrees with
+this file about what a page should look like, this file wins and `REDESIGN.md`
+is stale.
 
 ## Direction
 
@@ -49,9 +68,36 @@ Because all greens/blues sit on the "winning" side and all reds/oranges sit on "
 - **Money**: any text rendering currency adds `tabular` (defined in `index.css`) — applies `font-variant-numeric: tabular-nums` and slight tightening. Without this, columns of `$1,234.50` jitter horribly.
 - **Suit pips**: `<SuitBadge>` renders SVG, never unicode (more weight control, scales cleanly).
 
-## Card surface
+## Surfaces — Sheet, Card, felt
 
-Implemented in `src/components/Card.tsx`. Every primary container — sessions, players, dashboard widgets, inputs — wraps in `<Card>`.
+Three surfaces, and choosing between them is the single most common styling
+decision in the app. Get this one right and most of the rest follows.
+
+### The felt
+
+The page background is the table. It holds the chrome, the `PageHeading`, and
+anything secondary that sits *below* the sheet. Text on felt is `card-50`, or
+`card-50/60` when muted. **No ink token is ever legible on felt** — `ink-900`
+is `#1a1614` on `#0d3324`, and `crimson-700` measures 1.5:1.
+
+### The Sheet — `src/components/Sheet.tsx`
+
+**One cream playing-card per page, divided into `Band`s by hairline rules.**
+This is the central move of the redesign and it replaced a scattered grid of
+small `Card`s. There is exactly one `Sheet` per page. If a second one is going
+in, another `Band` in the first is the answer instead.
+
+A `Band` (`src/components/Band.tsx`) takes `kicker` / `title` / `caption` /
+`action` and renders the contract's band head for you. Don't hand-roll an
+`<h2>` inside a sheet — `Band` owns that typography.
+
+### The Card — `src/components/Card.tsx`
+
+`Card` is **not** deleted and it is not deprecated. It is the right primitive
+for a **small standalone tile in a grid** — a group tile on `/groups`, a
+session tile — and the wrong one for a page body. The test is whether there
+are several of them side by side: one `Card` alone on a page should have been
+a `Sheet`.
 
 - Cream face (`bg-card-50`), `rounded-xl`, `ring-1 ring-card-100`, layered shadow.
 - Optional **accent bar** at top: `neutral`, `sage` (reconciled), `crimson` (review), `gold` (pending). 1px tall.
@@ -59,6 +105,11 @@ Implemented in `src/components/Card.tsx`. Every primary container — sessions, 
 - Optional **suit watermark** in bottom-right at 7% opacity.
 - `interactive` prop adds hover lift + 0.4° rotation (card-being-pulled-from-hand feel). Use only on clickable cards.
 - `dealIn={ms}` prop applies the `deal-in` keyframe with that delay. Stagger lists by `idx * 60`.
+
+Both `Sheet` and `Card` set `data-cream`, which is what swaps the focus ring
+to a readable gold. A hand-rolled cream surface that forgets it gets an
+invisible focus ring — which is most of why hand-rolled cream surfaces are
+not allowed.
 
 ## Suit assignment (player display)
 
@@ -76,26 +127,203 @@ Restrained, all reinforcing the card metaphor.
 
 - **Deal-in** (`var(--animate-deal-in)`): 480ms cubic-bezier from below + slight rotate. Used on first paint of card lists and dashboard widgets, staggered by 60ms per item.
 - **Hover lift**: clickable `<Card interactive>` translates -1 unit Y and rotates ~0.4°.
-- **No spinners.** While loading, render the page chrome with a small "Dealing…" muted-text placeholder.
+- **No spinners.** While loading, render the page chrome with a small "Dealing…" muted-text placeholder — `LoadingState`. See States above for which tone and which sentence.
 
 ## Layout & breakpoints
 
-- Max content width: `max-w-6xl` (1152px), centered, `px-4`.
-- Header is fixed-feeling but not sticky — `bg-felt-900/70 backdrop-blur` with a 1px `border-card-50/10` bottom.
+- Content width is `w-[min(1152px,calc(100%-32px))]`, centred — defined once as
+  `WRAP` in `AppLayout`. **Not** `max-w-6xl px-4`: with padding the content
+  narrows to 1120px on a wide screen, and 1152px is the content width, not the
+  frame. The gutter belongs inside the calc so it only exists when the viewport
+  is actually narrow.
+- The breakpoint is **720px**, not Tailwind's `sm`. The contract breaks the
+  nav, the band padding and the `h1` size at one width and they have to agree,
+  so band-level responsive rules are written `max-[720px]:`.
+- Header is fixed-feeling but not sticky — `bg-felt-900/[0.76] backdrop-blur-[14px]`
+  with a 1px `border-card-50/10` bottom.
 - Card grids: 1col on phone → 2col `sm:` → 3col `lg:`.
 - Tap targets: every interactive control is ≥ 36px tall.
 
+## Page anatomy — what every page is made of
+
+Every page is the same four things in the same order. This is the shape Stage A
+checks for, and a page that does not have it is not in the new style no matter
+how good its colours are.
+
+```
+<PageHeading title actions={<FeltButton/>} />   ← on the felt
+<Sheet>
+  <Band title caption action>…</Band>           ← one sheet, N bands
+  <Band>…</Band>
+</Sheet>
+{secondary notes}                               ← on the felt, BELOW the sheet
+```
+
+1. **The heading is a `PageHeading`, on the felt, outside the sheet.** Not an
+   `<h1>` inside a card, and not a hand-rolled `font-display text-4xl` — the
+   scale is 40px, dropping to 32px under 720px, and `PageHeading` is the only
+   thing that knows that.
+2. **The body is one `Sheet` divided into `Band`s.** Not a stack of `Card`s.
+3. **Page actions live in the heading, never in the sheet.** The sheet is a
+   record of results and holds no controls except its own tabs. The one bend:
+   a *per-row* action — a Revert on one payout, an Add guest on one band — has
+   nowhere else to go and sits in that band's `action` slot. The rule is about
+   page-level controls.
+4. **Anything secondary goes below the sheet, on the felt.** Footnotes, cut
+   lists, a hairline grid of small notes.
+
+### Which button
+
+| Where | Primitive | Why |
+|---|---|---|
+| In a `PageHeading`, on felt | `FeltButton` | Sized and coloured for cream-on-felt; 40px tall |
+| Inside a `Sheet` or `Card` | `Button` | Sized and coloured for ink-on-cream |
+| A destructive action, anywhere | `ConfirmButton` | Arms in place. **Never `window.confirm`** |
+| A quiet button inside a sheet | `Button variant="subtle"` | — |
+
+**`Button variant="ghost"` is felt-only.** Its text is `card-50`, so inside a
+sheet it is cream on cream and vanishes. And a ghost button that *is* on the
+felt is still usually wrong, because a page-level action on the felt should be
+a `FeltButton variant="ghost"` — bigger, and the thing `PageHeading` expects.
+
+### A felt-level `<h2>` is a smell
+
+A section heading sitting on the felt almost always means a page that should be
+one `Sheet` with several `Band`s has become several loose containers instead.
+Before styling it, ask whether the sections are bands. They usually are.
+
+The contract *does* allow felt-level section headings — gold serif numerals, or
+a gold letterspaced eyebrow — but only for a page with **more than one sheet**,
+which no page in this app currently has.
+
+## States — loading, error, empty, refusal
+
+Four states, three primitives, and a rule for each. They were hand-written at
+thirty-odd call sites before Stage A and had drifted into six variants.
+
+### Loading — `LoadingState`
+
+**No spinners** (contract rule 6). The chrome stays and a muted line says the
+cards are coming.
+
+```tsx
+<LoadingState tone="felt" label="Dealing in…" full />   // a whole route waiting
+<LoadingState tone="felt" />                            // page data, on felt
+<LoadingState />                                        // one band's data, on cream
+```
+
+- `tone="felt"` is `card-50/60`; `tone="cream"` (the default) is `ink-500`.
+  Getting this wrong is not a nuance — ink on felt is invisible.
+- `full` gives it the vertical space a page occupies. Without it a route-level
+  state renders as one small line jammed under the chrome, which is exactly how
+  the route guards looked before Stage A.
+- **Two sentences, one rule.** `Dealing…` means the data is coming. `Dealing
+  in…` means *you* are being seated — route guards only, where what is
+  resolving is your identity or your membership, not the group's money.
+
+### Error — `ErrorNote`
+
+```tsx
+<ErrorNote>{message}</ErrorNote>                  // inside a Sheet or Card
+<ErrorNote tone="felt">{message}</ErrorNote>      // out on the table
+```
+
+The felt tone is a contrast fix, not a preference. The cream banner is
+`crimson-700` on a `crimson-500/10` ground, which is correct on cream and
+**1.5:1 on felt** — an error message nobody can read. On felt the crimson moves
+into the ground and the ring and the text goes cream, the same trade `GoldPill`
+makes for the same reason.
+
+### Empty
+
+An empty state is a `Band` with a title that says what is missing and one
+sentence saying where the thing comes from. It is not a loading state, not a
+crimson note, and not blank. `RecordsPage`'s "No payouts yet" is the model.
+
+### Refusal
+
+A refusal — not found, not a member, not an admin — is a **page**, not a
+notice: a `PageHeading` saying what happened, and a `Sheet` with one `Band`
+explaining it and offering the way out. Not a bare `Card` with red text.
+
+## Colour rules in practice
+
+The palette above is the vocabulary; these are the four places it gets misused.
+
+**1. Sage and crimson mean money. Nothing else.**
+Money tone comes from `moneyToneClass(cents)` — never a hand-written ternary.
+Any figure that is *not* money — a rating, an action score, a count, a rank —
+stays `ink-900`. A sage-tinted score reads as a dollar amount.
+
+**A link is not money.** `text-sage-700 underline` was the app's de-facto link
+style at eight call sites, which puts "winnings green" on a word that is not a
+number. The link style on cream is the contract's `.link`: `ink-500`, going
+`ink-900` and underlined on hover.
+
+**2. Money is formatted, never built.**
+`formatCents` / `formatSignedCents` from `lib/money.ts`, at all 39 call sites.
+They emit U+2212 MINUS, not a hyphen, because a hyphen is narrower than a digit
+and a `.tabular` column of money goes ragged without it. A `-$40` written into
+a string literal sits visibly out of line beside a real one.
+
+**3. The focus ring is not yours to set.**
+`index.css` draws a gold `:focus-visible` outline globally and swaps it to
+`gold-ink` under `[data-cream]`, because `gold-500` on `card-50` is ~2.1:1 and
+`gold-ink` is 5.4:1. **Never write `focus:outline-none`.** Eleven inputs
+overrode the global rule with `focus:ring-gold-500` — reinstating, on cream,
+the exact pairing the global rule exists to avoid — and six more replaced the
+outline with a sage border tint, which is no visible focus at all.
+
+**4. Gold has two tokens and they are not interchangeable.**
+`gold-500` for fills and rules **on felt**; `gold-ink` for gold that has to
+read **as text on cream**. `GoldPill` picks correctly from its `tone`; use it
+rather than rolling `bg-gold-500/20` by hand.
+
+## Forms
+
+One shape, built from two primitives:
+
+```tsx
+<Field label="Group name" hint={`URL: /g/${slug}`}>
+  <TextInput value={name} onChange={…} placeholder="Friday Night Poker" />
+</Field>
+```
+
+- `Field` owns the label and hint typography and wraps its control in a
+  `<label>`, so there is no id to invent.
+- `TextInput` sets **no focus styling**, deliberately — see colour rule 3.
+- `CurrencyInput` is the money field: right-aligned, `tabular`, leading `$`.
+  Money in, integer cents out via `parseDollarsToCents`.
+- Validation errors go in an `ErrorNote` at the foot of the form, not beside
+  the field.
+
 ## Routes
+
+Every route renders inside `AppLayout`, so the chrome and the felt are always
+there — including the loading and refusal states. Group-scoped routes are
+prefixed `/g/:slug` and reach `useGroup()`; the rest are account-level.
 
 | Route | Page | Purpose |
 |---|---|---|
-| `/` | `DashboardPage` | Hero, recent five, trajectory chart, standings + stats panel — see Dashboard layout |
-| `/sessions` | `SessionsListPage` | Card grid of all sessions |
-| `/sessions/new` | `SessionFormPage` | Create new session |
-| `/sessions/:id` | `SessionFormPage` | Same form, editing existing |
-| `/players` | `PlayersPage` | Roster card grid |
-| `/settings` | `GroupSettingsPage` | League settings. Member-reachable, read-only for members |
-| `/members` | `GroupMembersPage` | Approve and manage members. **Admin-only** |
+| `/` | `IndexRoute` | Login for guests; redirect to your group once signed in |
+| `/login`, `/signup` | `LoginPage`, `SignupPage` | The door |
+| `/join`, `/join/:code` | `JoinPage` | Redeem a join code |
+| `/groups` | `GroupsPage` | Your tables. Empty state is onboarding |
+| `/groups/new` | `CreateGroupPage` | Create a table and set its defaults |
+| `/profile` | `ProfilePage` | Account-level settings |
+| `/admin` | `AdminOverviewPage` | Accounts, groups, memberships. **App-owner only**. Never shows money |
+| `/g/:slug` | `DashboardPage` | Hero, recent five, trajectory, standings, seasonal leaders |
+| `/g/:slug/sessions` | `SessionsListPage` | Every night, newest first |
+| `/g/:slug/sessions/new`, `/g/:slug/sessions/:id` | `SessionFormPage` | Post-game entry and the session record |
+| `/g/:slug/league` | `LeaguePage` | Standings, payout, guests, rules, export |
+| `/g/:slug/players/:id` | `PlayerProfilePage` | One player's track record |
+| `/g/:slug/players/:id/rating` | `PlayerRatingPage` | How that rating was computed |
+| `/g/:slug/records` | `RecordsPage` | Every payout that has ever settled |
+| `/g/:slug/profile` | `MyGroupProfilePage` | Your card and name in this group |
+| `/g/:slug/settings` | `GroupSettingsPage` | Table settings. Member-reachable, **read-only for members** |
+| `/g/:slug/members` | `GroupMembersPage` | Approve and manage members. **Admin-only** |
+
+`/g/:slug/players` redirects to `league`.
 
 ## Session entry model
 
@@ -337,17 +565,66 @@ Two cases beyond the happy path, both reachable:
 
 ## Component inventory
 
-Reusable primitives in `src/components/`:
+Reusable primitives in `src/components/`. Feature-specific components live in
+`src/features/<feature>/` and are not listed here.
 
-- `Card` — the playing-card surface
-- `Button` — `primary` (cream button on felt), `secondary` (felt button), `ghost`, `danger`
-- `SuitBadge` — SVG suit pip
-- `PlayerAvatar` — mini playing card with rank + suit + monogram
-- `CurrencyInput` — right-aligned tabular dollars input with leading `$`
-- `CumulativeChart` — multi-line SVG chart
-- `SuitRankPicker` — suit row + rank row for choosing your card
-- `AppLayout` — felt page chrome, header, nav
-- `SetupNotice` — shown when Supabase env vars missing
+**Structure** — the page skeleton. Every page uses these.
+
+| Component | What it is |
+|---|---|
+| `AppLayout` | Felt chrome, header, nav, the 1152px `WRAP`, `ErrorBoundary` |
+| `PageHeading` | Title + subtitle + actions, on the felt, above the sheet |
+| `Sheet` | The one cream playing-card a page is laid out on |
+| `Band` | One horizontal division of a sheet, with kicker/title/caption/action |
+| `Card` | A small standalone tile — for grids, not page bodies |
+
+**Controls**
+
+| Component | What it is |
+|---|---|
+| `FeltButton` | A page action on the felt. Only ever in a `PageHeading` |
+| `Button` | `primary` · `secondary` · `subtle` · `danger` inside a sheet; `ghost` is felt-only |
+| `ConfirmButton` | A destructive action that arms in place. Replaces `window.confirm` |
+| `Field` | Label + control + hint, wrapped in a `<label>` |
+| `TextInput` | The one text input. Sets no focus styling on purpose |
+| `CurrencyInput` | Right-aligned tabular dollars with a leading `$` |
+| `DatePicker` / `CalendarPopover` | Date entry for a session |
+| `SuitRankPicker` | Four suits + thirteen ranks, picked independently |
+| `GoogleButton` | OAuth entry, on both auth pages |
+
+**States**
+
+| Component | What it is |
+|---|---|
+| `LoadingState` | The muted `Dealing…`. `tone`, `label`, `full` |
+| `ErrorNote` | The crimson banner. `tone="cream"` \| `"felt"` |
+| `SetupNotice` | Shown when the Supabase env vars are missing |
+| `ErrorBoundary` | Crash fallback. **Uses plain markup on purpose** — see below |
+
+**Figures and identity**
+
+| Component | What it is |
+|---|---|
+| `StatFigure` | The one display-scale figure on a page (52px) |
+| `MiniStat` | A secondary figure subordinate to it (22px, or 28px in a hero) |
+| `GoldPill` | Gold at 16%, in the one readable pairing per surface |
+| `SessionStatusBadge` | Draft / submitted / approved |
+| `PlayerAvatar` | Mini playing card — rank, suit, monogram. Always beside a name |
+| `SuitBadge` | SVG suit pip, never unicode |
+| `InfoTip` | The definition of a figure whose name is not enough |
+
+**Charts** — hand-rolled SVG, no library.
+
+| Component | What it is |
+|---|---|
+| `CumulativeChart` | Multi-line cumulative net, with axes/series/tooltip split out |
+| `Sparkline` | A player's recent trend, inline in a row |
+
+**`ErrorBoundary` is the one deliberate exception to all of the above.** Its
+fallback uses plain markup rather than `Card` / `Button`, documented at
+`ErrorBoundary.tsx:10`: if the thing that crashed *is* `Card` or `Button`, a
+fallback built from them crashes too and the user gets a white screen instead
+of an error message. Do not "fix" it.
 
 ## Helpers
 
@@ -448,6 +725,54 @@ marks itself with a `ring-2 ring-sage-600` rather than filling with sage, the
 way the rank buttons do. `SuitBadge` hard-codes its pip fill by suit
 (`crimson-600` or `ink-900`), so a sage fill would put an ink-900 spade on
 green.
+
+## Per-page audit — 2026-09-11
+
+Every surface in the app, read against the rules above. **This is the finding
+list, not the tick list** — `REDESIGN.md` → Stage A owns which rows are done,
+and duplicating its state here is how two tables start disagreeing.
+
+The split is clean: the seven pages built in Stages 1–5 conform; **every other
+page is `<h1>` + a stack of `Card`s**, which is the pre-redesign shape.
+
+### Conforming
+
+`DashboardPage` · `RecordsPage` · `LeaguePage` · `SessionsListPage` ·
+`MyGroupProfilePage` · `ProfilePage` · `SessionFormPage`.
+
+All seven: `PageHeading` on felt, one `Sheet`, `FeltButton` actions,
+`formatCents` + `moneyToneClass`, no `window.confirm`.
+
+### Not yet aligned
+
+| Surface | What is wrong |
+|---|---|
+| `PlayerProfilePage` | `<h1 text-3xl>` in a hand-rolled header → `PageHeading`. Body is one `PlayerStatsCard` → `Sheet` + bands. `PlayerStatsCard` hand-rolls the money ternary at 4 spots → `moneyToneClass`, and links in sage at `:83`. Refusal is a bare `Card`. Back-link points at `/players`, which now redirects |
+| `PlayerRatingPage` | `<h1 text-4xl>` + hand-rolled back-link → `PageHeading` + `FeltButton variant="ghost"`. Three `Card`s → one `Sheet`. `font-display text-6xl` rating → `StatFigure` with a `/10` suffix (and it correctly stays `ink-900` — a rating is not money) |
+| `GroupSettingsPage` | `<h1 text-4xl>` → `PageHeading` (keep the `ADMIN` `GoldPill` in it). Five `Card`s → one `Sheet`. **`confirm()` at `:72`** → `ConfirmButton`. **Error banner at `:110` is crimson-on-felt, 1.5:1 — unreadable.** Sage link at `:209`. The `:178` link is already correct |
+| `GroupMembersPage` | `<h1 text-4xl>` + a text "Dashboard →" → `PageHeading` + `FeltButton`. Three felt-level `<h2>`s each wrapping a `Card` → one `Sheet`, three `Band`s. **Error banner on felt — unreadable.** `confirm()` in `MemberRow:129` |
+| `GroupsPage` | `<h1 text-4xl>` + two `Button`s (one `ghost`) → `PageHeading` + `FeltButton`. **The group grid correctly keeps `Card`** — it is a grid of tiles, which is what `Card` is for. The empty state is a lone `Card` and should be a `Sheet`. Raw `<input>`, sage link |
+| `CreateGroupPage` | `<h1 text-4xl>` → `PageHeading`. Form `Card` → `Sheet` + `Band`. Two raw `<input>`s → `Field` + `TextInput`. Error `Card` → `ErrorNote` |
+| `JoinPage` | Both states put `<h1 text-2xl>` *inside* a `Card` → `PageHeading` + `Sheet`. Raw input with a dead focus ring. Sage link |
+| `LoginPage` | `<h1 text-2xl>` inside a `Card` → `PageHeading` + `Sheet`. Two raw inputs, dead focus rings, sage links. **First page a stranger sees** |
+| `SignupPage` | As `LoginPage`, with three inputs |
+| `AdminOverviewPage` | `<h1 text-4xl>` → `PageHeading`. Two felt `<h2>`s + two `Card`s → one `Sheet`, two `Band`s. Hand-rolled gold pill at `:145` → `GoldPill` |
+| `SetupNotice` | A full-screen state dressed as a `Card` → `PageHeading` + `Sheet` |
+| `IndexRoute` | Two bare loading `div`s → `LoadingState tone="felt" full` |
+| `RequireAuth` · `RequireGroupAdmin` · `RequireAppOwner` | Bare loading `div` each → `LoadingState tone="felt" label="Dealing in…" full` |
+| `RequireGroupMember` | As above, plus its "Group not found" refusal is a bare `Card` with a sage link → a refusal page |
+| `ErrorBoundary` | **Exempt, deliberately.** Plain markup on purpose — see Component inventory |
+
+### Cross-cutting
+
+- **`formatCents` does not group thousands.** It emits `$26840.00` where the
+  contract's own sample writes `$26,840`. Affects any four-figure total —
+  table volume, a lifetime net, a payout period. One function, 39 call sites
+  downstream; worth fixing, and it is a behaviour change rather than a restyle
+  so it is logged rather than folded into a page.
+- **`Card` is not being retired.** `GroupsPage`'s grid is the shape it is for,
+  and the accent bar is still the fastest read of a session's state. The rule
+  is about page *bodies*.
 
 ## What's intentionally NOT here
 

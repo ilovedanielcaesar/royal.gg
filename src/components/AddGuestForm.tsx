@@ -47,7 +47,7 @@ export default function AddGuestForm({ groupId, onAdded, onError }: Props) {
           value={guestName}
           onChange={(event) => setGuestName(event.target.value)}
           placeholder="Name"
-          className="rounded-md bg-card-50 px-3 py-2 text-sm text-ink-900 ring-1 ring-card-200 focus:outline-none focus:ring-2 focus:ring-gold-500"
+          className="rounded-md bg-card-50 px-3 py-2 text-sm text-ink-900 ring-1 ring-card-200"
         />
       </label>
       <Button

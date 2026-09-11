@@ -121,7 +121,7 @@ export default function InviteLinksCard({ groupId }: { groupId: string }) {
               onChange={(event) => setExpiry(event.target.value as ExpiryChoice)}
               className={[
                 "mt-1 rounded-md bg-card-50 px-3 py-2 text-sm text-ink-900",
-                "ring-1 ring-card-200 focus:outline-none focus:ring-2 focus:ring-gold-500",
+                "ring-1 ring-card-200",
               ].join(" ")}
             >
               <option value="1">1 day</option>
@@ -141,7 +141,7 @@ export default function InviteLinksCard({ groupId }: { groupId: string }) {
               onChange={(event) => setMaxUses(event.target.value)}
               className={[
                 "mt-1 w-28 rounded-md bg-card-50 px-3 py-2 text-sm text-ink-900",
-                "ring-1 ring-card-200 focus:outline-none focus:ring-2 focus:ring-gold-500",
+                "ring-1 ring-card-200",
               ].join(" ")}
             />
           </label>

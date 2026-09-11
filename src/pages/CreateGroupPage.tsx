@@ -134,7 +134,7 @@ export default function CreateGroupPage() {
               value={name}
               onChange={(event) => setName(event.target.value)}
               placeholder="Friday Night Poker"
-              className="mt-1 w-full rounded-md bg-card-50 px-3 py-2 text-sm text-ink-900 ring-1 ring-card-200 focus:outline-none focus:ring-2 focus:ring-gold-500"
+              className="mt-1 w-full rounded-md bg-card-50 px-3 py-2 text-sm text-ink-900 ring-1 ring-card-200"
             />
             <span className="mt-1.5 block text-xs text-ink-500">
               URL: /g/{slug || "your-group"}
@@ -150,7 +150,7 @@ export default function CreateGroupPage() {
               value={stakesLabel}
               onChange={(event) => setStakesLabel(event.target.value)}
               placeholder="$0.25 / $0.50"
-              className="mt-1 w-full rounded-md bg-card-50 px-3 py-2 text-sm text-ink-900 ring-1 ring-card-200 focus:outline-none focus:ring-2 focus:ring-gold-500"
+              className="mt-1 w-full rounded-md bg-card-50 px-3 py-2 text-sm text-ink-900 ring-1 ring-card-200"
             />
           </label>
 

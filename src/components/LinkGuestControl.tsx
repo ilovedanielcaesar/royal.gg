@@ -37,7 +37,7 @@ export default function LinkGuestControl({
           onChange={(event) => setChosenGuestId(event.target.value)}
           className={[
             "mt-1 min-h-9 rounded-md bg-card-50 px-3 py-1.5 text-sm text-ink-900",
-            "ring-1 ring-card-200 focus:outline-none focus:ring-2 focus:ring-gold-500",
+            "ring-1 ring-card-200",
             "disabled:pointer-events-none disabled:opacity-50",
           ].join(" ")}
         >

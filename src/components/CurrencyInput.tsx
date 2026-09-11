@@ -30,7 +30,7 @@ export default function CurrencyInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className={[
-          "tabular w-full rounded-md bg-card-50 pl-6 pr-2 py-1.5 text-right text-sm text-ink-900 ring-1 ring-card-200 focus:outline-none focus:ring-2 focus:ring-gold-500",
+          "tabular w-full rounded-md bg-card-50 pl-6 pr-2 py-1.5 text-right text-sm text-ink-900 ring-1 ring-card-200",
           className,
         ].join(" ")}
       />
