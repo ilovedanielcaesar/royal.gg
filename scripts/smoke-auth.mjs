@@ -199,6 +199,11 @@ try {
     [legacy.id]
   )).rows[0].n;
 
+  const waysBefore = (await client.query(
+    "select count(*)::int as n from auth.identities where user_id=$1",
+    [legacy.id]
+  )).rows[0].n;
+
   await client.query(
     `insert into auth.identities (id, user_id, provider, provider_id, identity_data)
      values ($1, $2, 'google', $3, $4::jsonb)`,
@@ -221,13 +226,20 @@ try {
       [legacy.id]
     )).rows[0].n === groupsBefore, `was ${groupsBefore}`);
 
-  const ways = await client.query(
+  // Not "the providers are exactly email,google". That was a snapshot of the
+  // day it was written, and it expired when Will connected Google for real —
+  // which is the feature working, not a fault. Assert the RULE instead: the
+  // link added a way in, it added exactly one, and the account still holds
+  // the password it started with. That cannot go stale.
+  const ways = (await client.query(
     "select provider from auth.identities where user_id=$1 order by provider",
     [legacy.id]
-  );
-  check("  the account now has two ways in",
-    ways.rows.map((r) => r.provider).join(",") === "email,google",
-    ways.rows.map((r) => r.provider).join(","));
+  )).rows.map((r) => r.provider);
+  check("  linking added exactly one way in", ways.length === waysBefore + 1,
+    `${waysBefore} -> ${ways.length}: ${ways.join(",")}`);
+  check("  it is the Google one", ways.includes("google"), ways.join(","));
+  check("  and the original password sign-in is still there",
+    ways.includes("email"), ways.join(","));
 
   console.log("\n  The legacy twelve are unaffected\n");
 
