@@ -22,6 +22,10 @@ import { resolve } from "node:path";
 import pg from "pg";
 
 const MIGRATION = "supabase/migrations/0017_session_buy_in.sql";
+// 0020 removed the `submitted` state from the same trigger 0017 owns. This
+// file's approval walk now goes draft -> approved, so --rehearse lays down
+// whichever of the two is still missing and neither of the ones that are not.
+const SUCCESSOR = "supabase/migrations/0020_drop_submitted.sql";
 const rehearse = process.argv.includes("--rehearse");
 
 const GREEN = "\x1b[32m";
@@ -132,13 +136,32 @@ try {
   await client.connect();
   await client.query("begin");
 
+  const strip = (path) =>
+    readFileSync(resolve(path), "utf8")
+      .replace(/^\s*begin\s*;/im, "")
+      .replace(/^\s*commit\s*;/im, "");
+
   if (rehearse) {
-    await client.query(
-      readFileSync(resolve(MIGRATION), "utf8")
-        .replace(/^\s*begin\s*;/im, "")
-        .replace(/^\s*commit\s*;/im, "")
-    );
-    console.log(`\n  Rehearsing ${MIGRATION} inside the transaction.`);
+    const missing = async (sql) =>
+      (await client.query(sql)).rows[0].n === 0;
+
+    if (await missing(
+      `select count(*)::int as n from information_schema.columns
+        where table_schema='public' and table_name='sessions'
+          and column_name='buy_in_cents'`
+    )) {
+      await client.query(strip(MIGRATION));
+      console.log(`\n  Rehearsing ${MIGRATION} inside the transaction.`);
+    }
+
+    if (await missing(
+      `select count(*)::int as n from pg_constraint
+        where conrelid='sessions'::regclass and conname='sessions_status_check'
+          and pg_get_constraintdef(oid) not like '%submitted%'`
+    )) {
+      await client.query(strip(SUCCESSOR));
+      console.log(`  Rehearsing ${SUCCESSOR} inside the transaction.`);
+    }
   }
 
   // Without this the first check fails on a missing column and everything
@@ -296,10 +319,7 @@ try {
 
   console.log("\n  The stake cannot move under an approval\n");
 
-  await asUser(member, async () => {
-    await apply("update sessions set status='submitted' where id=$1", [oldNight]);
-  });
-
+  // 0020 removed the submitted step; an admin approves the draft directly.
   await asUser(admin, async () => {
     const sneak = await probe(
       "update sessions set status='approved', buy_in_cents=5000 where id=$1",

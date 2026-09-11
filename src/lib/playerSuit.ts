@@ -73,15 +73,24 @@ export function playerSuit(playerId: string): { suit: Suit; rank: Rank } {
 /**
  * The card a player should be displayed as: their chosen card if set,
  * otherwise the deterministic fallback derived from their UUID.
+ *
+ * A guest who has not picked one is the exception, and `rank: null` is how
+ * it is said: a BLANK SPADE, per `_FEEDBACK_V2.md` → Individual session page.
+ * The hashed fallback gives a member an identity to recognise across the
+ * league and grow attached to. A guest has not claimed one, and dealing them
+ * the Queen of Hearts on their first night asserts something about them that
+ * nobody chose.
  */
 export function effectiveSuit(player: {
   id: string;
+  is_guest?: boolean | null;
   chosen_suit?: Suit | null;
   chosen_rank?: Rank | null;
-}): { suit: Suit; rank: Rank } {
+}): { suit: Suit; rank: Rank | null } {
   if (player.chosen_suit && player.chosen_rank) {
     return { suit: player.chosen_suit, rank: player.chosen_rank };
   }
+  if (player.is_guest) return { suit: "spade", rank: null };
   return playerSuit(player.id);
 }
 
@@ -89,6 +98,7 @@ export function suitColor(suit: Suit): "ink" | "red" {
   return suit === "spade" || suit === "club" ? "ink" : "red";
 }
 
-export function cardFullName(rank: Rank, suit: Suit): string {
+export function cardFullName(rank: Rank | null, suit: Suit): string {
+  if (rank === null) return `blank ${SUIT_NAMES[suit].slice(0, -1)} card`;
   return `${RANK_NAMES[rank]} of ${SUIT_NAMES[suit]}`;
 }

@@ -57,9 +57,6 @@ export default function useSessionFormSave({
       setError("Sign in before saving a game log.");
       return;
     }
-    const submitter = (e.nativeEvent as SubmitEvent)
-      .submitter as HTMLButtonElement | null;
-    const shouldSubmit = submitter?.value === "submit";
     setBusy(true);
     setError(null);
     try {
@@ -146,14 +143,8 @@ export default function useSessionFormSave({
         if (coErr) throw coErr;
       }
 
-      if (shouldSubmit) {
-        const { error: submitError } = await sb
-          .from("sessions")
-          .update({ status: "submitted" })
-          .eq("id", sessionId!)
-          .eq("group_id", groupId);
-        if (submitError) throw submitError;
-      }
+      // Nothing is submitted anywhere. Saving leaves the night a draft;
+      // 0020 removed the intermediate state and an admin approves from here.
 
       navigate(path(`/sessions/${sessionId}`));
       if (isEdit) {

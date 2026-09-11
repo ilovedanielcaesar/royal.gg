@@ -1,5 +1,8 @@
 #!/usr/bin/env node
-// Phase 4 — the game log lifecycle: draft -> submitted -> approved.
+// Phase 4 — the game log lifecycle. Written for draft -> submitted ->
+// approved; rewritten for draft <-> approved when 0020 removed the middle
+// state. The assertions that named `submitted` moved to smoke-0020.mjs,
+// which owns that removal. What is left here is what 0016 still governs.
 //
 //   node scripts/smoke-phase4.mjs             # against the live schema
 //   node scripts/smoke-phase4.mjs --rehearse  # apply 0016 in the txn first
@@ -19,6 +22,9 @@ import { resolve } from "node:path";
 import pg from "pg";
 
 const MIGRATION = "supabase/migrations/0016_game_log_states.sql";
+// 0020 subtracts the middle state from 0016. This file now describes the
+// world after both, so --rehearse has to lay both down.
+const SUCCESSOR = "supabase/migrations/0020_drop_submitted.sql";
 // 0016 builds on 0015's policy surface. If 0015 has not been pushed yet, apply
 // it inside the same rolled-back transaction so this can still be rehearsed.
 const PREREQ = "supabase/migrations/0015_rls_isolation.sql";
@@ -139,21 +145,40 @@ try {
       .replace(/^\s*begin\s*;/im, "")
       .replace(/^\s*commit\s*;/im, "");
 
+  // --rehearse lays down whatever is still missing, and nothing that is not.
+  // Re-running an applied migration fails on the first `create policy`, which
+  // is what this file used to do the moment 0016 was pushed: the flag became
+  // unusable and nobody noticed, because the unflagged run still passed.
   if (rehearse) {
-    const prereqApplied =
-      (
-        await client.query(
-          `select count(*)::int as n from pg_proc p
-             join pg_namespace n on n.oid = p.pronamespace
-            where n.nspname='public' and p.proname='is_app_owner'`
-        )
-      ).rows[0].n === 1;
-    if (!prereqApplied) {
+    const applied = async (sql) =>
+      (await client.query(sql)).rows[0].n === 1;
+
+    if (!await applied(
+      `select count(*)::int as n from pg_proc p
+         join pg_namespace n on n.oid = p.pronamespace
+        where n.nspname='public' and p.proname='is_app_owner'`
+    )) {
       await client.query(strip(PREREQ));
       console.log(`\n  ${PREREQ} is not pushed yet — applying it first.`);
     }
-    await client.query(strip(MIGRATION));
-    console.log(`  Rehearsing ${MIGRATION} inside the transaction.`);
+
+    if (!await applied(
+      `select count(*)::int as n from pg_trigger
+        where tgname='sessions_state' and tgrelid='sessions'::regclass
+          and not tgisinternal`
+    )) {
+      await client.query(strip(MIGRATION));
+      console.log(`  Rehearsing ${MIGRATION} inside the transaction.`);
+    }
+
+    if (!await applied(
+      `select count(*)::int as n from pg_constraint
+        where conrelid='sessions'::regclass and conname='sessions_status_check'
+          and pg_get_constraintdef(oid) not like '%submitted%'`
+    )) {
+      await client.query(strip(SUCCESSOR));
+      console.log(`  Rehearsing ${SUCCESSOR} inside the transaction.`);
+    }
   }
 
   console.log("\n  Schema\n");
@@ -235,60 +260,30 @@ try {
       r.rowCount === 1, r.refused ?? `matched ${r.rowCount} rows`);
   });
 
-  console.log("\n  Illegal jumps\n");
+  console.log("\n  Who may move it\n");
 
   await asUser(member, async () => {
     const r = await probe(SET_STATUS, ["approved", sid]);
-    check("draft cannot jump straight to approved", r.refused !== null || r.rowCount === 0,
-      "it was allowed");
+    check("a plain member cannot approve, not even their own draft",
+      r.rowCount === 0, r.refused ?? `matched ${r.rowCount} rows`);
   });
 
-  await asUser(member, async () => {
-    const r = await apply(SET_STATUS, ["submitted", sid]);
-    check("a member can submit their draft", r.refused === null, r.refused ?? "");
+  await asUser(admin, async () => {
+    const r = await apply(SET_STATUS, ["approved", sid]);
+    check("an admin approves a draft directly — 0020 left no step between",
+      r.refused === null, r.refused ?? "");
   });
 
   let row = await sessionRow(sid);
-  check("  submitted_by is stamped by the database", row.submitted_by === member,
-    `got ${row.submitted_by}`);
-  check("  submitted_at is set", row.submitted_at !== null);
+  check("  approved_by is stamped by the database", row.approved_by === admin,
+    `got ${row.approved_by}`);
+  check("  approved_at is set", row.approved_at !== null);
 
   await asUser(member, async () => {
     const r = await probe("update sessions set notes='sneaky' where id=$1", [sid]);
-    check("a member can no longer edit it once submitted", r.rowCount === 0,
+    check("a member can no longer edit it once approved", r.rowCount === 0,
       r.refused ?? `matched ${r.rowCount} rows`);
-
-    const self = await probe(SET_STATUS, ["approved", sid]);
-    check("and cannot approve their own log", self.rowCount === 0 || self.refused !== null,
-      "they approved it themselves");
   });
-
-  console.log("\n  The admin decides\n");
-
-  await asUser(admin, async () => {
-    const back = await apply(
-      "update sessions set status='draft', review_note='Recount Dale''s stack' where id=$1",
-      [sid]
-    );
-    check("admin can send it back with a note", back.refused === null, back.refused ?? "");
-  });
-  row = await sessionRow(sid);
-  check("  it is a draft again", row.status === "draft");
-  check("  the note survives", /Recount/.test(row.review_note ?? ""));
-  check("  and the old submission stamp is cleared",
-    row.submitted_by === null && row.submitted_at === null,
-    "a stale stamp would misattribute the next submission");
-
-  await asUser(member, async () => {
-    await apply(SET_STATUS, ["submitted", sid]);
-  });
-  await asUser(admin, async () => {
-    const r = await apply(SET_STATUS, ["approved", sid]);
-    check("admin can approve", r.refused === null, r.refused ?? "");
-  });
-  row = await sessionRow(sid);
-  check("  approved_by is stamped by the database", row.approved_by === admin,
-    `got ${row.approved_by}`);
 
   await asUser(admin, async () => {
     const r = await probe("update sessions set notes='after' where id=$1", [sid]);
@@ -300,13 +295,12 @@ try {
   });
   row = await sessionRow(sid);
   check("  reopening clears the approval", row.approved_by === null);
+  check("  and the stake it was played at is untouched by the round trip",
+    row.buy_in_cents > 0, `buy_in_cents = ${row.buy_in_cents}`);
 
   console.log("\n  Books that do not balance cannot be approved\n");
 
   await client.query("update sessions set needs_review = true where id=$1", [sid]);
-  await asUser(member, async () => {
-    await apply(SET_STATUS, ["submitted", sid]);
-  });
   await asUser(admin, async () => {
     const r = await probe(SET_STATUS, ["approved", sid]);
     check("approval is refused while needs_review is set",
@@ -335,20 +329,13 @@ try {
       r.refused === null, r.refused ?? "");
   });
 
-  await client.query(SET_STATUS, ["submitted", sid]);
-  await asUser(member, async () => {
-    const r = await probe(
-      "insert into buy_ins (session_id, player_id, amount_cents) values ($1,$2,4000)",
-      [sid, pid]
-    );
-    check("but not once it is submitted", r.refused !== null, "it was accepted");
-  });
   await asUser(admin, async () => {
     const r = await probe(
       "insert into buy_ins (session_id, player_id, amount_cents) values ($1,$2,4000)",
       [sid, pid]
     );
-    check("the admin still can, while reviewing", r.refused === null, r.refused ?? "");
+    check("  and so can an admin, on the same draft", r.refused === null,
+      r.refused ?? "");
   });
 
   await client.query(SET_STATUS, ["approved", sid]);

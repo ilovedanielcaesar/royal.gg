@@ -1,4 +1,5 @@
 import {
+  cardFullName,
   effectiveSuit,
   suitColor,
   type Rank,
@@ -10,6 +11,7 @@ type PlayerLike = {
   id: string;
   name: string;
   display_name?: string | null;
+  is_guest?: boolean | null;
   chosen_suit?: Suit | null;
   chosen_rank?: Rank | null;
 };
@@ -34,13 +36,16 @@ export default function PlayerAvatar(props: Props) {
   return (
     <div
       className={`${sz.box} relative flex shrink-0 items-center justify-center rounded-md bg-card-50 ring-1 ring-card-200 shadow-sm`}
-      aria-label={`${displayName} card (${rank} of ${suit})`}
+      aria-label={`${displayName} card (${cardFullName(rank, suit)})`}
     >
       <div
         className={`absolute left-1 top-0.5 font-display leading-none ${sz.rank} ${
           isRed ? "text-crimson-600" : "text-ink-900"
         }`}
       >
+        {/* A guest who has not picked a card has no rank — the corner is
+            left empty, which is what makes it read as a blank card rather
+            than as somebody's. */}
         {rank}
       </div>
       <SuitBadge suit={suit} size={sz.suit} />

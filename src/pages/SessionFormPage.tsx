@@ -1,14 +1,20 @@
 import { useMemo } from "react";
-import { Link, useParams } from "react-router-dom";
-import Card from "../components/Card";
-import SessionAmountsCard from "../components/SessionAmountsCard";
-import SessionDetailsCard from "../components/SessionDetailsCard";
-import SessionFormActions from "../components/SessionFormActions";
-import SessionPlayerPicker from "../components/SessionPlayerPicker";
-import SessionReconciliationSummary from "../components/SessionReconciliationSummary";
-import SessionReviewActions from "../components/SessionReviewActions";
+import { useParams } from "react-router-dom";
+import Band from "../components/Band";
+import PageHeading from "../components/PageHeading";
+import Sheet from "../components/Sheet";
+import LedgerEditorBand from "../features/sessionDetail/LedgerEditorBand";
+import SessionHeaderActions from "../features/sessionDetail/SessionHeaderActions";
+import SessionSetupBand from "../features/sessionDetail/SessionSetupBand";
+import SettledLedgerBand from "../features/sessionDetail/SettledLedgerBand";
+import {
+  isEditable,
+  sessionState,
+  stateSubtitle,
+} from "../features/sessionDetail/sessionState";
+import useAddGuest from "../features/sessionDetail/useAddGuest";
 import { useCurrentUser } from "../lib/authContext";
-import { formatPlayedAt } from "../lib/format";
+import { fullIsoDate } from "../lib/calendar";
 import { useGroup } from "../lib/groupContext";
 import { reconcile, type ReconcileInput } from "../lib/reconcile";
 import {
@@ -18,6 +24,9 @@ import {
 } from "../lib/sessionForm";
 import useSessionFormData from "../lib/useSessionFormData";
 import useSessionFormSave from "../lib/useSessionFormSave";
+import useSessionReview from "../lib/useSessionReview";
+
+const FORM_ID = "session-form";
 
 export default function SessionFormPage() {
   const { id } = useParams<{ id: string }>();
@@ -27,9 +36,14 @@ export default function SessionFormPage() {
   const isEdit = Boolean(id);
   const form = useSessionFormData(groupId, id);
   const { session, rows } = form;
-  const isDraft = session?.status === "draft" || session === null;
-  const canEdit =
-    isDraft || (isGroupAdmin && session?.status === "submitted");
+
+  // 0020 left two statuses. A night is editable while it is a draft, by any
+  // member — the one admin-only write is reopening an approved one.
+  const state = sessionState(
+    session?.status ?? null,
+    session?.needs_review ?? false
+  );
+  const canEdit = isEditable(state);
 
   // See resolveBuyInCents — an existing night keeps the stake it was played at.
   const buyInCents = resolveBuyInCents(session, group);
@@ -65,6 +79,19 @@ export default function SessionFormPage() {
     reload: form.load,
   });
 
+  const review = useSessionReview({
+    sessionId: session?.id ?? "",
+    groupId,
+    onError: form.setError,
+    reload: form.load,
+  });
+
+  const guest = useAddGuest({
+    groupId,
+    onAdded: form.addPlayer,
+    onError: form.setError,
+  });
+
   // Narrows both to number for everything below, so no call site needs a
   // fallback and none can quietly get the wrong one.
   if (
@@ -76,124 +103,97 @@ export default function SessionFormPage() {
     return <p className="text-card-50/60">Dealing…</p>;
   }
 
-  const canDelete =
-    Boolean(id) &&
-    isDraft &&
-    (isGroupAdmin || session?.created_by === user?.id);
+  const selectedIds = new Set(rows.map((row) => row.playerId));
+  const anyAdjusted = form.settled.some(
+    (r) => r.adjustedCashOutCents !== r.reportedCashOutCents
+  );
+
+  // Built once and placed inside whichever branch renders, rather than above
+  // both: `Band`'s divider is `first:border-t-0`, which is scoped to its
+  // parent, so a notice outside the <form> would leave the form's first band
+  // with no rule under the notice.
+  const notices = (
+    <>
+      {form.error && (
+        <Band className="bg-crimson-600/[0.06]">
+          <p className="text-sm text-crimson-700">{form.error}</p>
+        </Band>
+      )}
+      {session?.review_note && (
+        <Band kicker="Left by an admin" className="bg-crimson-600/[0.04]">
+          <p className="mt-1 text-sm text-ink-900">{session.review_note}</p>
+        </Band>
+      )}
+    </>
+  );
 
   return (
-    <div className="space-y-6">
-      <div>
-        <Link
-          to={path("/sessions")}
-          className="text-xs text-card-50/60 hover:text-card-50"
-        >
-          ← Sessions
-        </Link>
-        <h1 className="mt-1 font-display text-4xl text-card-50">
-          {isEdit ? (canEdit ? "Edit session" : "Session") : "New session"}
-        </h1>
-        <p className="mt-1 text-sm text-card-50/70">
-          {isEdit
-            ? `Logged ${formatPlayedAt(form.playedAt)}.`
-            : "Tap who played, then enter buy-ins and cash-outs."}
-        </p>
-        {session?.status === "submitted" && (
-          <p className="mt-2 text-sm text-gold-400">
-            This game is waiting for an admin to approve it.
-          </p>
-        )}
-        {session?.status === "approved" && (
-          <p className="mt-2 text-sm text-card-50/70">
-            This game is approved. An admin must reopen it before anything can
-            be changed.
-          </p>
-        )}
-      </div>
-
-      {isDraft && session?.review_note && (
-        <Card accent="crimson">
-          <div className="p-5">
-            <p className="text-xs font-medium uppercase tracking-wide text-crimson-700">
-              Sent back by an admin
-            </p>
-            <p className="mt-1 text-sm text-ink-900">
-              {session.review_note}
-            </p>
-          </div>
-        </Card>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <SessionDetailsCard
-          canEdit={canEdit}
-          playedAt={form.playedAt}
-          notes={form.notes}
-          onPlayedAtChange={form.setPlayedAt}
-          onNotesChange={form.setNotes}
-        />
-        {canEdit && (
-          <SessionPlayerPicker
-            players={form.allPlayers}
-            rows={rows}
+    <div>
+      <PageHeading
+        title={isEdit ? fullIsoDate(form.playedAt) : "New night"}
+        subtitle={stateSubtitle(state)}
+        actions={
+          <SessionHeaderActions
+            state={state}
+            formId={FORM_ID}
+            isGroupAdmin={isGroupAdmin}
+            canDelete={
+              Boolean(id) &&
+              canEdit &&
+              (isGroupAdmin || session?.created_by === user?.id)
+            }
+            canApprove={Boolean(reconcileSummary && !reconcileSummary.needsReview)}
+            busy={busy || review.busy}
+            rowCount={rows.length}
+            sessionId={id}
             groupId={groupId}
-            canAddGuest={isGroupAdmin}
-            onToggle={form.togglePlayer}
-            onGuestAdded={form.addPlayer}
-            setError={form.setError}
-          />
-        )}
-        {rows.length > 0 && (
-          <SessionAmountsCard
-            rows={rows}
-            buyInCents={buyInCents}
-            playersById={playersById}
-            summary={reconcileSummary}
-            canEdit={canEdit}
-            onRowChange={form.updateRow}
-          />
-        )}
-        {reconcileSummary && rows.length > 0 && (
-          <SessionReconciliationSummary
-            summary={reconcileSummary}
-            thresholdCents={thresholdCents}
-          />
-        )}
-        {form.error && (
-          <Card accent="crimson">
-            <p className="p-4 text-sm text-crimson-700">{form.error}</p>
-          </Card>
-        )}
-        {session && (
-          <Card accent={session.needs_review ? "crimson" : "sage"}>
-            <p className="p-4 text-sm text-ink-700">
-              {session.needs_review
-                ? "This session is currently flagged for review."
-                : canEdit
-                  ? "This session was previously reconciled. Saving will overwrite."
-                  : "This session is reconciled."}
-            </p>
-          </Card>
-        )}
-        {session && isGroupAdmin && (
-          <SessionReviewActions
-            session={session}
-            groupId={groupId}
+            sessionsHref={path("/sessions")}
+            onApprove={() => void review.approve()}
+            onReopen={() => void review.reopen()}
             onError={form.setError}
-            reload={form.load}
           />
+        }
+      />
+
+      <Sheet>
+        {canEdit ? (
+          <form id={FORM_ID} onSubmit={handleSubmit}>
+            {notices}
+            <SessionSetupBand
+              playedAt={form.playedAt}
+              onPlayedAtChange={form.setPlayedAt}
+              notes={form.notes}
+              onNotesChange={form.setNotes}
+              roster={form.allPlayers}
+              selectedIds={selectedIds}
+              onToggleMember={form.togglePlayer}
+              onSeatGuest={(g) => form.togglePlayer(g.id)}
+              onCreateGuest={(name) => void guest.addGuest(name)}
+              canCreateGuest={isGroupAdmin}
+              busy={guest.busy}
+            />
+            <LedgerEditorBand
+              rows={rows}
+              playersById={playersById}
+              buyInCents={buyInCents}
+              onRowChange={form.updateRow}
+              onRemove={form.togglePlayer}
+              summary={reconcileSummary}
+              state={state}
+              thresholdCents={thresholdCents}
+            />
+          </form>
+        ) : (
+          <>
+            {notices}
+            <SettledLedgerBand
+              results={form.settled}
+              playersById={playersById}
+              adjusted={anyAdjusted}
+            />
+          </>
         )}
-        <SessionFormActions
-          canEdit={canEdit}
-          isDraft={isDraft}
-          busy={busy}
-          rowCount={rows.length}
-          canDelete={canDelete}
-          sessionId={id}
-          groupId={groupId}
-          onError={form.setError}
-        />
-      </form>
+      </Sheet>
     </div>
   );
 }

@@ -9,9 +9,11 @@ type Options = {
   reload: () => Promise<void>;
 };
 
+// 0020 left two legs: approve a draft, and reopen an approved night back to
+// a draft. There is no send-back, because there is nothing to send back from.
 type ReviewUpdate =
   | { status: "approved" }
-  | { status: "draft"; review_note: string | null };
+  | { status: "draft"; review_note: null };
 
 export default function useSessionReview({
   sessionId,
@@ -49,18 +51,9 @@ export default function useSessionReview({
     await updateSession({ status: "approved" });
   }
 
-  async function sendBack(note: string) {
-    const trimmedNote = note.trim();
-    if (!trimmedNote) {
-      onError("Say what needs fixing.");
-      return;
-    }
-    await updateSession({ status: "draft", review_note: trimmedNote });
-  }
-
   async function reopen() {
     await updateSession({ status: "draft", review_note: null });
   }
 
-  return { busy, approve, sendBack, reopen };
+  return { busy, approve, reopen };
 }

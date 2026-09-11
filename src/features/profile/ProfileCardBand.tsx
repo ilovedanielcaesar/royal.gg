@@ -10,6 +10,7 @@ import { moneyToneClass } from "../../lib/moneyTone";
 import {
   cardFullName,
   effectiveSuit,
+  playerSuit,
   type Rank,
   type Suit,
 } from "../../lib/playerSuit";
@@ -51,7 +52,14 @@ export default function ProfileCardBand({
   ratingHref,
   reload,
 }: Props) {
-  const saved = effectiveSuit(player);
+  // This band is a member picking their own card, so `rank` is never the
+  // guest's blank spade here. The fallback keeps the picker typed as a real
+  // card without a cast, and is unreachable in practice.
+  const effective = effectiveSuit(player);
+  const saved = {
+    suit: effective.suit,
+    rank: effective.rank ?? playerSuit(player.id).rank,
+  };
   const [picking, setPicking] = useState(false);
   const [selection, setSelection] = useState<Selection | null>(null);
   const [saving, setSaving] = useState(false);
