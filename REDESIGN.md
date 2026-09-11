@@ -38,14 +38,17 @@ the checkbox — a tick with no log entry is how this file rots.
 | **2** | League | **none needed** | `[~]` | 7/7 · 1 moved |
 | **3** | Sessions list | lib only | `[~]` | 6/6 |
 | **4** | Profile (merged) | routing | `[~]` | 6/6 |
-| **5** | Session detail | **migration `0020`** | `[ ]` | 0/9 |
-| **A** | **Audit: every surface in the new style** | no | `[~]` | 0/23 confirmed · 5 built |
+| **5** | Session detail | **migration `0020`** | `[~]` | 9/9 · unpushed |
+| **A** | **Audit: every surface in the new style** | no | `[~]` | 0/23 confirmed · 6 built |
 
-**Current focus:** Stage 5, the last unbuilt stage — and the **five browser
-passes now owed**, which are the release gate, not a formality.
+**Current focus:** two things, both owed by Will and neither doable by a
+machine. `0020` is **written, rehearsed 37/37 and not pushed** — a backup and
+`npx supabase db push` are his. And the browser passes are now **six**, not
+five: the session page joins the queue.
 
-**Stages 0 through 4 are all merged.** `main` carries the whole redesign
-except the session detail page.
+**Stages 0 through 4 are all merged. Stage 5 is built on
+`redesign-5-session`** and does not merge until `0020` is pushed and the four
+states have been looked at.
 
 | Stage | PR | Merge | Feedback round |
 |:--:|:--:|---|---|
@@ -54,6 +57,7 @@ except the session detail page.
 | 2 | #7 | `cf4d7b0` | 3 items |
 | 3 | #8 | `81fa783` | 2 items |
 | 4 | #9 | `f740f02` | 7 items |
+| 5 | — | built `7d5f487`, unmerged | — |
 
 All merged 2026-09-10 in the order `2 → 3 → 4`, which mattered: Stage 3 is the
 branch that dropped CI's ratchet to `--max-warnings 0`, so landing it first
@@ -94,8 +98,9 @@ items, all of them fixed before merge and all recorded under their stages
 below. That is not the same as a Stage A tick: the pass was a read of the
 design, not the five-point check, and it happened before the fixes landed.
 Rows 3, 4 and 5 stay `[~]` until someone opens the merged pages and runs the
-list. Five of the twenty-three surfaces are built-but-unseen, the most the
-redesign has had at once.
+list. **Six** of the twenty-three surfaces are now built-but-unseen — row 8,
+the session page, joined them on 2026-09-11 — the most the redesign has had
+at once.
 
 Nothing in Stages 0–4 waits on a decision. Everything below waits on eyes.
 
@@ -850,33 +855,38 @@ it does not merge until the smoke gate is green and Will has pushed.
 `0020`, removing `submitted` per Decision 2. Everything it touches already
 exists in `0016_game_log_states.sql`, so this is mostly subtraction:
 
-- [ ] Collapse any live `submitted` row to `draft` first, in the same
-      migration. `node scripts/db-backup.mjs` immediately before — free tier
-      means no managed backups.
-- [ ] The transition trigger (`0016:71`) loses three legs and keeps two:
+- [x] Collapse any live `submitted` row to `draft` first, in the same
+      migration. There is exactly one: **2026-08-30**, balanced at $480.00.
+      It moves through the OLD trigger, which is what nulls its `submitted_at`
+      and `submitted_by` for us. `node scripts/db-backup.mjs` immediately
+      before the push — free tier means no managed backups. **That backup and
+      `npx supabase db push` are Will's and have not happened.**
+- [x] The transition trigger (`0016:71`) loses three legs and keeps two:
       `draft → approved` and `approved → draft` (reopen). The
       `draft → submitted`, `submitted → approved` and `submitted → draft`
       legs go.
-- [ ] `sessions_update_draft` (`0016:137`): the `with check` narrows from
+- [x] `sessions_update_draft` (`0016:137`): the `with check` narrows from
       `status in ('draft','submitted')` to `draft`. `sessions_admin_review`
       (`0016:160`) narrows its `using` the same way.
-- [ ] `buy_ins_write` and `cash_outs_write` (`0016:188` onward): drop
+- [x] `buy_ins_write` and `cash_outs_write` (`0016:188` onward): drop
       `submitted` from the admin legs. **The money rows have to follow the
       header or the change is cosmetic.**
-- [ ] The `status` check constraint drops `'submitted'` as a legal value.
-- [ ] **Keep `submitted_at` and `submitted_by`** as unused nullable columns for
+- [x] The `status` check constraint drops `'submitted'` as a legal value.
+- [x] **Keep `submitted_at` and `submitted_by`** as unused nullable columns for
       now. Dropping columns off live data is destructive and buys nothing; a
       later cleanup migration can take them once a release has passed without
       them.
-- [ ] `src/types/database.ts` narrows to `"draft" | "approved"` **in the same
+- [x] `src/types/database.ts` narrows to `"draft" | "approved"` **in the same
       commit** — that file is hand-maintained, and `0017` already landed once
       without it, leaving a column invisible to TypeScript for a day.
-- [ ] `scripts/smoke-0020.mjs`: rehearse against live data in a rolled-back
+- [x] `scripts/smoke-0020.mjs`: rehearse against live data in a rolled-back
       transaction. Assert the three removed transitions now raise, that a
       member can still write money to a draft, that an admin can still approve
       and reopen, and that no `submitted` row survives. Every migration since
       `0009` rehearsed this way and it caught a real defect every single time.
-      Then Will runs `npx supabase db push`.
+      **It caught one here too — see findings 1 below.** 37/37 green.
+      `node scripts/smoke-0020.mjs` with no flag refuses and says so until
+      Will has run `npx supabase db push`.
 
 App-side fallout: `useSessionFormSave.ts:152` stops writing
 `status: "submitted"`, `SessionStatusBadge` loses the "Waiting on admin" case,
@@ -887,31 +897,130 @@ admin-only write left is reopening an approved night, and
 
 ### The page
 
-- [ ] **A hand-rolled date picker.** A custom calendar in the card language. No
+- [x] **A hand-rolled date picker.** A custom calendar in the card language. No
       `<input type="date">`, no library — the native control is ugly and breaks
       the feel. This is the single largest new component in the redesign.
-- [ ] "Who's at the table" lists **registered members only** — no guests, not
+- [x] "Who's at the table" lists **registered members only** — no guests, not
       even previously-added ones.
-- [ ] Guests are reached only through "add a guest": start typing and
+- [x] Guests are reached only through "add a guest": start typing and
       previously seen guests appear as suggestions; a name matching nothing
       creates a new guest. A new guest gets a **blank spade card** by default.
-- [ ] Adding a player defaults them to **1 buy-in in, one buy-in's value out**,
+- [x] Adding a player defaults them to **1 buy-in in, one buy-in's value out**,
       so the sheet is balanced the moment the players are picked and the
       discrepancy starts at `$0.00`.
-- [ ] The cash-out stepper moves by **one dollar** per press, not one cent.
-- [ ] Four states: **Editing** · **Draft** (discrepancy under the threshold;
+- [x] The cash-out stepper moves by **one dollar** per press, not one cent.
+- [x] Four states: **Editing** · **Draft** (discrepancy under the threshold;
       any member may edit it; nothing is submitted anywhere) · **Needs review**
       (over the threshold, not auto-adjusted) · **Approved** ("who's at the
       table" disappears, leaving in / out / net per player, and an admin can
       reopen it back to draft).
-- [ ] `SessionFormPage.tsx` is 199 lines before any of this. Split it.
+- [x] `SessionFormPage.tsx` is 199 lines before any of this. Split it. It is
+      199 again, behind eleven feature files, and eight old `Session*Card`
+      components are deleted rather than restyled.
 
-**Exit gate, money-shaped and non-negotiable:** the full smoke gate from
-`WORKFLOW.md` green, `0020` rehearsed and pushed, reconciliation still exact to
-the cent on the two nights that are deliberately open drafts (the +$107.50 on
-2026-08-30, which balances, and the $110-over 2026-08-26, which does not and
-must keep refusing approval), and a browser pass through all four states by
-Will.
+### Findings
+
+Nine, and the first is the one worth remembering.
+
+**1. `create or replace function` has no patch, and 0020 nearly proved it.**
+The first draft of the migration restated `enforce_session_state()` from
+**0016's** body — which is where the function was last fully written down in
+a file whose subject is the lifecycle. But `0017` had since added two things
+to that same function: the `buy_in_cents` stamp on insert, and the guard
+refusing a re-stake in the same statement as an approval. Rebasing on 0016
+silently reverted both. Nothing in the migration failed; `smoke-phase4`
+failed, on `null value in column "buy_in_cents"`, because it inserts a
+session without one and had always relied on the stamp.
+
+The rule: **a migration that replaces a function must start from the LAST
+version of that function, not from the migration that owns the subject.**
+`0020` is rebased on 0017's body, and both the migration's assert block and
+`smoke-0020` now check the two additions survived, because the next person to
+replace this function will reach for 0016 for exactly the same reason.
+
+**2. The exit gate below was written against a database that has moved on.**
+It names "the two nights that are deliberately open drafts (the +$107.50 on
+2026-08-30 … and the $110-over 2026-08-26)". Live, today: there is **no
+2026-08-26 session at all**, 2026-08-30 was `submitted` rather than draft and
+balances exactly, the two real drafts are **2026-09-07 and 2026-09-08**, and
+**no session anywhere has `needs_review` set**. `WORKFLOW.md`'s note under the
+smoke gate says the same stale thing. Neither is wrong about the rule — an
+unbalanced night cannot be approved, and `smoke-0020` asserts it — but the
+nights named are gone. **Nothing in the app can now be tested against a live
+"needs review" night**, which is a real gap in the browser pass and is why
+that state has to be provoked by hand.
+
+**3. `smoke-phase4 --rehearse` had been broken since 0016 was pushed.** Re-
+running an applied migration dies on its first `create policy`. Nobody
+noticed because the unflagged run still passed. It now applies only what is
+missing, and `smoke-0017` got the same treatment when 0020 joined it.
+
+**4. `smoke-auth` was asserting a snapshot, not a rule.** It required the
+providers on `will` to be exactly `email,google`, which expired the day Will
+connected Google for real. It asserts what cannot go stale instead: linking
+added exactly one way in, it was the Google one, and the password sign-in
+survived. Same class as the four found on 2026-09-08.
+
+**5. Three documented smoke counts are stale.** `WORKFLOW.md` says
+`smoke-rls # 42/42` and `smoke-3c2 # 23/23`; they are 41 and 24. The whole
+gate as actually run: rls 41, phase4 24, 0017 24, 3a 18, 3b 32, 3c 18,
+3c2 24, leave 22, 0018 36, auth 25, 0020 37.
+
+**6. ONE DELIBERATE DEVIATION FROM THE MOCK, and it should be reviewed.**
+`session_detail_v2.html` hides the buy-in column and the remove button under
+720px (`.buyin-col, .remove-col { display: none }`). That leaves a phone
+unable to record a rebuy or unseat a player — on the device `CLAUDE.md` says
+this page exists for, at the table. Below 721px the row becomes two lines
+instead of losing two controls. Reverting it is four class strings in
+`LedgerStepperRow`.
+
+**7. The blank spade was not free.** "A new guest gets a blank spade card by
+default" was a real behaviour change, not a default that was already there:
+`effectiveSuit()` dealt every card-less player a card hashed from their UUID,
+guests included. It now returns `rank: null` for a guest who has not chosen,
+and `PlayerAvatar` draws the corner empty. **This changes guest avatars
+everywhere**, not only on this page — the sessions list, the League guests
+band, the dashboard. That is the right answer (a hashed Queen of Hearts
+asserts an identity nobody picked) but it is wider than Stage 5 and should be
+looked at on those pages too.
+
+**8. Adding a guest is admin-only at the database, and the mock does not say
+so.** `players_insert_admin` gates INSERT on `is_group_admin`. The mock's
+"add a guest" field implies anyone editing the night can create one. The
+field therefore offers *creation* only to an admin and says so; seating an
+existing guest is open to any member. **Widening that policy is a decision,
+not a detail, so it is flagged rather than assumed** — if any member should
+be able to add a guest mid-game, that is a migration.
+
+**9. Approve reads the live client-side summary, not the saved row.** The
+button disables on `reconcileSummary.needsReview`, computed from what is on
+screen. Edit without saving and the button's state can disagree with the
+database. The failure is safe and legible — the trigger refuses with "These
+books do not balance yet" and the error lands in the sheet — but the honest
+fix is to disable Approve while the form is dirty, which needs dirty
+tracking the page does not have.
+
+**Exit gate, money-shaped and non-negotiable.** Rewritten against the
+database as it actually is — see finding 2, which is why the old wording is
+struck rather than ticked.
+
+- [x] The full smoke gate green. All eleven scripts, counts under finding 5.
+- [x] `0020` rehearsed in a rolled-back transaction against live data. 37/37.
+- [ ] **`node scripts/db-backup.mjs`, then `npx supabase db push`.** Will's,
+      and nothing below can happen first.
+- [ ] After the push: `node scripts/smoke-0020.mjs` with no flag, and
+      `smoke-phase4` and `smoke-0017` likewise, all three against the pushed
+      schema rather than a rehearsal.
+- [ ] The money is unmoved: Royal's buy-in, reported and adjusted totals are
+      identical before and after. `smoke-0020` asserts this inside its
+      transaction; confirm it once more against the real push.
+- [ ] ~~the two open drafts of 2026-08-30 and 2026-08-26~~ **2026-09-07 and
+      2026-09-08**, the two real drafts, still reconcile to the cent and
+      still open, edit and save.
+- [ ] A browser pass through all four states by Will. **Needs review has no
+      live example any more** (finding 2) — provoke it by mistyping a
+      cash-out by more than the group's threshold on a draft, and check the
+      night refuses to approve.
 
 When this lands: **Stage A runs, and only then** is `main` tagged `v1.2.0`.
 Stage 5 finishing is not the release; a redesign with six pages still in the
@@ -963,7 +1072,7 @@ even though both are merged and green. **A `[~]` row is not done.**
 | 5 | `MyGroupProfilePage` + `ProfilePage` (merged) | `/g/:slug/profile`, `/profile` | Stage 4 | `[~]` |
 | 6 | `PlayerProfilePage` | `/g/:slug/players/:id` | Stage 4 tail | `[ ]` |
 | 7 | `PlayerRatingPage` | `/g/:slug/players/:id/rating` | Stage 4 tail | `[ ]` |
-| 8 | `SessionFormPage` | `/g/:slug/sessions/new`, `/sessions/:id` | Stage 5 | `[ ]` |
+| 8 | `SessionFormPage` | `/g/:slug/sessions/new`, `/sessions/:id` | Stage 5 | `[~]` |
 | 9 | `GroupSettingsPage` | `/g/:slug/settings` | **Stage A** | `[ ]` |
 | 10 | `GroupMembersPage` | `/g/:slug/members` | **Stage A** | `[ ]` |
 | 11 | `GroupsPage` | `/groups` | **Stage A** | `[ ]` |
@@ -1024,6 +1133,40 @@ Not blocking any stage. Recorded so they are not rediscovered.
 
 Newest first. One line per meaningful change.
 
+- **2026-09-11** — **Stage 5 built** on `redesign-5-session` (`f31db88`
+  migration, `7d5f487` page). `0020` removes the `submitted` state: five
+  transition legs become two, the one live row in it (2026-08-30) collapses
+  to a draft, and the dead admin disjunct in `buy_ins_write` and
+  `cash_outs_write` goes with it. Rehearsed 37/37 and **not pushed** — the
+  backup and `npx supabase db push` are Will's.
+
+  **The rehearsal caught the defect it exists to catch, for the ninth
+  migration running.** 0020's first draft restated `enforce_session_state()`
+  from 0016's body, silently reverting the two things 0017 had added to the
+  same function. `create or replace function` takes no patch: replace a
+  function from the LAST version of it, never from the migration that owns
+  the subject. Finding 1 under Stage 5.
+
+  Three smoke scripts were describing a world we left behind — `smoke-phase4`
+  walked draft → submitted → approved and its `--rehearse` had been dead
+  since 0016 was pushed, `smoke-0017` approved through `submitted`, and
+  `smoke-auth` asserted a provider list that expired when Will connected
+  Google. All three assert rules now instead of snapshots.
+
+  The page is one `Sheet` in two bands with every control on the felt, and
+  eight `Session*Card` components are deleted rather than restyled. The
+  hand-rolled calendar is two components over `lib/calendar.ts`, which keeps
+  every date in `YYYY-MM-DD` so nothing parses through UTC and lands a poker
+  night on the wrong day. An approved night reads its adjusted figures back
+  from `cash_outs` rather than re-running `reconcile()`, which would restate
+  a settled record the day the threshold changes. Two `window.confirm` calls
+  are gone.
+
+  Nine findings recorded, including one deliberate deviation from the mock
+  (it hides the rebuy and remove controls under 720px, on the device the page
+  is for) and one stale exit gate: the two nights it names as open drafts are
+  **not** the two that are open, and nothing in the database is flagged for
+  review any more, so that state has no live example to look at.
 - **2026-09-10** — **Stages 2, 3 and 4 merged** (`cf4d7b0` #7, `81fa783` #8,
   `f740f02` #9), in that order, after a preview pass returned twelve items
   that were all fixed first. `main` now carries every page of the redesign

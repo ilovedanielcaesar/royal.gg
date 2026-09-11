@@ -90,24 +90,40 @@ immediately before anything destructive.
 > The whole gate, all green as of 2026-09-08, and green again with `0018`
 > rehearsed inside the transaction:
 >
+> Re-counted 2026-09-11 against live data, because three of the numbers
+> below had drifted and a stale count fails for the wrong reason:
+>
 > ```
-> node scripts/smoke-rls.mjs      # 42/42     node scripts/smoke-3b.mjs    # 32/32
-> node scripts/smoke-phase4.mjs   # 31/31     node scripts/smoke-3c.mjs    # 18/18
-> node scripts/smoke-0017.mjs     # 24/24     node scripts/smoke-3c2.mjs   # 23/23
+> node scripts/smoke-rls.mjs      # 41/41     node scripts/smoke-3b.mjs    # 32/32
+> node scripts/smoke-phase4.mjs   # 24/24     node scripts/smoke-3c.mjs    # 18/18
+> node scripts/smoke-0017.mjs     # 24/24     node scripts/smoke-3c2.mjs   # 24/24
 > node scripts/smoke-3a.mjs       # 18/18     node scripts/smoke-leave.mjs # 22/22
+> node scripts/smoke-0018.mjs     # 36/36     node scripts/smoke-auth.mjs  # 25/25
+> node scripts/smoke-0020.mjs     # 37/37
 > ```
+>
+> `smoke-phase4`, `smoke-0017` and `smoke-0020` describe the world after
+> `0020` and need `--rehearse` until it is pushed. The flag now applies only
+> the migrations that are missing, so it stays usable after the push.
 >
 > **`src/types/database.ts` is hand-maintained, and `0017` landed without it.**
 > `sessions.buy_in_cents` was added to the type on 2026-09-07 after the fact.
 > Any future migration that adds a column has to touch that file in the same
 > commit, or the column is invisible to TypeScript.
 >
-> **Two nights are open drafts on purpose.** Will reopened the −$110.00 on
-> 2026-08-26 and the +$107.50 on 2026-08-30 through 4B. 08-30 now balances
-> exactly. 08-26 is still $110 over — nine buy-ins came to $360 against $470
-> cashed out — so `needs_review` holds and the trigger refuses to approve it
-> until the counts are fixed. That is a real chip-count discrepancy from that
-> night, not a bug.
+> ~~**Two nights are open drafts on purpose.** Will reopened the −$110.00 on
+> 2026-08-26 and the +$107.50 on 2026-08-30 through 4B.~~ **Stale, corrected
+> 2026-09-11 by reading the database.** There is no 2026-08-26 session any
+> more; 2026-08-30 balances exactly and was sitting in `submitted` until
+> `0020` collapses it to a draft; the two real open drafts are **2026-09-07
+> and 2026-09-08**, both balanced at $80.00. **No session anywhere has
+> `needs_review` set**, so there is no live example of a flagged night to
+> look at — that state has to be provoked by hand, by mistyping a cash-out
+> past the group's threshold on a draft.
+>
+> The RULE is what to assert, and it has not changed: a night that does not
+> balance cannot be approved. `smoke-phase4` and `smoke-0020` both check it,
+> and neither names a date.
 
 Phase 2 verified by Will in the browser: a new group shows no Royal members,
 guests or sessions.
