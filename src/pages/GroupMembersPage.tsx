@@ -1,7 +1,11 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import Card from "../components/Card";
+import Band from "../components/Band";
+import ErrorNote from "../components/ErrorNote";
+import FeltButton from "../components/FeltButton";
+import LoadingState from "../components/LoadingState";
 import MemberRow from "../components/MemberRow";
+import PageHeading from "../components/PageHeading";
+import Sheet from "../components/Sheet";
 import { describeError } from "../lib/errors";
 import { useGroup } from "../lib/groupContext";
 import {
@@ -134,43 +138,49 @@ export default function GroupMembersPage() {
   ];
 
   return (
-    <div className="space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="font-display text-4xl text-card-50">Members</h1>
-          <p className="mt-1 text-sm text-card-50/60">
-            Approve requests and manage access to {group?.name ?? "this group"}.
-          </p>
-        </div>
-        <Link
-          className="text-sm text-card-50/70 underline hover:text-card-50"
-          to={path("/")}
-        >
-          Dashboard →
-        </Link>
-      </header>
+    <>
+      <PageHeading
+        title="Members"
+        subtitle={`Approve requests and manage access to ${
+          group?.name ?? "this group"
+        }.`}
+        actions={
+          <FeltButton variant="ghost" to={path("/settings")}>
+            ← Settings
+          </FeltButton>
+        }
+      />
 
+      {/* Felt tone. This banner carried crimson-700 on the table at 1.5:1,
+          so the one message that explains a refused change — including the
+          last-admin trigger's, which is written to be read — could not be. */}
       {error && (
-        <div className="rounded-md bg-crimson-500/10 px-3 py-2 text-xs text-crimson-700">
+        <ErrorNote tone="felt" className="mb-4">
           {error}
-        </div>
+        </ErrorNote>
       )}
 
       {members === null ? (
-        <p className="text-card-50/60">Dealing…</p>
+        <LoadingState tone="felt" full />
       ) : (
-        sectionList.map((section) => (
-          <section key={section.key}>
-            <h2 className="mb-2 font-display text-2xl text-card-50">
-              {section.title}
-            </h2>
-            <Card accent={section.key === "pending" ? "gold" : "neutral"}>
+        <Sheet>
+          {sectionList.map((section) => (
+            <Band
+              key={section.key}
+              kicker={section.key === "pending" ? "Waiting" : undefined}
+              title={section.title}
+              caption={
+                section.key === "active"
+                  ? "Admins first, then alphabetical."
+                  : undefined
+              }
+            >
               {section.rows.length === 0 ? (
-                <p className="p-5 text-sm text-ink-500">
+                <p className="mt-2 text-sm text-ink-500">
                   {EMPTY_MESSAGE[section.key]}
                 </p>
               ) : (
-                <div className="divide-y divide-card-200">
+                <div className="mt-2 divide-y divide-card-100">
                   {section.rows.map((member) => (
                     <MemberRow
                       key={member.id}
@@ -189,10 +199,10 @@ export default function GroupMembersPage() {
                   ))}
                 </div>
               )}
-            </Card>
-          </section>
-        ))
+            </Band>
+          ))}
+        </Sheet>
       )}
-    </div>
+    </>
   );
 }

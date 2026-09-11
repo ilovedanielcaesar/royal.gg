@@ -11,6 +11,10 @@ type Props = {
   onConfirm: () => void;
   busy?: boolean;
   busyLabel?: string;
+  /** Another row of the same list is mid-action. Arming is pointless while
+   *  the handler would refuse, and a confirm click that silently no-ops is
+   *  worse than a disabled button. */
+  disabled?: boolean;
   size?: "sm" | "md";
 };
 
@@ -34,6 +38,7 @@ export default function ConfirmButton({
   onConfirm,
   busy = false,
   busyLabel,
+  disabled = false,
   size = "sm",
 }: Props) {
   const [armed, setArmed] = useState(false);
@@ -48,7 +53,12 @@ export default function ConfirmButton({
 
   if (!armed) {
     return (
-      <Button variant="danger" size={size} onClick={() => setArmed(true)}>
+      <Button
+        variant="danger"
+        size={size}
+        disabled={disabled}
+        onClick={() => setArmed(true)}
+      >
         {label}
       </Button>
     );

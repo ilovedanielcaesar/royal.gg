@@ -1,7 +1,11 @@
 import { useEffect, useState, type FormEvent } from "react";
+import Band from "./Band";
 import Button from "./Button";
-import Card from "./Card";
+import ErrorNote from "./ErrorNote";
+import Field from "./Field";
 import InviteLinkRow from "./InviteLinkRow";
+import LoadingState from "./LoadingState";
+import TextInput from "./TextInput";
 import { useCurrentUser } from "../lib/auth";
 import { describeError } from "../lib/errors";
 import { generateInviteToken } from "../lib/joinCode";
@@ -21,7 +25,7 @@ async function fetchInvites(groupId: string): Promise<GroupInvite[]> {
   return data ?? [];
 }
 
-export default function InviteLinksCard({ groupId }: { groupId: string }) {
+export default function InviteLinksBand({ groupId }: { groupId: string }) {
   const { user } = useCurrentUser();
   const [invites, setInvites] = useState<GroupInvite[] | null>(null);
   const [expiry, setExpiry] = useState<ExpiryChoice>("7");
@@ -86,7 +90,8 @@ export default function InviteLinksCard({ groupId }: { groupId: string }) {
   }
 
   async function revokeInvite(invite: GroupInvite) {
-    if (revokingId || !confirm("Revoke this invite link?")) return;
+    // No confirm() — InviteLinkRow arms its own ConfirmButton in place.
+    if (revokingId) return;
     setRevokingId(invite.id);
     setError(null);
     try {
@@ -107,61 +112,51 @@ export default function InviteLinksCard({ groupId }: { groupId: string }) {
   }
 
   return (
-    <Card accent="gold">
-      <div className="p-5">
-        <h2 className="font-display text-2xl text-ink-900">Invite links</h2>
-        <form
-          className="mt-4 flex flex-wrap items-end gap-3"
-          onSubmit={mintInvite}
-        >
-          <label>
-            <span className="block text-xs font-medium text-ink-700">Expiry</span>
-            <select
-              value={expiry}
-              onChange={(event) => setExpiry(event.target.value as ExpiryChoice)}
-              className={[
-                "mt-1 rounded-md bg-card-50 px-3 py-2 text-sm text-ink-900",
-                "ring-1 ring-card-200",
-              ].join(" ")}
-            >
-              <option value="1">1 day</option>
-              <option value="7">7 days</option>
-              <option value="never">never</option>
-            </select>
-          </label>
-          <label>
-            <span className="block text-xs font-medium text-ink-700">
-              Max uses <span className="font-normal text-ink-500">(optional)</span>
-            </span>
-            <input
-              type="number"
-              min="1"
-              step="1"
-              value={maxUses}
-              onChange={(event) => setMaxUses(event.target.value)}
-              className={[
-                "mt-1 w-28 rounded-md bg-card-50 px-3 py-2 text-sm text-ink-900",
-                "ring-1 ring-card-200",
-              ].join(" ")}
-            />
-          </label>
-          <Button type="submit" variant="secondary" disabled={minting}>
-            {minting ? "Creating…" : "Create link"}
-          </Button>
-        </form>
-        {error && (
-          <p className="mt-3 rounded-md bg-crimson-500/10 px-3 py-2 text-xs text-crimson-700">
-            {error}
-          </p>
-        )}
-      </div>
-      <div className="border-t border-card-200">
+    <Band
+      kicker="Invites"
+      title="Invite links"
+      caption="A link is separate from the standing join code, and revoking one leaves the code working."
+    >
+      <form
+        className="mt-4 flex flex-wrap items-end gap-3"
+        onSubmit={mintInvite}
+      >
+        <Field label="Expiry">
+          <select
+            value={expiry}
+            onChange={(event) => setExpiry(event.target.value as ExpiryChoice)}
+            className="rounded-md bg-card-50 px-3 py-2 text-sm text-ink-900 ring-1 ring-card-200"
+          >
+            <option value="1">1 day</option>
+            <option value="7">7 days</option>
+            <option value="never">never</option>
+          </select>
+        </Field>
+        <Field label="Max uses" optional>
+          <TextInput
+            type="number"
+            min="1"
+            step="1"
+            className="w-28"
+            value={maxUses}
+            onChange={(event) => setMaxUses(event.target.value)}
+          />
+        </Field>
+        <Button type="submit" variant="secondary" disabled={minting}>
+          {minting ? "Creating…" : "Create link"}
+        </Button>
+      </form>
+      {error && <ErrorNote className="mt-3">{error}</ErrorNote>}
+
+      <div className="mt-5 border-t border-card-100 pt-1">
         {invites === null ? (
-          <p className="p-5 text-sm text-ink-500">Dealing…</p>
+          <p className="py-4">
+            <LoadingState />
+          </p>
         ) : invites.length === 0 ? (
-          <p className="p-5 text-sm text-ink-500">No invite links yet.</p>
+          <p className="py-4 text-sm text-ink-500">No invite links yet.</p>
         ) : (
-          <div className="divide-y divide-card-200">
+          <div className="divide-y divide-card-100">
             {invites.map((invite) => (
               <InviteLinkRow
                 key={invite.id}
@@ -174,6 +169,6 @@ export default function InviteLinksCard({ groupId }: { groupId: string }) {
           </div>
         )}
       </div>
-    </Card>
+    </Band>
   );
 }

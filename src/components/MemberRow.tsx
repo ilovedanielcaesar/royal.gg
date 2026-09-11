@@ -1,4 +1,5 @@
 import Button from "./Button";
+import ConfirmButton from "./ConfirmButton";
 import LinkGuestControl from "./LinkGuestControl";
 import PlayerAvatar from "./PlayerAvatar";
 import {
@@ -117,24 +118,19 @@ export default function MemberRow(props: Props) {
                   ? "Demote"
                   : "Promote"}
             </Button>
-            <Button
-              size="sm"
-              variant="danger"
+            {/* Removal keeps the row: decision 9 preserves their history and
+                their place on the leaderboard, which is what the armed label
+                says. It was a window.confirm, whose one sentence was the only
+                place that got explained. */}
+            <ConfirmButton
+              label="Remove"
+              confirmLabel={`Remove ${name}`}
+              consequence="Their game history is kept."
+              busy={busy}
+              busyLabel="Removing…"
               disabled={locked || soleAdmin}
-              title={soleAdmin ? ONLY_ADMIN_REASON : undefined}
-              onClick={() => {
-                // Removal keeps the row: decision 9 preserves their history
-                // and their place on the leaderboard.
-                if (
-                  !confirm(`Remove ${name}? Their game history is kept.`)
-                ) {
-                  return;
-                }
-                onUpdate({ status: "removed" });
-              }}
-            >
-              Remove
-            </Button>
+              onConfirm={() => onUpdate({ status: "removed" })}
+            />
           </>
         )}
 

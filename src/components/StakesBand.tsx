@@ -1,9 +1,12 @@
 import { useMemo, useState, type FormEvent } from "react";
 import type { Group } from "../lib/groupContext";
 import { formatCents, parseDollarsToCents } from "../lib/money";
+import Band from "./Band";
 import Button from "./Button";
-import Card from "./Card";
 import CurrencyInput from "./CurrencyInput";
+import ErrorNote from "./ErrorNote";
+import Field from "./Field";
+import TextInput from "./TextInput";
 
 export type StakesUpdate = Pick<
   Group,
@@ -20,20 +23,30 @@ function centsToInput(cents: number): string {
   return (cents / 100).toFixed(2);
 }
 
-export default function StakesCard(props: Props) {
+/**
+ * A band, not a card — it is one division of the settings sheet.
+ *
+ * The read-only half is the half nobody has opened: members reach
+ * /g/:slug/settings because seeing the reconcile threshold is what explains
+ * why a night got flagged, and RLS refuses their writes either way, so the
+ * page hides the controls rather than the page.
+ */
+export default function StakesBand(props: Props) {
   if (!props.isGroupAdmin) {
-    return <ReadOnlyStakesCard group={props.group} />;
+    return <ReadOnlyStakesBand group={props.group} />;
   }
 
-  return <EditableStakesCard group={props.group} save={props.save} />;
+  return <EditableStakesBand group={props.group} save={props.save} />;
 }
 
-function ReadOnlyStakesCard({ group }: { group: Group }) {
+function ReadOnlyStakesBand({ group }: { group: Group }) {
   return (
-    <Card accent="gold">
-      <div className="space-y-4 p-5">
-        <h2 className="font-display text-2xl text-ink-900">Stakes</h2>
-
+    <Band
+      kicker="Table"
+      title="Stakes"
+      caption="Set by an admin. These are what every night is priced against."
+    >
+      <div className="mt-4 space-y-4">
         <div>
           <p className="text-xs font-medium text-ink-700">Stakes</p>
           <p
@@ -68,11 +81,11 @@ function ReadOnlyStakesCard({ group }: { group: Group }) {
           </div>
         </div>
       </div>
-    </Card>
+    </Band>
   );
 }
 
-function EditableStakesCard({
+function EditableStakesBand({
   group,
   save,
 }: Pick<Props, "group" | "save">) {
@@ -129,66 +142,54 @@ function EditableStakesCard({
       : formatCents(reconcileThresholdCents);
 
   return (
-    <Card accent="gold">
-      <form className="space-y-4 p-5" onSubmit={handleSubmit}>
-        <h2 className="font-display text-2xl text-ink-900">Stakes</h2>
-
-        <label className="block">
-          <span className="text-xs font-medium text-ink-700">Stakes</span>
-          <input
+    <Band
+      kicker="Table"
+      title="Stakes"
+      caption="What every night is priced against."
+    >
+      <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
+        <Field label="Stakes">
+          <TextInput
             value={stakesLabel}
             onChange={(event) => {
               setStakesLabel(event.target.value);
               setValidationError(null);
             }}
             placeholder="$0.25 / $0.50"
-            className="mt-1 w-full rounded-md bg-card-50 px-3 py-2 text-sm text-ink-900 ring-1 ring-card-200"
           />
-        </label>
+        </Field>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <label className="block">
-            <span className="text-xs font-medium text-ink-700">Buy-in</span>
+          <Field label="Buy-in">
             <CurrencyInput
               value={defaultBuyIn}
               onChange={(value) => {
                 setDefaultBuyIn(value);
                 setValidationError(null);
               }}
-              className="mt-1"
             />
-          </label>
+          </Field>
 
-          <label className="block">
-            <span className="text-xs font-medium text-ink-700">
-              Reconcile threshold
-            </span>
+          <Field
+            label="Reconcile threshold"
+            hint={`A discrepancy up to ${displayedThreshold} is split among the winners automatically; anything over it flags the night for review.`}
+          >
             <CurrencyInput
               value={reconcileThreshold}
               onChange={(value) => {
                 setReconcileThreshold(value);
                 setValidationError(null);
               }}
-              className="mt-1"
             />
-            <span className="mt-1.5 block text-xs text-ink-500">
-              A discrepancy up to {displayedThreshold} is split among the
-              winners automatically; anything over it flags the night for
-              review.
-            </span>
-          </label>
+          </Field>
         </div>
 
-        {validationError && (
-          <p className="rounded-md bg-crimson-500/10 px-3 py-2 text-xs text-crimson-700">
-            {validationError}
-          </p>
-        )}
+        {validationError && <ErrorNote>{validationError}</ErrorNote>}
 
         <Button type="submit" variant="secondary" disabled={saving || !hasChanges}>
           {saving ? "Saving…" : "Save stakes"}
         </Button>
       </form>
-    </Card>
+    </Band>
   );
 }
