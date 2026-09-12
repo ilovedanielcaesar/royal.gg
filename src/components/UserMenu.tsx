@@ -1,9 +1,11 @@
 import { Link } from "react-router-dom";
 import { signOut, useCurrentUser } from "../lib/auth";
+import { useMyGroupCard } from "../lib/useMyGroupCard";
 import PlayerAvatar from "./PlayerAvatar";
 
 export default function UserMenu() {
   const { user, profile, isAppOwner } = useCurrentUser();
+  const groupCard = useMyGroupCard();
   if (!user) return null;
 
   const label = profile?.display_name ?? profile?.username ?? "You";
@@ -23,11 +25,18 @@ export default function UserMenu() {
         className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-card-50/10"
       >
         {profile ? (
-          // The card here is derived from the account id. Chosen cards are
-          // per-group (GROUPS.md decision 10) and the header sits above
-          // GroupProvider, so there is no group card to show.
+          // Inside a group this is the card you actually chose there; outside
+          // one there is no group card to show, so `PlayerAvatar` falls back
+          // to the card hashed from your account id. Cards are per-group
+          // (GROUPS.md decision 10), so this legitimately changes as you move
+          // between groups — it is your card AT THIS TABLE, not a global one.
           <PlayerAvatar
-            player={{ id: profile.id, name: label }}
+            player={{
+              id: profile.id,
+              name: label,
+              chosen_suit: groupCard?.suit ?? null,
+              chosen_rank: groupCard?.rank ?? null,
+            }}
             size="sm"
           />
         ) : (
