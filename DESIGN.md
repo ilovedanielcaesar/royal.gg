@@ -747,10 +747,23 @@ from a screenshot:
    card. On members that is the banner carrying the last-admin trigger's
    message, which is written to be read and could not be. `ErrorNote`'s felt
    tone fixes it.
-2. **Keyboard focus was invisible on 17 inputs.** Eleven set
+2. **Keyboard focus was invisible on 20 inputs.** Eleven set
    `focus:ring-gold-500` on cream (~2.1:1 — the exact pairing `index.css`
    swaps away from); six replaced the outline with a sage border tint, which
    is no ring at all. `TextInput` sets none and lets the global rule through.
+
+   **This said 17 until 2026-09-12, and the three it missed are the
+   instructive ones.** `LedgerStepperRow`, `SessionSetupBand` and
+   `GuestSearchField` set `outline-none` and then a *replacement*
+   `focus:ring-gold-ink`, so they read as styled rather than as broken and
+   survived a pass that caught the obviously-unstyled ones. A replacement ring
+   is still a suppression: it is 1px where the contract's is 2px, and it fires
+   on mouse focus too, so it cannot distinguish a click from a tab. All three
+   are on the session detail page, which was ticked `[x]` with them in place —
+   a focus ring does not appear in a screenshot of an unfocused page, so the
+   five-point check structurally cannot see this class of defect. Grep for
+   `outline-none` instead; it should return nothing outside `TextInput`'s
+   doc comment.
 3. **Three `window.confirm()`s survived.** Regenerate join code, remove a
    member, revoke an invite link. The last one asked "Revoke this invite
    link?" on a page listing several and never said which.
@@ -765,6 +778,11 @@ from a screenshot:
   table volume, a lifetime net, a payout period. One function, 39 call sites
   downstream; it is a behaviour change rather than a restyle, so it is logged
   rather than folded into a page.
+- **`Field` associates its hint with `aria-describedby`, not by nesting.** The
+  hint sits outside the wrapping `<label>`; putting it inside made every
+  control's accessible name run label and hint together. A radio group still
+  needs a fieldset and legend — a wrapping label reaches only the first
+  labelable descendant.
 - **`Card` is not retired.** `GroupsPage`'s tile grid is the shape it is for,
   and it is the only `Card` import left in the app. The rule is about page
   *bodies*.

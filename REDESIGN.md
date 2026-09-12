@@ -1191,6 +1191,46 @@ Not blocking any stage. Recorded so they are not rediscovered.
 
 Newest first. One line per meaningful change.
 
+- **2026-09-12** — **Stage A review round: eight defects the build was green
+  on.** Four Claude subagents read the branch against the five-point check, one
+  group of surfaces each; the fixes went to Codex in three specs and every diff
+  was verified here rather than taken on the run's word. `tsc`, `eslint` at the
+  0-warning baseline and the build are green.
+
+  Three were real bugs. `useProfileData` resolved the signed-in player with
+  `user?.id ?? null`, and a guest roster row has `profile_id: null`, so while
+  auth was resolving `null === null` matched the **first guest on the roster**
+  and returned it as your own profile — only `MyGroupProfilePage`'s early
+  return was hiding it. `PlayerProfilePage` tested `!data` before `error`, and
+  `useLeagueData` returns null data *with* an error on a failed first fetch, so
+  a failure sat on `Dealing in…` for ever. `ConfirmButton` honoured `disabled`
+  in its resting branch and ignored it in its armed one, so an armed row stayed
+  live while another row saved and the confirm click was swallowed — the exact
+  failure the prop's own doc comment describes.
+
+  Two were things the rebuild dropped without saying so: the **#N rating rank**,
+  which the old `PlayerStatsCard` rendered and nothing replaced, and the
+  sole-admin Remove button's `ONLY_ADMIN_REASON` title, lost in the swap to
+  `ConfirmButton` while Promote/Demote beside it kept explaining itself.
+
+  Two are worth remembering because a screenshot cannot show them. **Three
+  inputs on the session detail page still carried `outline-none` plus a
+  replacement `focus:ring-gold-ink`** — the pattern `TextInput` exists to
+  eliminate — so row 8 was ticked `[x]` with keyboard focus suppressed on it.
+  A focus ring is invisible in a screenshot of an unfocused page; the five-point
+  check cannot catch this and should not be trusted to. And `Field` rendered its
+  `hint` inside the wrapping `<label>`, so every control's accessible name ran
+  label and hint together — one primitive, fourteen call sites.
+
+  `GroupsPage` told a user with groups that they had none: on a failed
+  membership query `groups` is `[]`, and the restyle had promoted that empty
+  state into the page body, so the false claim became the loudest thing on
+  screen.
+
+  **No row is ticked by any of this.** Every one stays `[~]`. Reading the code
+  is not opening the route, and the whole point of this stage's rule is that
+  the two are different.
+
 - **2026-09-11** — **Stage A built: all seventeen surfaces, plus a style guide
   that did not exist.** The audit's first question was whether a style guide
   existed, and the honest answer was "at the wrong altitude": the contract is
