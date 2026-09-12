@@ -1,11 +1,14 @@
-import { Link } from "react-router-dom";
-import { signOut, useCurrentUser } from "../lib/auth";
+import { Link, useLocation } from "react-router-dom";
+import { useCurrentUser } from "../lib/auth";
 import { useMyGroupCard } from "../lib/useMyGroupCard";
 import PlayerAvatar from "./PlayerAvatar";
 
 export default function UserMenu() {
   const { user, profile, isAppOwner } = useCurrentUser();
   const groupCard = useMyGroupCard();
+  // This header sits above GroupProvider, so the URL is the source of its slug.
+  const match = useLocation().pathname.match(/^\/g\/([^/]+)/);
+  const slug = match?.[1] ?? null;
   if (!user) return null;
 
   const label = profile?.display_name ?? profile?.username ?? "You";
@@ -21,7 +24,7 @@ export default function UserMenu() {
         </Link>
       )}
       <Link
-        to="/profile"
+        to={slug ? `/g/${slug}/profile` : "/profile"}
         className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-card-50/10"
       >
         {profile ? (
@@ -46,13 +49,6 @@ export default function UserMenu() {
           {label}
         </span>
       </Link>
-      <button
-        type="button"
-        onClick={() => void signOut()}
-        className="rounded-md px-2 py-1 text-xs text-card-50/70 hover:bg-card-50/10"
-      >
-        Sign out
-      </button>
     </div>
   );
 }

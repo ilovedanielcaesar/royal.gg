@@ -53,11 +53,9 @@ export default function AppLayout() {
               royal<span className="text-crimson-500">.gg</span>
             </span>
           </NavLink>
-          {/* Two `ml-auto`s on purpose. The first free-space eater wins, so
-              the nav is pushed right and this cluster sits directly after it —
-              the contract's order. When the nav renders nothing (outside a
-              group) the cluster's own `ml-auto` still holds it right, which one
-              `ml-auto` on the nav alone would not. */}
+          {/* The group nav follows the brand on the left. The account cluster
+              absorbs the remaining space, so it stays hard right whether the
+              nav is present or not. */}
           <GroupNav />
           <div className="ml-auto flex items-center gap-5">
             {user && <GroupSwitcher />}

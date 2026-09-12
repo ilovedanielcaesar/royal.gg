@@ -1,5 +1,7 @@
 import Band from "../../components/Band";
+import Button from "../../components/Button";
 import SignInMethodsCard from "../../components/SignInMethodsCard";
+import { signOut } from "../../lib/auth";
 
 type Props = {
   email: string | null;
@@ -39,6 +41,11 @@ export default function AccountBand({ email }: Props) {
       )}
       <div className="mt-5">
         <SignInMethodsCard />
+      </div>
+      <div className="mt-5 flex justify-end">
+        <Button type="button" variant="subtle" onClick={() => void signOut()}>
+          Sign out
+        </Button>
       </div>
     </Band>
   );

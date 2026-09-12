@@ -105,14 +105,19 @@ export default function GroupSettingsPage() {
             : `${group.name}'s table settings. Admins can change these.`
         }
         actions={
-          isGroupAdmin ? (
-            <>
-              <GoldPill tone="felt">ADMIN</GoldPill>
-              <FeltButton variant="ghost" to={path("/members")}>
-                Members
-              </FeltButton>
-            </>
-          ) : undefined
+          <>
+            <FeltButton variant="ghost" to={path("/league")}>
+              ← League
+            </FeltButton>
+            {isGroupAdmin && (
+              <>
+                <GoldPill tone="felt">ADMIN</GoldPill>
+                <FeltButton variant="ghost" to={path("/members")}>
+                  Members
+                </FeltButton>
+              </>
+            )}
+          </>
         }
       />
 
