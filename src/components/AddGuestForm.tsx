@@ -3,6 +3,8 @@ import { describeError } from "../lib/errors";
 import type { SessionFormPlayer } from "../lib/sessionForm";
 import { requireSupabase } from "../lib/supabase";
 import Button from "./Button";
+import Field from "./Field";
+import TextInput from "./TextInput";
 
 type Props = {
   groupId: string;
@@ -39,17 +41,13 @@ export default function AddGuestForm({ groupId, onAdded, onError }: Props) {
 
   return (
     <div className="mt-4 flex flex-wrap items-end gap-2 border-t border-card-100 pt-4">
-      <label className="flex flex-1 flex-col gap-1">
-        <span className="text-xs font-medium uppercase tracking-wide text-ink-500">
-          Add a guest (one-off player)
-        </span>
-        <input
+      <Field label="Add a guest (one-off player)" className="flex-1">
+        <TextInput
           value={guestName}
           onChange={(event) => setGuestName(event.target.value)}
           placeholder="Name"
-          className="rounded-md bg-card-50 px-3 py-2 text-sm text-ink-900 ring-1 ring-card-200"
         />
-      </label>
+      </Field>
       <Button
         type="button"
         variant="secondary"

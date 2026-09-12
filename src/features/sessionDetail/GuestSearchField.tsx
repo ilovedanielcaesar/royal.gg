@@ -70,7 +70,7 @@ export default function GuestSearchField({
         disabled={busy}
         onChange={(event) => setQuery(event.target.value)}
         placeholder="Start typing a name"
-        className="mt-1 min-h-10 w-full rounded-[9px] bg-card-50 px-3 text-[12.5px] text-ink-900 ring-1 ring-card-200 outline-none transition focus:ring-gold-ink disabled:opacity-60"
+        className="mt-1 min-h-10 w-full rounded-[9px] bg-card-50 px-3 text-[12.5px] text-ink-900 ring-1 ring-card-200 disabled:opacity-60"
       />
 
       {trimmed !== "" && (

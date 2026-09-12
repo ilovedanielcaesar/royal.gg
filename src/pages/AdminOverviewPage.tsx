@@ -51,7 +51,7 @@ export default function AdminOverviewPage() {
       )}
 
       {!data ? (
-        <LoadingState tone="felt" label="Dealing in…" full />
+        <LoadingState tone="felt" full />
       ) : !data.error ? (
         <Sheet>
           <Band

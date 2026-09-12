@@ -128,12 +128,6 @@ export default function CreateGroupPage() {
         }
       />
 
-      {error && (
-        <ErrorNote tone="felt" className="mb-4">
-          {error}
-        </ErrorNote>
-      )}
-
       <Sheet>
         <Band>
           <form className="space-y-5" onSubmit={handleSubmit}>
@@ -173,6 +167,8 @@ export default function CreateGroupPage() {
                 />
               </Field>
             </div>
+
+            {error && <ErrorNote>{error}</ErrorNote>}
 
             <Button type="submit" disabled={submitting}>
               {submitting ? "Creating…" : "Create group"}

@@ -22,7 +22,9 @@ export default function RequireGroupMember({ children }: { children: ReactNode }
           title="No such table"
           subtitle="That group does not exist, or it is not one you can see."
           actions={
-            <FeltButton to="/groups">← Your groups</FeltButton>
+            <FeltButton variant="ghost" to="/groups">
+              ← Your groups
+            </FeltButton>
           }
         />
         <Sheet>

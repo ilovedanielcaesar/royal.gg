@@ -94,14 +94,12 @@ export default function GroupsPage() {
         }
       />
 
-      {state?.error && (
+      {loading ? (
+        <LoadingState tone="felt" full />
+      ) : state.error ? (
         <ErrorNote tone="felt" className="mb-4">
           {state.error}
         </ErrorNote>
-      )}
-
-      {loading ? (
-        <LoadingState tone="felt" label="Dealing in…" full />
       ) : state.groups.length === 0 ? (
         // The empty state is the onboarding for a brand-new account, so it is
         // a page body — a sheet — rather than one lonely card in a grid of one.
@@ -123,7 +121,6 @@ export default function GroupsPage() {
                 <TextInput
                   value={joinCode}
                   onChange={(event) => setJoinCode(event.target.value)}
-                  placeholder="Join code"
                   autoComplete="off"
                 />
               </Field>

@@ -63,7 +63,11 @@ export default function JoinPage() {
         <PageHeading
           title="Approval needed"
           subtitle={`Your request to join ${pending.groupName} is waiting.`}
-          actions={<FeltButton to="/groups">← Your groups</FeltButton>}
+          actions={
+            <FeltButton variant="ghost" to="/groups">
+              ← Your groups
+            </FeltButton>
+          }
         />
         <Sheet>
           <Band kicker="Pending" title="With the host">
