@@ -7,7 +7,7 @@ import PlayerAvatar from "../components/PlayerAvatar";
 import Sheet from "../components/Sheet";
 import StatFigure from "../components/StatFigure";
 import { useGroup } from "../lib/groupContext";
-import { formatSignedCents } from "../lib/money";
+import { formatCents, formatSignedCents } from "../lib/money";
 import { playerRating } from "../lib/stats";
 import { EMPTY_LEAGUE_DATA, useLeagueData } from "../lib/useLeagueData";
 
@@ -140,7 +140,7 @@ export default function PlayerRatingPage() {
                     raw={
                       c.consistency.stdevCents == null
                         ? "—"
-                        : `σ ${formatSignedCents(
+                        : `σ ${formatCents(
                             Math.round(c.consistency.stdevCents)
                           )}`
                     }

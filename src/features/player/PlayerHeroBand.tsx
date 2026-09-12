@@ -11,7 +11,7 @@ type Props = {
   player: Player;
   stats: PlayerStats;
   rating: PlayerRating;
-  leagueRank: number | null;
+  ratingRank: number | null;
   ratingHref: string;
 };
 
@@ -29,7 +29,7 @@ export default function PlayerHeroBand({
   player,
   stats,
   rating,
-  leagueRank,
+  ratingRank,
   ratingHref,
 }: Props) {
   return (
@@ -55,35 +55,33 @@ export default function PlayerHeroBand({
           label="Lifetime winnings"
           value={formatSignedCents(stats.totalNetCents)}
           toneClass={moneyToneClass(stats.totalNetCents)}
-          caption={
-            leagueRank === 1
-              ? "All-time league leader"
-              : leagueRank
-                ? `#${leagueRank} all-time in this league`
-                : "Not ranked yet"
-          }
         />
         <MiniStat
           size="lg"
           label="Player rating"
           value={rating.rating == null ? "—" : `${rating.rating.toFixed(1)}/10`}
           caption={
-            rating.rating == null ? (
-              "Needs 3 nights"
-            ) : (
-              <Link
-                to={ratingHref}
-                className="font-medium underline hover:text-ink-900"
-              >
-                How is this calculated?
-              </Link>
-            )
+            <>
+              {ratingRank === 1
+                ? "Rating leader in this league"
+                : ratingRank
+                  ? `#${ratingRank} by player rating in this league`
+                  : "Not ranked yet"}
+              {rating.rating == null ? (
+                " · Needs 3 nights"
+              ) : (
+                <>
+                  {" · "}
+                  <Link
+                    to={ratingHref}
+                    className="font-medium underline hover:text-ink-900"
+                  >
+                    How is this calculated?
+                  </Link>
+                </>
+              )}
+            </>
           }
-        />
-        <MiniStat
-          size="lg"
-          label="Nights played"
-          value={stats.sessionsPlayed}
         />
       </div>
     </Band>

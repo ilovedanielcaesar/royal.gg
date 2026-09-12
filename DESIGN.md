@@ -376,7 +376,7 @@ mini-stats.
   `/10` set small in `ink-500` beside it, the same treatment `PlayerRatingPage`
   already uses. The hero's link is `Open profile →`, going to the player's own
   profile rather than to the rating explainer: the hero is about the player,
-  and the profile is where the rest of their record lives. `PlayerStatsCard`
+  and the profile is where the rest of their record lives. `PlayerHeroBand`
   there already carries a `ratingHref`, so the explainer is one hop further on
   for anyone who wants it.
 - **The score is not money, so it is `ink-900`, not sage.** Sage and crimson

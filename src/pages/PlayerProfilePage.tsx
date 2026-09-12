@@ -1,5 +1,6 @@
 import { useParams } from "react-router-dom";
 import Band from "../components/Band";
+import ErrorNote from "../components/ErrorNote";
 import FeltButton from "../components/FeltButton";
 import LoadingState from "../components/LoadingState";
 import PageHeading from "../components/PageHeading";
@@ -23,20 +24,35 @@ import { useGroup } from "../lib/groupContext";
 export default function PlayerProfilePage() {
   const { id } = useParams();
   const { group, path } = useGroup();
-  const { data, error } = usePlayerProfileData(id);
+  const { data, loading, error } = usePlayerProfileData(id);
 
-  if (!data) {
+  if (loading) {
     return <LoadingState tone="felt" full />;
   }
 
-  const { player, stats, rating } = data;
+  if (error) {
+    return (
+      <>
+        <PageHeading
+          title="Player profile"
+          subtitle={`${group?.name ?? "This group"} player profile`}
+          actions={<FeltButton to={path("/league")}>← League</FeltButton>}
+        />
+        <Sheet>
+          <Band>
+            <ErrorNote>{error}</ErrorNote>
+          </Band>
+        </Sheet>
+      </>
+    );
+  }
 
-  if (error || !player || !stats || !rating) {
+  if (!data || !data.player || !data.stats || !data.rating) {
     return (
       <>
         <PageHeading
           title="No such player"
-          subtitle={error ?? "Nobody on this roster has that id."}
+          subtitle="Nobody on this roster has that id."
           actions={
             <FeltButton to={path("/league")}>← League</FeltButton>
           }
@@ -53,6 +69,8 @@ export default function PlayerProfilePage() {
       </>
     );
   }
+
+  const { player, stats, rating } = data;
 
   return (
     <>
@@ -73,7 +91,7 @@ export default function PlayerProfilePage() {
           player={player}
           stats={stats}
           rating={rating}
-          leagueRank={data.leagueRank}
+          ratingRank={data.ratingRank}
           ratingHref={path(`/players/${player.id}/rating`)}
         />
         <TrackRecordBand

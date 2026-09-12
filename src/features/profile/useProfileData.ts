@@ -20,7 +20,11 @@ export function useProfileData(): {
       league
         ? buildPlayerProfile(
             league,
-            league.players.find((entry) => entry.profile_id === userId) ?? null
+            // A missing user id must not match a guest row's null profile id.
+            userId
+              ? league.players.find((entry) => entry.profile_id === userId) ??
+                  null
+              : null
           )
         : null,
     [league, userId]
@@ -39,10 +43,11 @@ export function useProfileData(): {
  */
 export function usePlayerProfileData(playerId: string | undefined): {
   data: ProfileData | null;
+  loading: boolean;
   error: string | null;
   reload: () => Promise<void>;
 } {
-  const { data: league, error, reload } = useLeagueData();
+  const { data: league, loading, error, reload } = useLeagueData();
 
   const data = useMemo<ProfileData | null>(
     () =>
@@ -55,5 +60,5 @@ export function usePlayerProfileData(playerId: string | undefined): {
     [league, playerId]
   );
 
-  return { data, error, reload };
+  return { data, loading, error, reload };
 }

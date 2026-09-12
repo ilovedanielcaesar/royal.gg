@@ -31,6 +31,7 @@ export type ProfileData = {
   stats: PlayerStats | null;
   rating: PlayerRating | null;
   leagueRank: number | null;
+  ratingRank: number | null;
   meanCents: number | null;
   varianceCentsSquared: number | null;
   stdevCents: number | null;
@@ -98,6 +99,12 @@ export function buildPlayerProfile(
     cumulativeCents: row.runningTotalCents,
   }));
   const netSummary = netStats(sessionNets.map((entry) => entry.netCents));
+  const rating = playerRating(
+    player.id,
+    league.sessions,
+    league.buyIns,
+    league.cashOuts
+  );
   const rankIndex = leaderboard(
     league.players,
     league.sessions,
@@ -107,6 +114,24 @@ export function buildPlayerProfile(
     .filter((entry) =>
       isRankingEligible(entry.player, entry.sessionsPlayed)
     )
+    .findIndex((entry) => entry.playerId === player.id);
+  const ratingRankIndex = league.players
+    .flatMap((candidate) => {
+      const candidateRating =
+        candidate.id === player.id
+          ? rating
+          : playerRating(
+              candidate.id,
+              league.sessions,
+              league.buyIns,
+              league.cashOuts
+            );
+      return candidateRating.rating !== null &&
+        isRankingEligible(candidate, candidateRating.sessionsPlayed)
+        ? [{ playerId: candidate.id, rating: candidateRating.rating }]
+        : [];
+    })
+    .sort((a, b) => b.rating - a.rating)
     .findIndex((entry) => entry.playerId === player.id);
 
   return {
@@ -118,13 +143,9 @@ export function buildPlayerProfile(
       league.buyIns,
       league.cashOuts
     ),
-    rating: playerRating(
-      player.id,
-      league.sessions,
-      league.buyIns,
-      league.cashOuts
-    ),
+    rating,
     leagueRank: rankIndex < 0 ? null : rankIndex + 1,
+    ratingRank: ratingRankIndex < 0 ? null : ratingRankIndex + 1,
     meanCents: netSummary.mean,
     varianceCentsSquared: netSummary.variance,
     stdevCents: netSummary.stdev,
@@ -148,6 +169,7 @@ function emptyProfile(league: LeagueData): ProfileData {
     stats: null,
     rating: null,
     leagueRank: null,
+    ratingRank: null,
     meanCents: null,
     varianceCentsSquared: null,
     stdevCents: null,
