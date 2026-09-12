@@ -1,4 +1,6 @@
 import Band from "../components/Band";
+import ErrorNote from "../components/ErrorNote";
+import LoadingState from "../components/LoadingState";
 import PageHeading from "../components/PageHeading";
 import Sheet from "../components/Sheet";
 import AccountBand from "../features/profile/AccountBand";
@@ -17,7 +19,7 @@ export default function MyGroupProfilePage() {
   const { data, error, reload } = useProfileData();
 
   if (!user || !group) {
-    return <p className="text-sm text-card-50/60">Dealing…</p>;
+    return <LoadingState tone="felt" full />;
   }
 
   if (!data) {
@@ -28,10 +30,10 @@ export default function MyGroupProfilePage() {
           subtitle={`${group.name} member profile`}
         />
         <Sheet>
-          <Band className="bg-crimson-500/[0.06]">
-            <p className="text-sm text-crimson-700">
+          <Band>
+            <ErrorNote>
               {error ?? "Your league record could not be loaded."}
-            </p>
+            </ErrorNote>
           </Band>
           <AccountBand email={user.email ?? null} />
           <LeaveGroupBand />
@@ -60,8 +62,8 @@ export default function MyGroupProfilePage() {
 
       <Sheet>
         {error && (
-          <Band className="bg-crimson-500/[0.06]">
-            <p className="text-sm text-crimson-700">{error}</p>
+          <Band>
+            <ErrorNote>{error}</ErrorNote>
           </Band>
         )}
 

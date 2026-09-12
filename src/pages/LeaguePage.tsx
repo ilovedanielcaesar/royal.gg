@@ -1,5 +1,7 @@
 import Band from "../components/Band";
 import FeltButton from "../components/FeltButton";
+import ErrorNote from "../components/ErrorNote";
+import LoadingState from "../components/LoadingState";
 import PageHeading from "../components/PageHeading";
 import Sheet from "../components/Sheet";
 import ExportBand from "../features/league/ExportBand";
@@ -40,13 +42,13 @@ export default function LeaguePage() {
       <Sheet>
         {error && (
           <Band>
-            <p className="text-sm text-crimson-700">{error}</p>
+            <ErrorNote>{error}</ErrorNote>
           </Band>
         )}
 
         {!data || !group ? (
           <Band>
-            <p className="text-sm text-ink-500">Dealing…</p>
+            <LoadingState />
           </Band>
         ) : (
           <>

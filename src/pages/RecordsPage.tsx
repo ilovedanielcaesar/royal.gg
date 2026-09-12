@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
 import Band from "../components/Band";
 import ConfirmButton from "../components/ConfirmButton";
+import ErrorNote from "../components/ErrorNote";
 import FeltButton from "../components/FeltButton";
+import LoadingState from "../components/LoadingState";
 import PageHeading from "../components/PageHeading";
 import PayoutSummary from "../components/PayoutSummary";
 import PlayerAvatar from "../components/PlayerAvatar";
@@ -72,8 +74,7 @@ export default function RecordsPage() {
         title="Payout records"
         subtitle="Every settle-up that has ever happened. Reverting one re-opens its period — the sessions stay, only the event is removed."
         actions={
-          // Becomes /league in Stage 2, which leaves a redirect behind.
-          <FeltButton variant="ghost" to={path("/players")}>
+          <FeltButton variant="ghost" to={path("/league")}>
             ← League
           </FeltButton>
         }
@@ -82,14 +83,14 @@ export default function RecordsPage() {
       <Sheet>
         {displayedError && (
           <Band>
-            <p className="text-sm text-crimson-700">{displayedError}</p>
+            <ErrorNote>{displayedError}</ErrorNote>
           </Band>
         )}
 
         {!data ? (
           <Band>
             {/* No spinners, per contract rule 6. */}
-            <p className="text-sm text-ink-500">Dealing…</p>
+            <LoadingState />
           </Band>
         ) : payoutsWithRange.length === 0 ? (
           <Band title="No payouts yet">

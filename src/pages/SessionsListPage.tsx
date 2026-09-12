@@ -1,6 +1,8 @@
 import { useState } from "react";
 import Band from "../components/Band";
+import ErrorNote from "../components/ErrorNote";
 import FeltButton from "../components/FeltButton";
+import LoadingState from "../components/LoadingState";
 import PageHeading from "../components/PageHeading";
 import Sheet from "../components/Sheet";
 import SessionsLedgerBand from "../features/sessions/SessionsLedgerBand";
@@ -33,16 +35,16 @@ export default function SessionsListPage() {
       {error && !data ? (
         <Sheet>
           <Band>
-            <p className="text-sm text-crimson-700">{error}</p>
+            <ErrorNote>{error}</ErrorNote>
           </Band>
         </Sheet>
       ) : !data ? (
-        <p className="text-card-50/60">Dealing…</p>
+        <LoadingState tone="felt" full />
       ) : (
         <Sheet>
           {error && (
             <Band>
-              <p className="text-sm text-crimson-700">{error}</p>
+              <ErrorNote>{error}</ErrorNote>
             </Band>
           )}
           <SessionsSummaryBand

@@ -140,7 +140,7 @@ export default function LedgerStepperRow({
           })
         }
         placeholder="0.00"
-        className="tabular h-8 w-[82px] rounded-md bg-card-50 px-2 text-right text-[13px] font-semibold text-ink-900 ring-1 ring-card-200 outline-none focus:ring-gold-ink"
+        className="tabular h-8 w-[82px] rounded-md bg-card-50 px-2 text-right text-[13px] font-semibold text-ink-900 ring-1 ring-card-200"
       />
     </Stepper>
   );

@@ -1,17 +1,25 @@
-import Card from "./Card";
+import Band from "./Band";
+import PageHeading from "./PageHeading";
+import Sheet from "./Sheet";
 
+/**
+ * Shown in place of the whole app when the Supabase env vars are missing.
+ *
+ * It is a full-screen state, so it is shaped like a page: heading on the
+ * felt, one sheet. It was a lone `Card` with an `<h2>` inside it, which is
+ * the pre-redesign shape and — since this is the very first thing a fresh
+ * clone renders — the first impression the app makes.
+ */
 export default function SetupNotice() {
   return (
-    <div className="mx-auto mt-8 max-w-xl">
-      <Card watermarkSuit="diamond" rankLabel="!" accent="crimson">
-        <div className="p-6">
-          <h2 className="font-display text-2xl text-ink-900">
-            Supabase isn't configured yet
-          </h2>
-          <p className="mt-2 text-sm text-ink-700">
-            The app needs a Supabase URL and anon key to read and write data.
-          </p>
-          <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-ink-700">
+    <>
+      <PageHeading
+        title="Not dealt in yet"
+        subtitle="The app needs a Supabase URL and anon key before it can read or write anything."
+      />
+      <Sheet>
+        <Band kicker="Setup" title="Four steps">
+          <ol className="mt-4 max-w-[72ch] list-decimal space-y-2 pl-5 text-sm text-ink-700">
             <li>
               Create a free Supabase project at{" "}
               <span className="font-mono">supabase.com</span>.
@@ -31,8 +39,8 @@ export default function SetupNotice() {
             </li>
             <li>Restart the dev server.</li>
           </ol>
-        </div>
-      </Card>
-    </div>
+        </Band>
+      </Sheet>
+    </>
   );
 }

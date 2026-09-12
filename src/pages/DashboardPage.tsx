@@ -1,5 +1,7 @@
-import Card from "../components/Card";
+import Band from "../components/Band";
+import ErrorNote from "../components/ErrorNote";
 import FeltButton from "../components/FeltButton";
+import LoadingState from "../components/LoadingState";
 import PageHeading from "../components/PageHeading";
 import Sheet from "../components/Sheet";
 import HeroBand from "../features/dashboard/HeroBand";
@@ -24,14 +26,16 @@ export default function DashboardPage() {
 
   if (error && !data) {
     return (
-      <Card accent="crimson">
-        <p className="p-4 text-sm text-crimson-700">{error}</p>
-      </Card>
+      <Sheet>
+        <Band>
+          <ErrorNote>{error}</ErrorNote>
+        </Band>
+      </Sheet>
     );
   }
   if (!data) {
     // No spinners, per contract rule 6 — the chrome plus a muted line.
-    return <p className="text-card-50/60">Dealing…</p>;
+    return <LoadingState tone="felt" full />;
   }
 
   const { league, me, you } = data;

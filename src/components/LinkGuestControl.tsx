@@ -4,6 +4,7 @@ import {
   type LinkableGuest,
 } from "../lib/membership";
 import Button from "./Button";
+import Field from "./Field";
 
 type Props = {
   guests: LinkableGuest[];
@@ -27,17 +28,14 @@ export default function LinkGuestControl({
 
   return (
     <div className="flex flex-wrap items-end gap-2">
-      <label>
-        <span className="block text-xs font-medium text-ink-700">
-          Already plays here as…
-        </span>
+      <Field label="Already plays here as…">
         <select
           value={validGuestId}
           disabled={locked}
           onChange={(event) => setChosenGuestId(event.target.value)}
           className={[
             "mt-1 min-h-9 rounded-md bg-card-50 px-3 py-1.5 text-sm text-ink-900",
-            "ring-1 ring-card-200 focus:outline-none focus:ring-2 focus:ring-gold-500",
+            "ring-1 ring-card-200",
             "disabled:pointer-events-none disabled:opacity-50",
           ].join(" ")}
         >
@@ -48,7 +46,7 @@ export default function LinkGuestControl({
             </option>
           ))}
         </select>
-      </label>
+      </Field>
       <Button
         type="button"
         size="sm"

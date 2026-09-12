@@ -11,6 +11,12 @@ type Props = {
   onConfirm: () => void;
   busy?: boolean;
   busyLabel?: string;
+  /** Hover text for the resting button, including why it is disabled. */
+  title?: string;
+  /** Another row of the same list is mid-action. Arming is pointless while
+   *  the handler would refuse, and a confirm click that silently no-ops is
+   *  worse than a disabled button. */
+  disabled?: boolean;
   size?: "sm" | "md";
 };
 
@@ -34,9 +40,13 @@ export default function ConfirmButton({
   onConfirm,
   busy = false,
   busyLabel,
+  title,
+  disabled = false,
   size = "sm",
 }: Props) {
   const [armed, setArmed] = useState(false);
+
+  if (armed && disabled) setArmed(false);
 
   if (busy) {
     return (
@@ -48,7 +58,13 @@ export default function ConfirmButton({
 
   if (!armed) {
     return (
-      <Button variant="danger" size={size} onClick={() => setArmed(true)}>
+      <Button
+        variant="danger"
+        size={size}
+        disabled={disabled}
+        title={title}
+        onClick={() => setArmed(true)}
+      >
         {label}
       </Button>
     );
@@ -62,6 +78,7 @@ export default function ConfirmButton({
       <Button
         variant="danger"
         size={size}
+        disabled={disabled}
         onClick={() => {
           setArmed(false);
           onConfirm();

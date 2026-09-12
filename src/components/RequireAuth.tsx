@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useCurrentUser } from "../lib/auth";
+import LoadingState from "./LoadingState";
 
 /**
  * Signed in, with an account. Nothing more — belonging to a group is a
@@ -11,7 +12,7 @@ export default function RequireAuth({ children }: { children: ReactNode }) {
   const loc = useLocation();
 
   if (loading) {
-    return <div className="text-sm text-card-50/60">Dealing in…</div>;
+    return <LoadingState tone="felt" label="Dealing in…" full />;
   }
   if (!user) {
     return <Navigate to="/login" replace state={{ from: loc.pathname }} />;

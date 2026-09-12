@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import Band from "../../components/Band";
 import Button from "../../components/Button";
+import ErrorNote from "../../components/ErrorNote";
 import StatFigure from "../../components/StatFigure";
 import SuitRankPicker from "../../components/SuitRankPicker";
 import { describeError } from "../../lib/errors";
@@ -204,9 +205,7 @@ export default function ProfileCardBand({
             </div>
           </div>
           {error && (
-            <p className="mt-3 rounded-md bg-crimson-500/10 px-3 py-2 text-xs text-crimson-700">
-              {error}
-            </p>
+            <ErrorNote className="mt-3">{error}</ErrorNote>
           )}
         </div>
       )}

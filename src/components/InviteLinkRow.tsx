@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Button from "./Button";
+import ConfirmButton from "./ConfirmButton";
 import { publicAppUrl } from "../lib/appUrl";
 import type { Database } from "../types/database";
 
@@ -60,14 +61,18 @@ export default function InviteLinkRow({
         >
           Copy
         </Button>
-        <Button
-          size="sm"
-          variant="danger"
+        {/* Arms in place. This was a window.confirm asking "Revoke this
+            invite link?" — which, on a page listing several of them, does not
+            say WHICH one. The armed button is next to the link it revokes. */}
+        <ConfirmButton
+          label="Revoke"
+          confirmLabel="Revoke link"
+          consequence="The link stops working."
+          busy={busy}
+          busyLabel="Revoking…"
           disabled={locked}
-          onClick={onRevoke}
-        >
-          {busy ? "Revoking…" : "Revoke"}
-        </Button>
+          onConfirm={onRevoke}
+        />
       </div>
     </div>
   );

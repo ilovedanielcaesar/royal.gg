@@ -1,8 +1,13 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
+import Band from "../components/Band";
 import Button from "../components/Button";
-import Card from "../components/Card";
+import ErrorNote from "../components/ErrorNote";
+import Field from "../components/Field";
 import GoogleButton from "../components/GoogleButton";
+import PageHeading from "../components/PageHeading";
+import Sheet from "../components/Sheet";
+import TextInput from "../components/TextInput";
 import { signIn, signInWithGoogle, useCurrentUser } from "../lib/auth";
 import { describeError } from "../lib/errors";
 
@@ -35,11 +40,14 @@ export default function LoginPage() {
   }
 
   return (
+    // The column is narrow but the anatomy is the page's: heading on the
+    // felt, one sheet under it. A sign-in form does not want 1152px, and
+    // nothing in the rule says the sheet has to be full width.
     <div className="mx-auto max-w-md">
-      <Card className="p-6" accent="sage">
-        <h1 className="font-display text-2xl text-ink-900">Sign in</h1>
+      <PageHeading title="Sign in" subtitle="Back to the table." />
 
-        <div className="mt-5">
+      <Sheet>
+        <Band>
           <GoogleButton
             action={signInWithGoogle}
             label="Continue with Google"
@@ -47,73 +55,67 @@ export default function LoginPage() {
             onError={setError}
             disabled={busy}
           />
-        </div>
 
-        <div className="my-5 flex items-center gap-3">
-          <span className="h-px flex-1 bg-card-200" />
-          <span className="text-[11px] uppercase tracking-wide text-ink-500">
-            or
-          </span>
-          <span className="h-px flex-1 bg-card-200" />
-        </div>
-
-        <form className="space-y-4" onSubmit={onSubmit}>
-          <label className="block">
-            <span className="text-xs font-medium text-ink-700">
-              Email or username
+          <div className="my-5 flex items-center gap-3">
+            <span className="h-px flex-1 bg-card-200" />
+            <span className="text-[10px] font-semibold tracking-[0.13em] text-ink-500 uppercase">
+              or
             </span>
-            <input
-              autoFocus
-              required
-              autoComplete="username"
-              value={identifier}
-              onChange={(e) => setIdentifier(e.target.value)}
-              className="mt-1 w-full rounded-md border border-card-200 bg-card-50 px-3 py-2 text-sm focus:border-sage-600 focus:outline-none"
-            />
+            <span className="h-px flex-1 bg-card-200" />
+          </div>
+
+          <form className="space-y-4" onSubmit={onSubmit}>
             {/* The first twelve accounts predate real emails and sign in by
                 username; everyone since uses their address. One field, because
                 which kind of account you have is not something to remember. */}
-            <span className="mt-1 block text-[11px] text-ink-500">
-              Accounts made before September 2026 sign in with a username.
-            </span>
-          </label>
-          <label className="block">
-            <span className="text-xs font-medium text-ink-700">Password</span>
-            <input
-              type="password"
-              required
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full rounded-md border border-card-200 bg-card-50 px-3 py-2 text-sm focus:border-sage-600 focus:outline-none"
-            />
-          </label>
-          {error && (
-            <div className="rounded-md bg-crimson-500/10 px-3 py-2 text-xs text-crimson-700">
-              {error}
-            </div>
-          )}
-          <Button type="submit" disabled={busy} className="w-full">
-            {busy ? "Signing in…" : "Sign in"}
-          </Button>
-        </form>
-        <div className="mt-4 space-y-1 text-center text-xs text-ink-500">
-          <p>
+            <Field
+              label="Email or username"
+              hint="Accounts made before September 2026 sign in with a username."
+            >
+              <TextInput
+                autoFocus
+                required
+                autoComplete="username"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+              />
+            </Field>
+            <Field label="Password">
+              <TextInput
+                type="password"
+                required
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </Field>
+            {error && <ErrorNote>{error}</ErrorNote>}
+            <Button type="submit" disabled={busy} className="w-full">
+              {busy ? "Signing in…" : "Sign in"}
+            </Button>
+          </form>
+        </Band>
+
+        <Band>
+          <p className="text-xs text-ink-500">
             New here?{" "}
-            <Link to="/signup" className="text-sage-700 underline">
+            <Link
+              to="/signup"
+              className="font-medium underline hover:text-ink-900"
+            >
               Create an account
             </Link>
           </p>
           {/* Signing in with Google when you already have a password account
               makes a SECOND account with none of your history, and there is no
               way to merge them back. Say so where the mistake would be made. */}
-          <p>
+          <p className="mt-2 text-xs text-ink-500">
             Already play here? Sign in with your password first, then connect
             Google from your profile — signing in with Google straight away
             would start a new, empty account.
           </p>
-        </div>
-      </Card>
+        </Band>
+      </Sheet>
     </div>
   );
 }

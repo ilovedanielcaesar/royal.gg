@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AddGuestForm from "../../components/AddGuestForm";
 import Band from "../../components/Band";
+import ErrorNote from "../../components/ErrorNote";
 import Button from "../../components/Button";
 import GoldPill from "../../components/GoldPill";
 import SuitBadge from "../../components/SuitBadge";
@@ -155,7 +156,7 @@ export default function PayoutGuestsBand({
               onError={setGuestError}
             />
           )}
-          {guestError && <p className="text-xs text-crimson-700">{guestError}</p>}
+          {guestError && <ErrorNote>{guestError}</ErrorNote>}
         </div>
       </div>
     </Band>
