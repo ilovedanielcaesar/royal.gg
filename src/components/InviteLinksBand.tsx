@@ -113,7 +113,7 @@ export default function InviteLinksBand({ groupId }: { groupId: string }) {
 
   return (
     <Band
-      kicker="Invites"
+      kicker="One-off links"
       title="Invite links"
       caption="A link is separate from the standing join code, and revoking one leaves the code working."
     >
@@ -132,12 +132,18 @@ export default function InviteLinksBand({ groupId }: { groupId: string }) {
             <option value="never">never</option>
           </select>
         </Field>
-        <Field label="Max uses" optional>
+        {/* The width goes on the wrapper, not the input. `TextInput` is
+            full-width by design — ten of its eleven call sites want that — so
+            a narrower width set on the input itself loses to it on emission
+            order, and forcing it with an importance modifier only hides that
+            trap from the next caller. Sizing the box the input fills needs
+            neither. (Spelling those classes here would also feed them to
+            Tailwind's scanner and emit CSS nothing uses.) */}
+        <Field label="Max uses" optional className="w-28">
           <TextInput
             type="number"
             min="1"
             step="1"
-            className="w-28"
             value={maxUses}
             onChange={(event) => setMaxUses(event.target.value)}
           />
@@ -150,9 +156,9 @@ export default function InviteLinksBand({ groupId }: { groupId: string }) {
 
       <div className="mt-5 border-t border-card-100 pt-1">
         {invites === null ? (
-          <p className="py-4">
+          <div className="py-4">
             <LoadingState />
-          </p>
+          </div>
         ) : invites.length === 0 ? (
           <p className="py-4 text-sm text-ink-500">No invite links yet.</p>
         ) : (

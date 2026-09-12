@@ -105,14 +105,14 @@ export default function GroupSettingsPage() {
             : `${group.name}'s table settings. Admins can change these.`
         }
         actions={
-          <>
-            {isGroupAdmin && <GoldPill tone="felt">ADMIN</GoldPill>}
-            {isGroupAdmin && (
+          isGroupAdmin ? (
+            <>
+              <GoldPill tone="felt">ADMIN</GoldPill>
               <FeltButton variant="ghost" to={path("/members")}>
                 Members
               </FeltButton>
-            )}
-          </>
+            </>
+          ) : undefined
         }
       />
 
@@ -126,7 +126,7 @@ export default function GroupSettingsPage() {
 
       <Sheet>
         <Band
-          kicker="Invites"
+          kicker="Standing code"
           title="Join code"
           caption="The standing code. Anyone with it can ask to join."
           action={

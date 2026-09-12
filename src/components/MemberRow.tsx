@@ -18,13 +18,15 @@ type Props = {
   soleAdmin: boolean;
   /** This row is saving a membership change. */
   busy: boolean;
+  /** This row is being removed. */
+  removing: boolean;
   /** This row is saving a guest link. */
   linking: boolean;
   /** Some row is saving, so every button is held. */
   locked: boolean;
   linkableGuests: LinkableGuest[];
   onLink: (guestId: string) => void;
-  onUpdate: (update: MemberUpdate) => void;
+  onUpdate: (update: MemberUpdate, action: "member" | "remove") => void;
 };
 
 export default function MemberRow(props: Props) {
@@ -33,6 +35,7 @@ export default function MemberRow(props: Props) {
     section,
     soleAdmin,
     busy,
+    removing,
     linking,
     locked,
     linkableGuests,
@@ -84,7 +87,7 @@ export default function MemberRow(props: Props) {
               size="sm"
               variant="secondary"
               disabled={locked}
-              onClick={() => onUpdate({ status: "active" })}
+              onClick={() => onUpdate({ status: "active" }, "member")}
             >
               {busy ? "Saving…" : "Approve"}
             </Button>
@@ -92,7 +95,7 @@ export default function MemberRow(props: Props) {
               size="sm"
               variant="danger"
               disabled={locked}
-              onClick={() => onUpdate({ status: "rejected" })}
+              onClick={() => onUpdate({ status: "rejected" }, "member")}
             >
               Reject
             </Button>
@@ -109,7 +112,7 @@ export default function MemberRow(props: Props) {
               onClick={() =>
                 onUpdate({
                   role: member.role === "admin" ? "member" : "admin",
-                })
+                }, "member")
               }
             >
               {busy
@@ -126,10 +129,11 @@ export default function MemberRow(props: Props) {
               label="Remove"
               confirmLabel={`Remove ${name}`}
               consequence="Their game history is kept."
-              busy={busy}
+              busy={removing}
               busyLabel="Removing…"
               disabled={locked || soleAdmin}
-              onConfirm={() => onUpdate({ status: "removed" })}
+              title={soleAdmin ? ONLY_ADMIN_REASON : undefined}
+              onConfirm={() => onUpdate({ status: "removed" }, "remove")}
             />
           </>
         )}
@@ -139,7 +143,7 @@ export default function MemberRow(props: Props) {
             size="sm"
             variant="secondary"
             disabled={locked}
-            onClick={() => onUpdate({ status: "active" })}
+            onClick={() => onUpdate({ status: "active" }, "member")}
           >
             {busy ? "Restoring…" : "Restore"}
           </Button>

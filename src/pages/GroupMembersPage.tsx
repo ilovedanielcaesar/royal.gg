@@ -33,7 +33,7 @@ export default function GroupMembersPage() {
   // is really being approved.
   const [busy, setBusy] = useState<{
     id: string;
-    action: "link" | "member";
+    action: "link" | "member" | "remove";
   } | null>(null);
 
   const sections = useMemo(() => {
@@ -67,9 +67,13 @@ export default function GroupMembersPage() {
     (m) => m.role === "admin"
   ).length;
 
-  async function updateMember(id: string, update: MemberUpdate) {
+  async function updateMember(
+    id: string,
+    update: MemberUpdate,
+    action: "member" | "remove"
+  ) {
     if (!group || !isGroupAdmin || busy) return;
-    setBusy({ id, action: "member" });
+    setBusy({ id, action });
     setError(null);
     try {
       const { error } = await requireSupabase()
@@ -190,11 +194,16 @@ export default function GroupMembersPage() {
                         member.role === "admin" && activeAdminCount === 1
                       }
                       busy={busy?.id === member.id && busy.action === "member"}
+                      removing={
+                        busy?.id === member.id && busy.action === "remove"
+                      }
                       linking={busy?.id === member.id && busy.action === "link"}
                       locked={busy !== null}
                       linkableGuests={guests}
                       onLink={(guestId) => void linkGuest(member, guestId)}
-                      onUpdate={(update) => void updateMember(member.id, update)}
+                      onUpdate={(update, action) =>
+                        void updateMember(member.id, update, action)
+                      }
                     />
                   ))}
                 </div>

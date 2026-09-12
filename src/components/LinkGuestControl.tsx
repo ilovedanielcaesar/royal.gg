@@ -4,6 +4,7 @@ import {
   type LinkableGuest,
 } from "../lib/membership";
 import Button from "./Button";
+import Field from "./Field";
 
 type Props = {
   guests: LinkableGuest[];
@@ -27,10 +28,7 @@ export default function LinkGuestControl({
 
   return (
     <div className="flex flex-wrap items-end gap-2">
-      <label>
-        <span className="block text-xs font-medium text-ink-700">
-          Already plays here as…
-        </span>
+      <Field label="Already plays here as…">
         <select
           value={validGuestId}
           disabled={locked}
@@ -48,7 +46,7 @@ export default function LinkGuestControl({
             </option>
           ))}
         </select>
-      </label>
+      </Field>
       <Button
         type="button"
         size="sm"
