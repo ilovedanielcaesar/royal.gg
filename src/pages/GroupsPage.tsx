@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Band from "../components/Band";
 import Button from "../components/Button";
-import Card from "../components/Card";
 import ErrorNote from "../components/ErrorNote";
 import FeltButton from "../components/FeltButton";
 import Field from "../components/Field";
@@ -131,37 +130,33 @@ export default function GroupsPage() {
           </Band>
         </Sheet>
       ) : (
-        // A grid of tiles is the one page body that is NOT a sheet: `Card` is
-        // exactly the primitive for several small standalone tiles side by
-        // side, and folding these into bands would lose the deal-in stagger
-        // and the hover lift that make a table feel pickable.
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {state.groups.map((group, index) => (
-            <Link key={group.slug} to={`/g/${group.slug}`}>
-              <Card
-                className="h-full"
-                watermarkSuit="spade"
-                accent="sage"
-                interactive
-                dealIn={index * 60}
-              >
-                <div className="p-5">
-                  <h2 className="font-display text-2xl text-ink-900">
-                    {group.name}
-                  </h2>
-                  {group.stakes_label && (
-                    <p className="tabular mt-1 text-sm text-ink-500">
-                      {group.stakes_label}
-                    </p>
-                  )}
-                  <span className="mt-4 inline-block text-xs font-medium text-ink-500">
-                    Open group →
+        <Sheet>
+          <Band>
+            <div>
+              {state.groups.map((group) => (
+                <Link
+                  key={group.slug}
+                  to={`/g/${group.slug}`}
+                  className="grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-t border-card-100 px-2.5 py-2 text-sm transition first:border-t-0 hover:bg-card-100/40"
+                >
+                  <span>
+                    <span className="block font-medium text-ink-900">
+                      {group.name}
+                    </span>
+                    {group.stakes_label && (
+                      <span className="tabular mt-0.5 block text-xs text-ink-500">
+                        {group.stakes_label}
+                      </span>
+                    )}
                   </span>
-                </div>
-              </Card>
-            </Link>
-          ))}
-        </div>
+                  <span aria-hidden="true" className="text-ink-500">
+                    →
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </Band>
+        </Sheet>
       )}
     </>
   );

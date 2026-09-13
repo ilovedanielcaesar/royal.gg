@@ -1,16 +1,18 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import Band from "../components/Band";
 import Button from "../components/Button";
 import ConfirmButton from "../components/ConfirmButton";
 import ErrorNote from "../components/ErrorNote";
 import FeltButton from "../components/FeltButton";
+import Field from "../components/Field";
 import GoldPill from "../components/GoldPill";
 import InviteLinksBand from "../components/InviteLinksBand";
 import LoadingState from "../components/LoadingState";
 import PageHeading from "../components/PageHeading";
 import Sheet from "../components/Sheet";
 import StakesBand, { type StakesUpdate } from "../components/StakesBand";
+import TextInput from "../components/TextInput";
 import { publicAppUrl } from "../lib/appUrl";
 import { describeError } from "../lib/errors";
 import { useGroup, type Group } from "../lib/groupContext";
@@ -19,13 +21,74 @@ import { requireSupabase } from "../lib/supabase";
 
 type JoinPolicy = "code" | "code_approve";
 type GroupSettingsUpdate = Partial<
-  Pick<Group, "join_code" | "join_policy"> & StakesUpdate
+  Pick<Group, "name" | "join_code" | "join_policy"> & StakesUpdate
 >;
 
 const POLICIES: Array<[JoinPolicy, string]> = [
   ["code", "Anyone with the code joins straight away."],
   ["code_approve", "Anyone with the code has to be approved first."],
 ];
+
+type GroupNameBandProps = {
+  group: Group;
+  isGroupAdmin: boolean;
+  save: (update: GroupSettingsUpdate) => Promise<void>;
+};
+
+function GroupNameBand({ group, isGroupAdmin, save }: GroupNameBandProps) {
+  const [name, setName] = useState(group.name);
+  const [saving, setSaving] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const normalizedName = name.trim();
+  const hasChanges = normalizedName !== group.name;
+
+  async function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    if (saving || !hasChanges) return;
+
+    setValidationError(null);
+    if (!normalizedName) {
+      setValidationError("Enter a group name.");
+      return;
+    }
+
+    setSaving(true);
+    await save({ name: normalizedName });
+    setSaving(false);
+  }
+
+  return (
+    <Band
+      kicker="Table"
+      title="Group name"
+      caption="Renaming the group does not change its web address."
+    >
+      {isGroupAdmin ? (
+        <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
+          <Field label="Group name">
+            <TextInput
+              value={name}
+              onChange={(event) => {
+                setName(event.target.value);
+                setValidationError(null);
+              }}
+            />
+          </Field>
+          {validationError && <ErrorNote>{validationError}</ErrorNote>}
+          <Button
+            type="submit"
+            variant="secondary"
+            disabled={saving || !hasChanges}
+          >
+            {saving ? "Saving…" : "Save name"}
+          </Button>
+        </form>
+      ) : (
+        <p className="mt-4 text-sm text-ink-900">{group.name}</p>
+      )}
+    </Band>
+  );
+}
 
 export default function GroupSettingsPage() {
   const { group, isGroupAdmin, path, reload } = useGroup();
@@ -130,6 +193,13 @@ export default function GroupSettingsPage() {
       )}
 
       <Sheet>
+        <GroupNameBand
+          key={group.name}
+          group={group}
+          isGroupAdmin={isGroupAdmin}
+          save={save}
+        />
+
         <Band
           kicker="Standing code"
           title="Join code"

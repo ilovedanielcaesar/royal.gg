@@ -40,10 +40,12 @@ export default function SignupPage() {
 
   return (
     <div className="mx-auto max-w-md">
-      <PageHeading
-        title="Create an account"
-        subtitle="Next you'll start a group or join one with a code."
-      />
+      <div className="text-center [&>div]:flex-col [&>div]:items-center">
+        <PageHeading
+          title="Create an account"
+          subtitle="Next you'll start a group or join one with a code."
+        />
+      </div>
 
       <Sheet>
         <Band>

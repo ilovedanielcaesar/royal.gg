@@ -44,7 +44,9 @@ export default function LoginPage() {
     // felt, one sheet under it. A sign-in form does not want 1152px, and
     // nothing in the rule says the sheet has to be full width.
     <div className="mx-auto max-w-md">
-      <PageHeading title="Sign in" subtitle="Back to the table." />
+      <div className="text-center [&>div]:flex-col [&>div]:items-center">
+        <PageHeading title="Sign in" subtitle="Back to the table." />
+      </div>
 
       <Sheet>
         <Band>

@@ -60,15 +60,17 @@ export default function JoinPage() {
   if (pending) {
     return (
       <div className="mx-auto max-w-md">
-        <PageHeading
-          title="Approval needed"
-          subtitle={`Your request to join ${pending.groupName} is waiting.`}
-          actions={
-            <FeltButton variant="ghost" to="/groups">
-              ← Your groups
-            </FeltButton>
-          }
-        />
+        <div className="text-center [&>div]:flex-col [&>div]:items-center">
+          <PageHeading
+            title="Approval needed"
+            subtitle={`Your request to join ${pending.groupName} is waiting.`}
+            actions={
+              <FeltButton variant="ghost" to="/groups">
+                ← Your groups
+              </FeltButton>
+            }
+          />
+        </div>
         <Sheet>
           <Band kicker="Pending" title="With the host">
             <p className="mt-2 text-sm text-ink-500">
@@ -89,11 +91,17 @@ export default function JoinPage() {
 
   return (
     <div className="mx-auto max-w-md">
-      <PageHeading
-        title="Join a group"
-        subtitle="Enter the code shared by your group host."
-        actions={<FeltButton variant="ghost" to="/groups">← Your groups</FeltButton>}
-      />
+      <div className="text-center [&>div]:flex-col [&>div]:items-center">
+        <PageHeading
+          title="Join a group"
+          subtitle="Enter the code shared by your group host."
+          actions={
+            <FeltButton variant="ghost" to="/groups">
+              ← Your groups
+            </FeltButton>
+          }
+        />
+      </div>
       <Sheet>
         <Band>
           <form className="space-y-4" onSubmit={handleSubmit}>
