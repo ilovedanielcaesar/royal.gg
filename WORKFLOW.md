@@ -833,6 +833,22 @@ correct by definition and only Google Cloud is wrong. In order of likelihood:
    built from `window.location.origin`, so each environment returns to itself
    — but every one of them has to be listed here or the provider silently
    bounces to the Site URL instead.
+
+   **⚠ Preview deploys are the case this bit everyone on.** 2026-09-12: Google
+   sign-in from a PR preview landed the user in a DIFFERENT Vercel project.
+   Nothing was wrong with the code. A preview URL is minted per deployment —
+   `royal-4ws8me57e-ilovedanielcaesars-projects.vercel.app` — so it can never
+   be in a hand-written allowlist, the bounce-to-Site-URL above fires, and the
+   Site URL was pointing somewhere else entirely. Two things fix it, and both
+   are needed:
+
+       Redirect URLs:  https://royal-*-ilovedanielcaesars-projects.vercel.app/**
+       Site URL:       the royal.gg production URL, and nothing else
+
+   The glob is what makes previews work at all; the Site URL is what makes the
+   failure land somewhere harmless when a URL still is not matched. Check the
+   Site URL first — if it names another project, every unmatched redirect in
+   every environment has been going there.
 7. **Enable Manual Linking.** Without it `linkGoogle()` fails; the error says
    so in words rather than dying quietly, but nothing links until it is on.
 8. Leave **Confirm email** OFF. Turning it on makes new signups depend on

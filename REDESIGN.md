@@ -39,13 +39,25 @@ the checkbox — a tick with no log entry is how this file rots.
 | **3** | Sessions list | lib only | `[x]` | 6/6 |
 | **4** | Profile (merged) | routing | `[x]` | 6/6 |
 | **5** | Session detail | **migration `0020`** | `[x]` | 9/9 · merged |
-| **A** | **Audit: every surface in the new style** | no | `[~]` | 6/23 confirmed |
+| **A** | **Audit: every surface in the new style** | no | `[~]` | 6/23 seen · 22/22 built |
 
-**Current focus:** **Stage A, rows 6, 7 and 9–22.** Every stage is built and
-merged, `0020` is pushed, and the six mocked surfaces have been through the
-five-point check. What is left is the seventeen surfaces nobody designed a
-mock for — two player pages, eight pages, and six full-screen states that
-are not pages at all. `v1.2.0` is not tagged until they are ticked.
+**Current focus:** **seeing Stage A's seventeen rows.** All of them are now
+built on `redesign-a-audit` and every one is `[~]` — which under Stage A's own
+rule means not done. `tsc`, build and lint are green and cannot see a layout.
+`v1.2.0` is not tagged until somebody opens them.
+
+**The style guide is `DESIGN.md`.** The audit's first finding was that the
+binding style document was mock-level — raw CSS for the HTML archetypes, with
+nothing mapping it onto the React primitives. So the app-level layer (page
+anatomy, which primitive on which surface, the four states, the colour rules
+in the places they get misused) now lives in `DESIGN.md`, citing
+`_STYLE_CONTRACT.md` for every value rather than restating one.
+
+Four of the audit's findings were bugs rather than styling, and none was
+visible in a screenshot: the error banner on the felt measured **1.5:1** on
+two pages, **17 inputs had no visible keyboard focus**, three `window.confirm`
+calls survived, and `PlayerStatsCard` tinted win/loss COUNTS as money. All
+fixed. Full list in `DESIGN.md` → Per-page audit.
 
 **`0020` is pushed** (Will, 2026-09-11) and the whole gate is green against
 the pushed schema: 301 checks, 0 failures, and no script needs `--rehearse`
@@ -1075,6 +1087,11 @@ lesson `v1.1.0` taught.
 
 Branch: `redesign-a-audit`. No backend.
 
+**All seventeen are built as of 2026-09-11. None is seen.** Every row below is
+`[~]`, which under this stage's own rule means *not done* — `tsc`, build and
+lint cannot see a layout. What is left is the five-point check, in a browser,
+on seventeen surfaces.
+
 **The rule: `v1.2.0` is not tagged until every row below is ticked.** Not
 "most", not "the ones anyone visits". A redesign that stops at the five mocked
 pages leaves a user two clicks from cream-on-felt `Card`s, a 4xl heading and a
@@ -1111,23 +1128,23 @@ even though both are merged and green. **A `[~]` row is not done.**
 | 3 | `PlayersPage` → League | `/g/:slug/league` | Stage 2 | `[x]` |
 | 4 | `SessionsListPage` | `/g/:slug/sessions` | Stage 3 | `[x]` |
 | 5 | `MyGroupProfilePage` + `ProfilePage` (merged) | `/g/:slug/profile`, `/profile` | Stage 4 | `[x]` |
-| 6 | `PlayerProfilePage` | `/g/:slug/players/:id` | Stage 4 tail | `[ ]` |
-| 7 | `PlayerRatingPage` | `/g/:slug/players/:id/rating` | Stage 4 tail | `[ ]` |
+| 6 | `PlayerProfilePage` | `/g/:slug/players/:id` | Stage 4 tail | `[~]` |
+| 7 | `PlayerRatingPage` | `/g/:slug/players/:id/rating` | Stage 4 tail | `[~]` |
 | 8 | `SessionFormPage` | `/g/:slug/sessions/new`, `/sessions/:id` | Stage 5 | `[x]` |
-| 9 | `GroupSettingsPage` | `/g/:slug/settings` | **Stage A** | `[ ]` |
-| 10 | `GroupMembersPage` | `/g/:slug/members` | **Stage A** | `[ ]` |
-| 11 | `GroupsPage` | `/groups` | **Stage A** | `[ ]` |
-| 12 | `CreateGroupPage` | `/groups/new` | **Stage A** | `[ ]` |
-| 13 | `JoinPage` | `/join`, `/join/:code` | **Stage A** | `[ ]` |
-| 14 | `LoginPage` | `/login` | **Stage A** | `[ ]` |
-| 15 | `SignupPage` | `/signup` | **Stage A** | `[ ]` |
-| 16 | `AdminOverviewPage` | `/admin` | **Stage A** | `[ ]` |
-| 17 | `SetupNotice` | any route, unconfigured env | **Stage A** | `[ ]` |
-| 18 | `IndexRoute` loading + no-group states | `/` | **Stage A** | `[ ]` |
-| 19 | `RequireAuth` loading state | any guarded route | **Stage A** | `[ ]` |
-| 20 | `RequireGroupMember` loading + refusal | `/g/:slug/*` | **Stage A** | `[ ]` |
-| 21 | `RequireGroupAdmin` loading + refusal | `/g/:slug/members` | **Stage A** | `[ ]` |
-| 22 | `RequireAppOwner` loading + refusal | `/admin` | **Stage A** | `[ ]` |
+| 9 | `GroupSettingsPage` | `/g/:slug/settings` | **Stage A** | `[~]` |
+| 10 | `GroupMembersPage` | `/g/:slug/members` | **Stage A** | `[~]` |
+| 11 | `GroupsPage` | `/groups` | **Stage A** | `[~]` |
+| 12 | `CreateGroupPage` | `/groups/new` | **Stage A** | `[~]` |
+| 13 | `JoinPage` | `/join`, `/join/:code` | **Stage A** | `[~]` |
+| 14 | `LoginPage` | `/login` | **Stage A** | `[~]` |
+| 15 | `SignupPage` | `/signup` | **Stage A** | `[~]` |
+| 16 | `AdminOverviewPage` | `/admin` | **Stage A** | `[~]` |
+| 17 | `SetupNotice` | any route, unconfigured env | **Stage A** | `[~]` |
+| 18 | `IndexRoute` loading + no-group states | `/` | **Stage A** | `[~]` |
+| 19 | `RequireAuth` loading state | any guarded route | **Stage A** | `[~]` |
+| 20 | `RequireGroupMember` loading + refusal | `/g/:slug/*` | **Stage A** | `[~]` |
+| 21 | `RequireGroupAdmin` loading + refusal | `/g/:slug/members` | **Stage A** | `[~]` |
+| 22 | `RequireAppOwner` loading + refusal | `/admin` | **Stage A** | `[~]` |
 | 23 | `ErrorBoundary` fallback | any crash | **exempt** | `[-]` |
 
 **Rows 17–22 are not pages and are on the list anyway**, because a user
@@ -1173,6 +1190,76 @@ Not blocking any stage. Recorded so they are not rediscovered.
 ## Change log
 
 Newest first. One line per meaningful change.
+
+- **2026-09-12** — **Stage A review round: eight defects the build was green
+  on.** Four Claude subagents read the branch against the five-point check, one
+  group of surfaces each; the fixes went to Codex in three specs and every diff
+  was verified here rather than taken on the run's word. `tsc`, `eslint` at the
+  0-warning baseline and the build are green.
+
+  Three were real bugs. `useProfileData` resolved the signed-in player with
+  `user?.id ?? null`, and a guest roster row has `profile_id: null`, so while
+  auth was resolving `null === null` matched the **first guest on the roster**
+  and returned it as your own profile — only `MyGroupProfilePage`'s early
+  return was hiding it. `PlayerProfilePage` tested `!data` before `error`, and
+  `useLeagueData` returns null data *with* an error on a failed first fetch, so
+  a failure sat on `Dealing in…` for ever. `ConfirmButton` honoured `disabled`
+  in its resting branch and ignored it in its armed one, so an armed row stayed
+  live while another row saved and the confirm click was swallowed — the exact
+  failure the prop's own doc comment describes.
+
+  Two were things the rebuild dropped without saying so: the **#N rating rank**,
+  which the old `PlayerStatsCard` rendered and nothing replaced, and the
+  sole-admin Remove button's `ONLY_ADMIN_REASON` title, lost in the swap to
+  `ConfirmButton` while Promote/Demote beside it kept explaining itself.
+
+  Two are worth remembering because a screenshot cannot show them. **Three
+  inputs on the session detail page still carried `outline-none` plus a
+  replacement `focus:ring-gold-ink`** — the pattern `TextInput` exists to
+  eliminate — so row 8 was ticked `[x]` with keyboard focus suppressed on it.
+  A focus ring is invisible in a screenshot of an unfocused page; the five-point
+  check cannot catch this and should not be trusted to. And `Field` rendered its
+  `hint` inside the wrapping `<label>`, so every control's accessible name ran
+  label and hint together — one primitive, fourteen call sites.
+
+  `GroupsPage` told a user with groups that they had none: on a failed
+  membership query `groups` is `[]`, and the restyle had promoted that empty
+  state into the page body, so the false claim became the loudest thing on
+  screen.
+
+  **No row is ticked by any of this.** Every one stays `[~]`. Reading the code
+  is not opening the route, and the whole point of this stage's rule is that
+  the two are different.
+
+- **2026-09-11** — **Stage A built: all seventeen surfaces, plus a style guide
+  that did not exist.** The audit's first question was whether a style guide
+  existed, and the honest answer was "at the wrong altitude": the contract is
+  binding and mock-level, and nothing said which React primitive belongs on
+  which surface. Predictably, the four things it did not name were
+  copy-pasted — eleven identical error banners, twenty-two loading lines
+  across three treatments and two sentences, fourteen hand-written inputs.
+  Those are `ErrorNote`, `LoadingState`, `Field` and `TextInput` now, and
+  `DESIGN.md` is the guide.
+
+  The seventeen rows split the way the tracker predicted: the seven Stage 1–5
+  pages conformed and every other page was `<h1>` + a stack of `Card`s. All
+  are the anatomy now. `StakesCard` and `InviteLinksCard` are renamed to
+  `…Band`, which is not cosmetic — a component whose name says Card keeps
+  being reached for as a page body.
+
+  `PlayerStatsCard` is deleted rather than restyled: its compact layout had
+  had no callers since Stage 4, and `useProfileData`'s computation is now a
+  pure `buildPlayerProfile()` so `/players/:id` renders the same bands as
+  your own profile.
+
+  Then the sweep was turned on the seven already-ticked pages, which hand-
+  rolled their states because until now there was nothing else to reach for.
+  Ten more call sites. A guide that says "use LoadingState" while seven
+  conforming pages do not is a guide with an asterisk.
+
+  **Everything is `[~]`, nothing is `[x]`.** Seventeen surfaces are waiting on
+  eyes, and row 9 — settings as a plain member — is still the one with a known
+  reason to look rather than a routine one.
 
 - **2026-09-11** — **Stage 5 merged as PR #12, and the built-but-unseen
   backlog is cleared.** `0020` was pushed first, in that order, because the

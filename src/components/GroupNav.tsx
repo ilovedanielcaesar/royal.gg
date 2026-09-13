@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 
 /**
- * Four tabs, and only `aria-current` moves between pages.
+ * Three tabs, and only `aria-current` moves between pages.
  *
  * The active tab is a translucent cream wash, not the solid cream pill it used
  * to be: a solid pill in the topbar reads as a small playing card, which is
@@ -32,7 +32,7 @@ export default function GroupNav() {
     // pattern this is the seam to replace.
     <nav
       className={[
-        "ml-auto flex gap-1",
+        "flex gap-1",
         "max-[720px]:order-last max-[720px]:ml-0 max-[720px]:w-full",
         "max-[720px]:justify-center max-[720px]:pb-3",
       ].join(" ")}
@@ -46,11 +46,6 @@ export default function GroupNav() {
       </NavLink>
       <NavLink to={`/g/${slug}/league`} className={navLinkClass}>
         League
-      </NavLink>
-      {/* Your card, your stats in this group, and Leave. Needs no role, so
-          this nav can link it without reaching into GroupProvider. */}
-      <NavLink to={`/g/${slug}/profile`} className={navLinkClass}>
-        You
       </NavLink>
     </nav>
   );

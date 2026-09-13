@@ -80,7 +80,7 @@ export default function SessionSetupBand({
             rows={2}
             onChange={(event) => onNotesChange(event.target.value)}
             placeholder="Anything worth remembering about the night."
-            className="mt-1 w-full rounded-[9px] bg-card-50 px-3 py-2 text-[12.5px] text-ink-900 ring-1 ring-card-200 outline-none transition focus:ring-gold-ink"
+            className="mt-1 w-full rounded-[9px] bg-card-50 px-3 py-2 text-[12.5px] text-ink-900 ring-1 ring-card-200"
           />
         </div>
 

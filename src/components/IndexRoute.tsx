@@ -4,6 +4,7 @@ import { useCurrentUser } from "../lib/auth";
 import { describeError } from "../lib/errors";
 import { requireSupabase } from "../lib/supabase";
 import LoginPage from "../pages/LoginPage";
+import LoadingState from "./LoadingState";
 
 type ActiveMembership = {
   group_id: string;
@@ -55,11 +56,11 @@ export default function IndexRoute() {
   }, [userId]);
 
   if (loading) {
-    return <div className="text-sm text-card-50/60">Dealing in…</div>;
+    return <LoadingState tone="felt" label="Dealing in…" full />;
   }
   if (!user || !profile) return <LoginPage />;
   if (!membershipState || membershipState.userId !== user.id) {
-    return <div className="text-sm text-card-50/60">Dealing in…</div>;
+    return <LoadingState tone="felt" label="Dealing in…" full />;
   }
 
   const { memberships } = membershipState;

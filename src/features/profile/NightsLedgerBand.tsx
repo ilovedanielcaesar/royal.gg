@@ -3,7 +3,7 @@ import Band from "../../components/Band";
 import { formatPlayedAt } from "../../lib/format";
 import { formatCents, formatSignedCents } from "../../lib/money";
 import { moneyToneClass } from "../../lib/moneyTone";
-import type { ProfileLedgerRow } from "./useProfileData";
+import type { ProfileLedgerRow } from "./profileData";
 
 type Props = {
   rows: ProfileLedgerRow[];

@@ -1,4 +1,5 @@
 import Button from "./Button";
+import ConfirmButton from "./ConfirmButton";
 import LinkGuestControl from "./LinkGuestControl";
 import PlayerAvatar from "./PlayerAvatar";
 import {
@@ -17,13 +18,15 @@ type Props = {
   soleAdmin: boolean;
   /** This row is saving a membership change. */
   busy: boolean;
+  /** This row is being removed. */
+  removing: boolean;
   /** This row is saving a guest link. */
   linking: boolean;
   /** Some row is saving, so every button is held. */
   locked: boolean;
   linkableGuests: LinkableGuest[];
   onLink: (guestId: string) => void;
-  onUpdate: (update: MemberUpdate) => void;
+  onUpdate: (update: MemberUpdate, action: "member" | "remove") => void;
 };
 
 export default function MemberRow(props: Props) {
@@ -32,6 +35,7 @@ export default function MemberRow(props: Props) {
     section,
     soleAdmin,
     busy,
+    removing,
     linking,
     locked,
     linkableGuests,
@@ -83,7 +87,7 @@ export default function MemberRow(props: Props) {
               size="sm"
               variant="secondary"
               disabled={locked}
-              onClick={() => onUpdate({ status: "active" })}
+              onClick={() => onUpdate({ status: "active" }, "member")}
             >
               {busy ? "Saving…" : "Approve"}
             </Button>
@@ -91,7 +95,7 @@ export default function MemberRow(props: Props) {
               size="sm"
               variant="danger"
               disabled={locked}
-              onClick={() => onUpdate({ status: "rejected" })}
+              onClick={() => onUpdate({ status: "rejected" }, "member")}
             >
               Reject
             </Button>
@@ -108,7 +112,7 @@ export default function MemberRow(props: Props) {
               onClick={() =>
                 onUpdate({
                   role: member.role === "admin" ? "member" : "admin",
-                })
+                }, "member")
               }
             >
               {busy
@@ -117,24 +121,20 @@ export default function MemberRow(props: Props) {
                   ? "Demote"
                   : "Promote"}
             </Button>
-            <Button
-              size="sm"
-              variant="danger"
+            {/* Removal keeps the row: decision 9 preserves their history and
+                their place on the leaderboard, which is what the armed label
+                says. It was a window.confirm, whose one sentence was the only
+                place that got explained. */}
+            <ConfirmButton
+              label="Remove"
+              confirmLabel={`Remove ${name}`}
+              consequence="Their game history is kept."
+              busy={removing}
+              busyLabel="Removing…"
               disabled={locked || soleAdmin}
               title={soleAdmin ? ONLY_ADMIN_REASON : undefined}
-              onClick={() => {
-                // Removal keeps the row: decision 9 preserves their history
-                // and their place on the leaderboard.
-                if (
-                  !confirm(`Remove ${name}? Their game history is kept.`)
-                ) {
-                  return;
-                }
-                onUpdate({ status: "removed" });
-              }}
-            >
-              Remove
-            </Button>
+              onConfirm={() => onUpdate({ status: "removed" }, "remove")}
+            />
           </>
         )}
 
@@ -143,7 +143,7 @@ export default function MemberRow(props: Props) {
             size="sm"
             variant="secondary"
             disabled={locked}
-            onClick={() => onUpdate({ status: "active" })}
+            onClick={() => onUpdate({ status: "active" }, "member")}
           >
             {busy ? "Restoring…" : "Restore"}
           </Button>

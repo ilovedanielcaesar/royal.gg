@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { useParams } from "react-router-dom";
 import Band from "../components/Band";
+import ErrorNote from "../components/ErrorNote";
+import LoadingState from "../components/LoadingState";
 import PageHeading from "../components/PageHeading";
 import Sheet from "../components/Sheet";
 import LedgerEditorBand from "../features/sessionDetail/LedgerEditorBand";
@@ -100,7 +102,7 @@ export default function SessionFormPage() {
     buyInCents === undefined ||
     thresholdCents === undefined
   ) {
-    return <p className="text-card-50/60">Dealing…</p>;
+    return <LoadingState tone="felt" full />;
   }
 
   const selectedIds = new Set(rows.map((row) => row.playerId));
@@ -115,8 +117,8 @@ export default function SessionFormPage() {
   const notices = (
     <>
       {form.error && (
-        <Band className="bg-crimson-600/[0.06]">
-          <p className="text-sm text-crimson-700">{form.error}</p>
+        <Band>
+          <ErrorNote>{form.error}</ErrorNote>
         </Band>
       )}
       {session?.review_note && (

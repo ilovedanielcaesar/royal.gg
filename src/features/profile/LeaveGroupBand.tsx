@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Band from "../../components/Band";
+import ErrorNote from "../../components/ErrorNote";
 import ConfirmButton from "../../components/ConfirmButton";
 import { describeError } from "../../lib/errors";
 import { useGroup } from "../../lib/groupContext";
@@ -51,9 +52,7 @@ export default function LeaveGroupBand() {
         />
       </div>
       {error && (
-        <p className="mt-3 rounded-md bg-crimson-500/10 px-3 py-2 text-xs text-crimson-700">
-          {error}
-        </p>
+        <ErrorNote className="mt-3">{error}</ErrorNote>
       )}
     </Band>
   );

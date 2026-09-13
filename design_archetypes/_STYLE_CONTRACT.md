@@ -92,11 +92,12 @@ button { font: inherit; cursor: pointer; }
 .tabular { font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
 ```
 
-## Chrome — identical on all four pages, copy verbatim
+## Chrome — identical on every page, copy verbatim
 
-Only the `aria-current="page"` moves. **The nav is
-`Dashboard / Sessions / League / You`** — four tabs, matching
-`src/components/GroupNav.tsx`. ("Profile" is the tab labelled `You`.)
+Only the `aria-current="page"` moves. **The left-aligned nav is
+`Dashboard / Sessions / League`** — three tabs, matching
+`src/components/GroupNav.tsx`. The profile button in the right-hand cluster
+replaced the `You` tab and is the fourth door.
 
 ```css
 .topbar {
@@ -114,7 +115,7 @@ Only the `aria-current="page"` moves. **The nav is
 .brand-name { font-family: var(--display); font-size: 24px; letter-spacing: -0.02em; }
 .brand-name em { font-style: normal; color: var(--crimson-500); }
 
-.nav { display: flex; gap: 4px; margin-left: auto; }
+.nav { display: flex; gap: 4px; }
 .nav a {
   display: inline-flex;
   align-items: center;
@@ -128,6 +129,8 @@ Only the `aria-current="page"` moves. **The nav is
 }
 .nav a:hover { background: rgba(247, 241, 222, 0.08); color: var(--card-50); }
 .nav a[aria-current="page"] { background: rgba(247, 241, 222, 0.1); color: var(--card-50); }
+
+.right-cluster { display: flex; align-items: center; gap: 20px; margin-left: auto; }
 
 .group-switch {
   display: inline-flex;
@@ -167,17 +170,18 @@ Only the `aria-current="page"` moves. **The nav is
       <a href="#">Dashboard</a>
       <a href="#">Sessions</a>
       <a href="#">League</a>
-      <a href="#">You</a>
     </nav>
 
-    <button type="button" class="group-switch">Thursday Night <span aria-hidden="true">▾</span></button>
+    <div class="right-cluster">
+      <button type="button" class="group-switch">Thursday Night <span aria-hidden="true">▾</span></button>
 
-    <div class="profile">
-      <span class="pcard" aria-hidden="true">
-        <span class="rank">A</span>
-        <svg viewBox="0 0 100 100"><path d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z" /></svg>
-      </span>
-      <span>Dan</span>
+      <div class="profile">
+        <span class="pcard" aria-hidden="true">
+          <span class="rank">A</span>
+          <svg viewBox="0 0 100 100"><path d="M50 8c-7 14-30 28-30 47a18 18 0 0 0 27 16c-2 6-7 12-13 17h32c-6-5-11-11-13-17a18 18 0 0 0 27-16c0-19-23-33-30-47Z" /></svg>
+        </span>
+        <span>Dan</span>
+      </div>
     </div>
   </div>
 </div>

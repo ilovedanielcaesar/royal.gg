@@ -1,10 +1,18 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
+import Band from "../components/Band";
 import Button from "../components/Button";
-import Card from "../components/Card";
+import ConfirmButton from "../components/ConfirmButton";
+import ErrorNote from "../components/ErrorNote";
+import FeltButton from "../components/FeltButton";
+import Field from "../components/Field";
 import GoldPill from "../components/GoldPill";
-import InviteLinksCard from "../components/InviteLinksCard";
-import StakesCard, { type StakesUpdate } from "../components/StakesCard";
+import InviteLinksBand from "../components/InviteLinksBand";
+import LoadingState from "../components/LoadingState";
+import PageHeading from "../components/PageHeading";
+import Sheet from "../components/Sheet";
+import StakesBand, { type StakesUpdate } from "../components/StakesBand";
+import TextInput from "../components/TextInput";
 import { publicAppUrl } from "../lib/appUrl";
 import { describeError } from "../lib/errors";
 import { useGroup, type Group } from "../lib/groupContext";
@@ -13,7 +21,7 @@ import { requireSupabase } from "../lib/supabase";
 
 type JoinPolicy = "code" | "code_approve";
 type GroupSettingsUpdate = Partial<
-  Pick<Group, "join_code" | "join_policy"> & StakesUpdate
+  Pick<Group, "name" | "join_code" | "join_policy"> & StakesUpdate
 >;
 
 const POLICIES: Array<[JoinPolicy, string]> = [
@@ -21,13 +29,74 @@ const POLICIES: Array<[JoinPolicy, string]> = [
   ["code_approve", "Anyone with the code has to be approved first."],
 ];
 
+type GroupNameBandProps = {
+  group: Group;
+  isGroupAdmin: boolean;
+  save: (update: GroupSettingsUpdate) => Promise<void>;
+};
+
+function GroupNameBand({ group, isGroupAdmin, save }: GroupNameBandProps) {
+  const [name, setName] = useState(group.name);
+  const [saving, setSaving] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const normalizedName = name.trim();
+  const hasChanges = normalizedName !== group.name;
+
+  async function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    if (saving || !hasChanges) return;
+
+    setValidationError(null);
+    if (!normalizedName) {
+      setValidationError("Enter a group name.");
+      return;
+    }
+
+    setSaving(true);
+    await save({ name: normalizedName });
+    setSaving(false);
+  }
+
+  return (
+    <Band
+      kicker="Table"
+      title="Group name"
+      caption="Renaming the group does not change its web address."
+    >
+      {isGroupAdmin ? (
+        <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
+          <Field label="Group name">
+            <TextInput
+              value={name}
+              onChange={(event) => {
+                setName(event.target.value);
+                setValidationError(null);
+              }}
+            />
+          </Field>
+          {validationError && <ErrorNote>{validationError}</ErrorNote>}
+          <Button
+            type="submit"
+            variant="secondary"
+            disabled={saving || !hasChanges}
+          >
+            {saving ? "Saving…" : "Save name"}
+          </Button>
+        </form>
+      ) : (
+        <p className="mt-4 text-sm text-ink-900">{group.name}</p>
+      )}
+    </Band>
+  );
+}
+
 export default function GroupSettingsPage() {
   const { group, isGroupAdmin, path, reload } = useGroup();
   const [regenerating, setRegenerating] = useState(false);
   const [savingPolicy, setSavingPolicy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (!group) return <p className="text-card-50/60">Dealing…</p>;
+  if (!group) return <LoadingState tone="felt" full />;
 
   const groupId = group.id;
   const joinUrl = publicAppUrl(`/join/${group.join_code}`);
@@ -65,14 +134,11 @@ export default function GroupSettingsPage() {
     }
   }
 
+  // No confirm() — the Regenerate button arms in place and states the
+  // consequence beside itself. The native dialog was the only place that
+  // consequence was written down, which on a phone is a grey box nobody reads.
   async function regenerateJoinCode() {
-    if (
-      !isGroupAdmin ||
-      regenerating ||
-      !confirm("Regenerate the join code? The old code will stop working.")
-    ) {
-      return;
-    }
+    if (!isGroupAdmin || regenerating) return;
     setRegenerating(true);
     await save({ join_code: generateJoinCode() });
     setRegenerating(false);
@@ -88,40 +154,76 @@ export default function GroupSettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <header>
-        {/* The ADMIN marker lives here, not on the link that got you here.
-            This is the page where the privilege is actually exercised, and
-            it is the one place a member and an admin see visibly different
-            controls — so it is the one place saying which you are earns its
-            space. Felt tone: gold-ink is unreadable on the table. */}
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="font-display text-4xl text-card-50">Settings</h1>
-          {isGroupAdmin && <GoldPill tone="felt">ADMIN</GoldPill>}
-        </div>
-        <p className="mt-1 text-sm text-card-50/60">
-          {isGroupAdmin
+    <>
+      {/* The ADMIN marker lives here, not on the link that got you here. This
+          is the page where the privilege is actually exercised, and the one
+          place a member and an admin see visibly different controls — so it
+          is the one place saying which you are earns its space. Felt tone:
+          gold-ink is unreadable on the table. */}
+      <PageHeading
+        title="Settings"
+        subtitle={
+          isGroupAdmin
             ? `Manage ${group.name}'s table and membership settings.`
-            : `${group.name}'s table settings. Admins can change these.`}
-        </p>
-      </header>
+            : `${group.name}'s table settings. Admins can change these.`
+        }
+        actions={
+          <>
+            <FeltButton variant="ghost" to={path("/league")}>
+              ← League
+            </FeltButton>
+            {isGroupAdmin && (
+              <>
+                <GoldPill tone="felt">ADMIN</GoldPill>
+                <FeltButton variant="ghost" to={path("/members")}>
+                  Members
+                </FeltButton>
+              </>
+            )}
+          </>
+        }
+      />
 
+      {/* On the felt, so the felt tone: crimson-700 out here is 1.5:1 and
+          this banner was unreadable. */}
       {error && (
-        <p className="rounded-md bg-crimson-500/10 px-3 py-2 text-xs text-crimson-700">
+        <ErrorNote tone="felt" className="mb-4">
           {error}
-        </p>
+        </ErrorNote>
       )}
 
-      <Card accent="gold">
-        <div className="p-5">
-          <h2 className="font-display text-2xl text-ink-900">Join code</h2>
-          <div className="mt-3 flex flex-wrap items-center gap-3">
+      <Sheet>
+        <GroupNameBand
+          key={group.name}
+          group={group}
+          isGroupAdmin={isGroupAdmin}
+          save={save}
+        />
+
+        <Band
+          kicker="Standing code"
+          title="Join code"
+          caption="The standing code. Anyone with it can ask to join."
+          action={
+            isGroupAdmin && (
+              <ConfirmButton
+                label="Regenerate"
+                confirmLabel="Regenerate code"
+                consequence="The old code stops working."
+                busy={regenerating}
+                busyLabel="Regenerating…"
+                onConfirm={() => void regenerateJoinCode()}
+              />
+            )
+          }
+        >
+          <div className="mt-4 flex flex-wrap items-center gap-3">
             <code className="font-mono text-3xl font-semibold tracking-widest text-ink-900">
               {group.join_code}
             </code>
             <Button
               size="sm"
-              variant="secondary"
+              variant="subtle"
               onClick={() => void navigator.clipboard.writeText(joinUrl)}
             >
               Copy link
@@ -131,28 +233,19 @@ export default function GroupSettingsPage() {
             {joinUrl}
           </p>
           {isGroupAdmin && (
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-              <p className="text-xs text-ink-500">
-                Regenerating invalidates the old code and any link built from
-                it. Invite links below are separate and keep working.
-              </p>
-              <Button
-                size="sm"
-                variant="danger"
-                disabled={regenerating}
-                onClick={() => void regenerateJoinCode()}
-              >
-                {regenerating ? "Regenerating…" : "Regenerate"}
-              </Button>
-            </div>
+            <p className="mt-3 max-w-[70ch] text-xs text-ink-500">
+              Regenerating invalidates the old code and any link built from
+              it. Invite links below are separate and keep working.
+            </p>
           )}
-        </div>
-      </Card>
+        </Band>
 
-      <Card>
-        <div className="p-5">
-          <h2 className="font-display text-2xl text-ink-900">Join policy</h2>
-          <div className="mt-3 space-y-3">
+        <Band
+          kicker="Access"
+          title="Join policy"
+          caption="What happens when someone redeems the code."
+        >
+          <div className="mt-4 space-y-3">
             {POLICIES.map(([value, description]) => (
               <label
                 key={value}
@@ -175,7 +268,7 @@ export default function GroupSettingsPage() {
             <p className="mt-4 text-xs text-ink-500">
               Approve pending requests on the{" "}
               <Link
-                className="underline hover:text-ink-900"
+                className="font-medium underline hover:text-ink-900"
                 to={path("/members")}
               >
                 members page
@@ -183,37 +276,23 @@ export default function GroupSettingsPage() {
               .
             </p>
           )}
-        </div>
-      </Card>
+        </Band>
 
-      <StakesCard
-        key={`${group.stakes_label}:${group.default_buy_in_cents}:${group.reconcile_threshold_cents}`}
-        group={group}
-        isGroupAdmin={isGroupAdmin}
-        save={save}
-      />
+        <StakesBand
+          key={`${group.stakes_label}:${group.default_buy_in_cents}:${group.reconcile_threshold_cents}`}
+          group={group}
+          isGroupAdmin={isGroupAdmin}
+          save={save}
+        />
 
-      {/* Both admin-only, and for the same reason: they are doors a member
-          cannot walk through. `group_invites` has no member select policy
-          (0010_group_join.sql:12), so the card would render an empty list and
-          a create button that fails; the members page is admin-gated, so the
-          link below is a dead end. A member's invite is the standing join
-          code above. */}
-      {isGroupAdmin && <InviteLinksCard key={groupId} groupId={groupId} />}
-
-      {isGroupAdmin && (
-        <Card>
-          <div className="p-5">
-            <h2 className="font-display text-2xl text-ink-900">Members</h2>
-            <Link
-              className="mt-2 inline-block text-sm text-sage-700 underline hover:text-sage-600"
-              to={path("/members")}
-            >
-              Approve requests, change roles, and remove members →
-            </Link>
-          </div>
-        </Card>
-      )}
-    </div>
+        {/* Both admin-only, and for the same reason: they are doors a member
+            cannot walk through. `group_invites` has no member select policy
+            (0010_group_join.sql:12), so the band would render an empty list
+            and a create button that fails. A member's invite is the standing
+            join code above. The members page is admin-gated too, which is why
+            its link is in the heading only for an admin. */}
+        {isGroupAdmin && <InviteLinksBand key={groupId} groupId={groupId} />}
+      </Sheet>
+    </>
   );
 }

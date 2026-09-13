@@ -22,7 +22,14 @@ export default function AppLayout() {
 
   return (
     <div className="min-h-full">
-      <header className="border-b border-card-50/10 bg-felt-900/[0.76] backdrop-blur-[14px]">
+      {/* `relative z-50` is load-bearing, not decoration. `backdrop-blur`
+          makes this header a stacking context, which traps every z-index
+          inside it — so the group switcher's open menu could not rise above
+          the page. Meanwhile `Sheet`'s settle animation transforms, which
+          makes IT a stacking context too, and it comes later in the document.
+          Without a z-index here the header loses to the page body no matter
+          what the menu asks for. Raise the header, not the menu. */}
+      <header className="relative z-50 border-b border-card-50/10 bg-felt-900/[0.76] backdrop-blur-[14px]">
         <div
           className={`${WRAP} flex min-h-[66px] flex-wrap items-center gap-x-5`}
         >
@@ -46,11 +53,9 @@ export default function AppLayout() {
               royal<span className="text-crimson-500">.gg</span>
             </span>
           </NavLink>
-          {/* Two `ml-auto`s on purpose. The first free-space eater wins, so
-              the nav is pushed right and this cluster sits directly after it —
-              the contract's order. When the nav renders nothing (outside a
-              group) the cluster's own `ml-auto` still holds it right, which one
-              `ml-auto` on the nav alone would not. */}
+          {/* The group nav follows the brand on the left. The account cluster
+              absorbs the remaining space, so it stays hard right whether the
+              nav is present or not. */}
           <GroupNav />
           <div className="ml-auto flex items-center gap-5">
             {user && <GroupSwitcher />}

@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import Band from "../components/Band";
+import ErrorNote from "../components/ErrorNote";
+import LoadingState from "../components/LoadingState";
 import PageHeading from "../components/PageHeading";
 import Sheet from "../components/Sheet";
 import AccountBand from "../features/profile/AccountBand";
@@ -55,7 +57,7 @@ export default function ProfilePage() {
   }, [userId]);
 
   if (!user || !state || state.userId !== user.id) {
-    return <p className="text-sm text-card-50/60">Dealing…</p>;
+    return <LoadingState tone="felt" full />;
   }
 
   if (state.groups[0]) {
@@ -72,8 +74,8 @@ export default function ProfilePage() {
       />
       <Sheet>
         {state.error && (
-          <Band className="bg-crimson-500/[0.06]">
-            <p className="text-sm text-crimson-700">{state.error}</p>
+          <Band>
+            <ErrorNote>{state.error}</ErrorNote>
           </Band>
         )}
         <AccountBand email={user.email ?? null} />

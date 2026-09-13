@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { describeError } from "../lib/errors";
 import { linkGoogle, listIdentities } from "../lib/auth";
+import ErrorNote from "./ErrorNote";
+import LoadingState from "./LoadingState";
 import GoogleButton from "./GoogleButton";
 
 /**
@@ -49,7 +51,9 @@ export default function SignInMethodsCard() {
       </p>
 
       {providers === null ? (
-        <p className="mt-3 text-sm text-ink-500">Dealing…</p>
+        <div className="mt-3">
+          <LoadingState />
+        </div>
       ) : (
         <>
           <ul className="mt-3 divide-y divide-card-100 text-sm">
@@ -87,9 +91,7 @@ export default function SignInMethodsCard() {
       )}
 
       {error && (
-        <div className="mt-3 rounded-md bg-crimson-500/10 px-3 py-2 text-xs text-crimson-700">
-          {error}
-        </div>
+        <ErrorNote className="mt-3">{error}</ErrorNote>
       )}
     </div>
   );
