@@ -26,7 +26,6 @@ export default function Sheet({ children, className = "" }: Props) {
         // shadow that lifts it off the felt, and a hairline edge so the cream
         // never bleeds into the cream of a band.
         "shadow-[0_2px_0_rgba(0,0,0,0.14),0_30px_70px_-28px_rgba(0,0,0,0.65),0_0_0_1px_var(--color-card-100)]",
-        "animate-settle motion-reduce:animate-none",
         className,
       ].join(" ")}
     >

@@ -45,9 +45,6 @@
 
   --animate-deal-in: deal-in 480ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   --animate-fade-in: fade-in 220ms ease-out both;
-  /* The sheet does not deal in like a card off the top of the deck — it is
-     already on the table and settles onto it. Smaller lift, slighter rotation. */
-  --animate-settle: settle 460ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 @keyframes deal-in {
@@ -59,17 +56,6 @@
     opacity: 1;
   }
   100% {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes settle {
-  from {
-    opacity: 0;
-    transform: translateY(14px) rotate(-0.35deg);
-  }
-  to {
     opacity: 1;
     transform: none;
   }
