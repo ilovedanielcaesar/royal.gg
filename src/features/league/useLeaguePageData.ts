@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useCurrentUser } from "../../lib/auth";
-import { todayIsoDate } from "../../lib/format";
+import { nextIsoDate, todayIsoDate } from "../../lib/format";
 import {
   consistencyScore,
   currentPayoutPeriod,
@@ -39,10 +39,14 @@ export const PAYOUT_PREVIEW_ROWS = 5;
 
 export type PayoutPreviewRow = {
   key: string;
-  /** The day it was settled. null for the period that is still open. */
+  /** The day it was settled, and the period's last day. null = still open. */
   paidOn: string | null;
-  /** Open row only: the day the window opened. null = since the league began. */
-  openedAfter: string | null;
+  /**
+   * The period's first day, inclusive — the day after the previous payout,
+   * since a period is stored as (previous payout, this one]. null means there
+   * is no previous payout and the period runs from the league's beginning.
+   */
+  startsOn: string | null;
   sessionCount: number;
   status: "paid" | "active";
 };
@@ -141,7 +145,9 @@ export function useLeaguePageData(): {
         .map((payout, i): PayoutPreviewRow => ({
           key: payout.id,
           paidOn: payout.period_end_date,
-          openedAfter: null,
+          startsOn: closedPayouts[i + 1]
+            ? nextIsoDate(closedPayouts[i + 1].period_end_date)
+            : null,
           // The next *older* payout closed the window this one opened after.
           // Slicing first would be wrong here — the 5th payout is what bounds
           // the 4th, and it is outside the slice.
@@ -154,7 +160,7 @@ export function useLeaguePageData(): {
       {
         key: "open",
         paidOn: null,
-        openedAfter: period.startAfter,
+        startsOn: period.startAfter ? nextIsoDate(period.startAfter) : null,
         sessionCount: periodSessionCount,
         status: "active",
       },

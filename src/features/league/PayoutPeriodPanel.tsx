@@ -4,7 +4,7 @@ import Button from "../../components/Button";
 import ErrorNote from "../../components/ErrorNote";
 import GoldPill from "../../components/GoldPill";
 import { describeError } from "../../lib/errors";
-import { formatDateShort, todayIsoDate } from "../../lib/format";
+import { formatDateRange, todayIsoDate } from "../../lib/format";
 import { PAYOUT_REMINDER_AFTER_SESSIONS, type Player } from "../../lib/stats";
 import { requireSupabase } from "../../lib/supabase";
 import type { PayoutPreviewRow } from "./useLeaguePageData";
@@ -25,8 +25,8 @@ type Props = {
  *
  * The open period is listed with the closed ones rather than given its own
  * heading, because it is the same kind of thing: a window of nights with a
- * session count. The only difference is that its date has not happened yet,
- * which is what "Active" says.
+ * session count. The only difference is that its end has not happened yet,
+ * which is what "Active" says, and why its range ends in "now".
  */
 export default function PayoutPeriodPanel({
   groupId,
@@ -90,14 +90,12 @@ export default function PayoutPeriodPanel({
             }`}
           >
             <span className="truncate text-sm font-medium text-ink-900">
-              {row.paidOn
-                ? formatDateShort(row.paidOn)
-                : row.openedAfter
-                  ? `Opened ${formatDateShort(row.openedAfter)}`
-                  : "Since the league began"}
+              {!row.startsOn && !row.paidOn
+                ? "Since the league began"
+                : formatDateRange(row.startsOn, row.paidOn)}
             </span>
             {/* On a phone the pill keeps the first row and the count drops
-                under the date, so neither ever truncates. */}
+                under the range, so neither ever truncates. */}
             <span className="order-last text-xs text-ink-500 sm:order-none sm:text-right">
               {row.sessionCount}{" "}
               {row.sessionCount === 1 ? "session" : "sessions"}
