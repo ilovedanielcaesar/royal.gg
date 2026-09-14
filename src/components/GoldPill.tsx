@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 
 type Props = {
   children: ReactNode;
+  /** `sm` is the in-row status marker; `md` is the standalone pill. */
+  size?: "sm" | "md";
   /**
    * Which surface it sits on. `cream` is inside a sheet or card; `felt` is
    * out on the table, beside a page heading.
@@ -22,10 +24,19 @@ const TONES = {
   felt: "bg-gold-500/[0.14] text-gold-500 ring-1 ring-gold-500/25",
 } as const;
 
-export default function GoldPill({ children, tone = "cream" }: Props) {
+const SIZES = {
+  sm: "px-2.5 py-0.5 text-[10px] font-semibold tracking-[0.12em] uppercase",
+  md: "px-3 py-1 text-xs font-medium",
+} as const;
+
+export default function GoldPill({
+  children,
+  size = "md",
+  tone = "cream",
+}: Props) {
   return (
     <span
-      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${TONES[tone]}`}
+      className={`inline-flex items-center rounded-full ${SIZES[size]} ${TONES[tone]}`}
     >
       {children}
     </span>

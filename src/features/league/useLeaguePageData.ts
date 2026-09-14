@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useCurrentUser } from "../../lib/auth";
-import { todayIsoDate } from "../../lib/format";
+import { nextIsoDate, todayIsoDate } from "../../lib/format";
 import {
   consistencyScore,
   currentPayoutPeriod,
@@ -34,14 +34,33 @@ export type LeagueRankingRow = PlayerStats & {
 
 export type LeagueGuestRow = PlayerStats & { player: Player };
 
+/** Rows in the League page's payout preview, the open period included. */
+export const PAYOUT_PREVIEW_ROWS = 5;
+
+export type PayoutPreviewRow = {
+  key: string;
+  /** The day it was settled, and the period's last day. null = still open. */
+  paidOn: string | null;
+  /**
+   * The period's first day, inclusive — the day after the previous payout,
+   * since a period is stored as (previous payout, this one]. null means there
+   * is no previous payout and the period runs from the league's beginning.
+   */
+  startsOn: string | null;
+  sessionCount: number;
+  status: "paid" | "active";
+};
+
 export type LeaguePageData = {
   league: LeagueData;
   rankings: LeagueRankingRow[];
   guests: LeagueGuestRow[];
   memberCount: number;
   myPlayerId: string | null;
-  period: ReturnType<typeof currentPayoutPeriod>;
-  periodSessionCount: number;
+  /** The open period is the last row; nothing outside needs it separately. */
+  payoutPreview: PayoutPreviewRow[];
+  /** Who a payout can be distributed by: active, registered players. */
+  distributorOptions: Player[];
 };
 
 function nullableDesc(a: number | null, b: number | null): number {
@@ -104,6 +123,49 @@ export function useLeaguePageData(): {
       cashOuts
     ).map((row) => ({ ...row }));
 
+    // Every window is half-open the same way — (startAfter, endOn] — so a
+    // session played on a payout's period_end_date belongs to the period that
+    // payout closed, and never also to the one that opens the same day.
+    const countSessions = (startAfter: string | null, endOn: string) =>
+      sessions.filter(
+        (session) =>
+          (!startAfter || session.played_at > startAfter) &&
+          session.played_at <= endOn
+      ).length;
+
+    const periodSessionCount = countSessions(period.startAfter, period.endOn);
+
+    const closedPayouts = [...payouts].sort((a, b) =>
+      b.period_end_date.localeCompare(a.period_end_date)
+    );
+    // The open period is always shown, so it takes one of the five slots.
+    const payoutPreview: PayoutPreviewRow[] = [
+      ...closedPayouts
+        .slice(0, PAYOUT_PREVIEW_ROWS - 1)
+        .map((payout, i): PayoutPreviewRow => ({
+          key: payout.id,
+          paidOn: payout.period_end_date,
+          startsOn: closedPayouts[i + 1]
+            ? nextIsoDate(closedPayouts[i + 1].period_end_date)
+            : null,
+          // The next *older* payout closed the window this one opened after.
+          // Slicing first would be wrong here — the 5th payout is what bounds
+          // the 4th, and it is outside the slice.
+          sessionCount: countSessions(
+            closedPayouts[i + 1]?.period_end_date ?? null,
+            payout.period_end_date
+          ),
+          status: "paid",
+        })),
+      {
+        key: "open",
+        paidOn: null,
+        startsOn: period.startAfter ? nextIsoDate(period.startAfter) : null,
+        sessionCount: periodSessionCount,
+        status: "active",
+      },
+    ];
+
     return {
       league,
       rankings,
@@ -113,13 +175,12 @@ export function useLeaguePageData(): {
       ).length,
       myPlayerId:
         players.find((player) => player.profile_id === user?.id)?.id ?? null,
-      period,
-      periodSessionCount: sessions.filter((session) => {
-        if (period.startAfter && session.played_at <= period.startAfter) {
-          return false;
-        }
-        return session.played_at <= period.endOn;
-      }).length,
+      payoutPreview,
+      distributorOptions: players
+        .filter((player) => !player.is_guest && player.status === "active")
+        .sort((a, b) =>
+          (a.display_name ?? a.name).localeCompare(b.display_name ?? b.name)
+        ),
     };
   }, [league, memberStatuses.statuses, sort, today, user?.id]);
 

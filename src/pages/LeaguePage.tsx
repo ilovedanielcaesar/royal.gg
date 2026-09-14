@@ -61,8 +61,8 @@ export default function LeaguePage() {
             />
             <PayoutGuestsBand
               groupId={group.id}
-              period={data.period}
-              periodSessionCount={data.periodSessionCount}
+              payoutPreview={data.payoutPreview}
+              distributorOptions={data.distributorOptions}
               guests={data.guests}
               isGroupAdmin={isGroupAdmin}
               recordsHref={path("/records")}
