@@ -20,8 +20,8 @@ type Props = {
 };
 
 /**
- * The left half of the payout band: the last few settle-ups, the one still
- * open, and — for an admin — the form that closes it.
+ * The left half of the payout band: the period still open, the settle-ups
+ * behind it newest first, and — for an admin — the form that closes it.
  *
  * The open period is listed with the closed ones rather than given its own
  * heading, because it is the same kind of thing: a window of nights with a
