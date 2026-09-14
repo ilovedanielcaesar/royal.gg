@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import Band from "../../components/Band";
 import Button from "../../components/Button";
 import SignInMethodsCard from "../../components/SignInMethodsCard";
@@ -23,6 +24,7 @@ type Props = {
 const SYNTHETIC_SUFFIX = "@royal.gg.local";
 
 export default function AccountBand({ email }: Props) {
+  const navigate = useNavigate();
   const realEmail =
     email && !email.toLowerCase().endsWith(SYNTHETIC_SUFFIX) ? email : null;
 
@@ -43,7 +45,20 @@ export default function AccountBand({ email }: Props) {
         <SignInMethodsCard />
       </div>
       <div className="mt-5 flex justify-end">
-        <Button type="button" variant="subtle" onClick={() => void signOut()}>
+        <Button
+          type="button"
+          variant="subtle"
+          onClick={() => {
+            // Leave for the landing page in the SAME tick the sign-out starts,
+            // before the auth state drops. Await it first and `RequireAuth`
+            // gets a frame with no user and bounces to /login — which is the
+            // right door for a signed-out deep link, and the wrong one for
+            // someone who just chose to leave. The sign-out itself finishes in
+            // the background; `/` is the landing page either way once it does.
+            navigate("/", { replace: true });
+            void signOut();
+          }}
+        >
           Sign out
         </Button>
       </div>

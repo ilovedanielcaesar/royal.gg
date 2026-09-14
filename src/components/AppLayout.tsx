@@ -1,9 +1,11 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useCurrentUser } from "../lib/auth";
 import { isSupabaseConfigured } from "../lib/supabase";
 import ErrorBoundary from "./ErrorBoundary";
 import GroupNav from "./GroupNav";
 import GroupSwitcher from "./GroupSwitcher";
+import MarketingButton from "./MarketingButton";
+import MarketingNav from "./MarketingNav";
 import SetupNotice from "./SetupNotice";
 import SuitBadge from "./SuitBadge";
 import UserMenu from "./UserMenu";
@@ -15,10 +17,23 @@ import UserMenu from "./UserMenu";
  * screen, and the contract's 1152px is the content width. The gutter is in the
  * calc so it only exists when the viewport is actually narrow.
  */
-const WRAP = "mx-auto w-[min(1152px,calc(100%-32px))]";
+export const WRAP = "mx-auto w-[min(1152px,calc(100%-32px))]";
 
 export default function AppLayout() {
-  const { user } = useCurrentUser();
+  const { loading, user } = useCurrentUser();
+  const { pathname } = useLocation();
+
+  /**
+   * The landing page is the one route that is not laid out on the 1152px
+   * column: its hero is full-bleed and pins for the height of the screen, so
+   * `main` steps out of the way and the page owns its own gutters.
+   *
+   * `loading` is in the test to stop the sign-in buttons flashing up for a
+   * member whose session is still being restored — a moment later
+   * `IndexRoute` will have sent them to their group.
+   */
+  const isLanding = pathname === "/" && !loading && !user;
+  const fullBleed = isLanding && isSupabaseConfigured;
 
   return (
     <div className="min-h-full">
@@ -29,7 +44,14 @@ export default function AppLayout() {
           makes IT a stacking context too, and it comes later in the document.
           Without a z-index here the header loses to the page body no matter
           what the menu asks for. Raise the header, not the menu. */}
-      <header className="relative z-50 border-b border-card-50/10 bg-felt-900/[0.76] backdrop-blur-[14px]">
+      <header
+        className={`${
+          // Sticky only on the landing page, where the hero scrolls beneath it
+          // for two screens and a header that left would take the brand and
+          // both doors with it.
+          isLanding ? "sticky top-0" : "relative"
+        } z-50 border-b border-card-50/10 bg-felt-900/[0.76] backdrop-blur-[14px]`}
+      >
         <div
           className={`${WRAP} flex min-h-[66px] flex-wrap items-center gap-x-5`}
         >
@@ -56,14 +78,25 @@ export default function AppLayout() {
           {/* The group nav follows the brand on the left. The account cluster
               absorbs the remaining space, so it stays hard right whether the
               nav is present or not. */}
-          <GroupNav />
+          {isLanding ? <MarketingNav /> : <GroupNav />}
           <div className="ml-auto flex items-center gap-5">
+            {/* Sign in and sign up are two doors onto the same account, so
+                they are one control split in two rather than a button beside
+                a bare text link. */}
+            {isLanding && (
+              <div className="flex items-center gap-2">
+                <MarketingButton to="/login" variant="ghost">
+                  Sign in
+                </MarketingButton>
+                <MarketingButton to="/signup">Sign up</MarketingButton>
+              </div>
+            )}
             {user && <GroupSwitcher />}
             {user && <UserMenu />}
           </div>
         </div>
       </header>
-      <main className={`${WRAP} pt-[30px] pb-14`}>
+      <main className={fullBleed ? "" : `${WRAP} pt-[30px] pb-14`}>
         {isSupabaseConfigured ? (
           <ErrorBoundary>
             <Outlet />
