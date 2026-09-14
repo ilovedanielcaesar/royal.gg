@@ -138,8 +138,17 @@ export function useLeaguePageData(): {
     const closedPayouts = [...payouts].sort((a, b) =>
       b.period_end_date.localeCompare(a.period_end_date)
     );
-    // The open period is always shown, so it takes one of the five slots.
+    // Newest first, top to bottom. The open period leads because it is the
+    // newest one — it starts the day after the most recent payout and has no
+    // end yet. It is always shown, so it takes one of the five slots.
     const payoutPreview: PayoutPreviewRow[] = [
+      {
+        key: "open",
+        paidOn: null,
+        startsOn: period.startAfter ? nextIsoDate(period.startAfter) : null,
+        sessionCount: periodSessionCount,
+        status: "active",
+      },
       ...closedPayouts
         .slice(0, PAYOUT_PREVIEW_ROWS - 1)
         .map((payout, i): PayoutPreviewRow => ({
@@ -157,13 +166,6 @@ export function useLeaguePageData(): {
           ),
           status: "paid",
         })),
-      {
-        key: "open",
-        paidOn: null,
-        startsOn: period.startAfter ? nextIsoDate(period.startAfter) : null,
-        sessionCount: periodSessionCount,
-        status: "active",
-      },
     ];
 
     return {
