@@ -3,7 +3,7 @@ import { Navigate } from "react-router-dom";
 import { useCurrentUser } from "../lib/auth";
 import { describeError } from "../lib/errors";
 import { requireSupabase } from "../lib/supabase";
-import LoginPage from "../pages/LoginPage";
+import HomePage from "../pages/HomePage";
 import LoadingState from "./LoadingState";
 
 type ActiveMembership = {
@@ -58,7 +58,10 @@ export default function IndexRoute() {
   if (loading) {
     return <LoadingState tone="felt" label="Dealing in…" full />;
   }
-  if (!user || !profile) return <LoginPage />;
+  // Signed out, this is royal.gg's front door rather than a sign-in form:
+  // the page explains what the app is and carries both doors into it. Sign-in
+  // itself still lives at /login, where the header's button points.
+  if (!user || !profile) return <HomePage />;
   if (!membershipState || membershipState.userId !== user.id) {
     return <LoadingState tone="felt" label="Dealing in…" full />;
   }
